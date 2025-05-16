@@ -22,6 +22,8 @@ interface AuthModalProps {
   defaultTab?: "signin" | "signup";
 }
 
+
+
 const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">(defaultTab);
   const [userType, setUserType] = useState<UserType>("patient");
@@ -46,9 +48,19 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "signin" | "signup")} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="signin" className="text-lg py-3">Sign In</TabsTrigger>
-            <TabsTrigger value="signup" className="text-lg py-3">Sign Up</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-6 p-3 gap-3 bg-transparent">
+            <TabsTrigger 
+              value="signin" 
+              className="text-lg py-3 bg-gradient-to-r from-primary-blue to-secondary-green text-white font-medium hover:brightness-110 rounded-md"
+            >
+              Sign In
+            </TabsTrigger>
+            <TabsTrigger 
+              value="signup" 
+              className="text-lg py-3 bg-gradient-to-r from-secondary-green to-primary-blue text-white font-medium hover:brightness-110 rounded-md"
+            >
+              Sign Up
+            </TabsTrigger>
           </TabsList>
           
           <div className="px-6 pb-6">
