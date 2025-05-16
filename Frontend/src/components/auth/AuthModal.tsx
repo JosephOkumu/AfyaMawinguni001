@@ -208,6 +208,22 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                   </div>
                 </div>
                 
+                <div className="space-y-2">
+                  <Label htmlFor="signup-confirm-password">Confirm Password</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-3 text-gray-400">
+                      <Lock className="h-5 w-5" />
+                    </span>
+                    <Input 
+                      id="signup-confirm-password" 
+                      type="password" 
+                      placeholder="Confirm your password" 
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                
                 <div className="flex items-center space-x-2 text-sm">
                   <input type="checkbox" id="terms" className="rounded border-gray-300" required />
                   <label htmlFor="terms">
