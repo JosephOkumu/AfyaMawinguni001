@@ -1,0 +1,590 @@
+
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import { useForm } from "react-hook-form";
+import { 
+  Save, 
+  Search,
+  TestTube, 
+  Microscope,
+  Activity, 
+  ChevronDown, 
+  Plus, 
+  Calendar, 
+  Bell, 
+  Settings
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+
+// Interfaces
+interface LabTest {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  turnaroundTime: string;
+  icon: React.ElementType;
+  isActive: boolean;
+}
+
+interface Appointment {
+  id: number;
+  patientName: string;
+  patientImage: string;
+  testName: string;
+  date: string;
+  time: string;
+  status: "pending" | "completed" | "cancelled";
+  paymentStatus: "paid" | "unpaid" | "partial";
+  amount: number;
+}
+
+const LabDashboard = () => {
+  // State variables
+  const [activeTab, setActiveTab] = useState<string>("tests");
+  const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
+  const [showTestForm, setShowTestForm] = useState<boolean>(false);
+  const { toast } = useToast();
+  
+  // Test form
+  const testForm = useForm<Omit<LabTest, "id" | "icon" | "isActive">>({
+    defaultValues: {
+      name: selectedTest?.name || "",
+      description: selectedTest?.description || "",
+      price: selectedTest?.price || 0,
+      turnaroundTime: selectedTest?.turnaroundTime || ""
+    }
+  });
+
+  // Sample data
+  const [labTests, setLabTests] = useState<LabTest[]>([
+    {
+      id: 1,
+      name: "Complete Blood Count",
+      description: "Measures different components of blood including red blood cells, white blood cells, and platelets.",
+      price: 1200,
+      turnaroundTime: "2 hours",
+      icon: Activity,
+      isActive: true
+    },
+    {
+      id: 2,
+      name: "Blood Glucose Test",
+      description: "Measures the amount of glucose in blood to diagnose diabetes.",
+      price: 800,
+      turnaroundTime: "1 hour",
+      icon: Activity,
+      isActive: true
+    },
+    {
+      id: 3,
+      name: "Lipid Profile",
+      description: "Measures cholesterol and triglycerides to assess heart disease risk.",
+      price: 1500,
+      turnaroundTime: "3 hours",
+      icon: TestTube,
+      isActive: true
+    },
+    {
+      id: 4,
+      name: "Liver Function Test",
+      description: "Assesses liver health by measuring enzymes and proteins.",
+      price: 2000,
+      turnaroundTime: "4 hours",
+      icon: Microscope,
+      isActive: true
+    },
+    {
+      id: 5,
+      name: "COVID-19 PCR Test",
+      description: "Detects current infection with SARS-CoV-2 virus.",
+      price: 3500,
+      turnaroundTime: "24 hours",
+      icon: TestTube,
+      isActive: true
+    }
+  ]);
+
+  const appointments: Appointment[] = [
+    {
+      id: 1,
+      patientName: "John Doe",
+      patientImage: "https://randomuser.me/api/portraits/men/32.jpg",
+      testName: "Complete Blood Count",
+      date: "2023-06-15",
+      time: "10:00 AM",
+      status: "pending",
+      paymentStatus: "paid",
+      amount: 1200
+    },
+    {
+      id: 2,
+      patientName: "Jane Smith",
+      patientImage: "https://randomuser.me/api/portraits/women/44.jpg",
+      testName: "Blood Glucose Test",
+      date: "2023-06-15",
+      time: "11:30 AM",
+      status: "completed",
+      paymentStatus: "paid",
+      amount: 800
+    },
+    {
+      id: 3,
+      patientName: "Michael Johnson",
+      patientImage: "https://randomuser.me/api/portraits/men/45.jpg",
+      testName: "Lipid Profile",
+      date: "2023-06-16",
+      time: "09:15 AM",
+      status: "pending",
+      paymentStatus: "unpaid",
+      amount: 1500
+    },
+    {
+      id: 4,
+      patientName: "Samantha Williams",
+      patientImage: "https://randomuser.me/api/portraits/women/67.jpg",
+      testName: "COVID-19 PCR Test",
+      date: "2023-06-16",
+      time: "02:00 PM",
+      status: "pending",
+      paymentStatus: "partial",
+      amount: 3500
+    }
+  ];
+
+  // Event handlers
+  const onTestSubmit = async (data: Omit<LabTest, "id" | "icon" | "isActive">) => {
+    if (selectedTest) {
+      // Update existing test
+      const updatedTests = labTests.map(test => 
+        test.id === selectedTest.id ? { ...test, ...data } : test
+      );
+      setLabTests(updatedTests);
+      toast({
+        title: "Test Updated",
+        description: `${data.name} has been updated successfully.`,
+      });
+    } else {
+      // Add new test
+      const newTest: LabTest = {
+        id: labTests.length + 1,
+        ...data,
+        icon: TestTube,
+        isActive: true
+      };
+      setLabTests([...labTests, newTest]);
+      toast({
+        title: "Test Added",
+        description: `${data.name} has been added successfully.`,
+      });
+    }
+    setShowTestForm(false);
+    setSelectedTest(null);
+    testForm.reset();
+  };
+
+  const handleEditTest = (test: LabTest) => {
+    setSelectedTest(test);
+    testForm.reset({
+      name: test.name,
+      description: test.description,
+      price: test.price,
+      turnaroundTime: test.turnaroundTime
+    });
+    setShowTestForm(true);
+  };
+
+  const handleAddNewTest = () => {
+    setSelectedTest(null);
+    testForm.reset({
+      name: "",
+      description: "",
+      price: 0,
+      turnaroundTime: ""
+    });
+    setShowTestForm(!showTestForm);
+  };
+
+  const handleToggleTestStatus = (id: number) => {
+    const updatedTests = labTests.map(test => 
+      test.id === id ? { ...test, isActive: !test.isActive } : test
+    );
+    setLabTests(updatedTests);
+    const test = updatedTests.find(t => t.id === id);
+    toast({
+      title: test?.isActive ? "Test Activated" : "Test Deactivated",
+      description: `${test?.name} has been ${test?.isActive ? "activated" : "deactivated"}.`,
+    });
+  };
+
+  const getStatusColor = (status: Appointment["status"]) => {
+    switch (status) {
+      case "pending": return "bg-amber-100 text-amber-800";
+      case "completed": return "bg-green-100 text-green-800";
+      case "cancelled": return "bg-red-100 text-red-800";
+      default: return "";
+    }
+  };
+
+  const getPaymentStatusColor = (status: Appointment["paymentStatus"]) => {
+    switch (status) {
+      case "paid": return "bg-green-100 text-green-800";
+      case "unpaid": return "bg-red-100 text-red-800";
+      case "partial": return "bg-blue-100 text-blue-800";
+      default: return "";
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              <span className="text-primary-blue">AFYA</span>
+              <span className="text-secondary-green"> MAWINGUNI</span>
+            </h1>
+            <p className="text-gray-600 mt-2">Laboratory Service Provider Dashboard</p>
+          </div>
+          
+          <div className="mt-4 md:mt-0 flex items-center space-x-3">
+            <div className="flex items-center bg-white rounded-full px-3 py-1.5 border border-gray-200 shadow-sm">
+              <span className="text-sm font-medium mr-2">Central Diagnostic Laboratory</span>
+              <Avatar className="h-8 w-8 border border-secondary-green/20">
+                <AvatarImage src="https://randomuser.me/api/portraits/men/41.jpg" alt="Lab Admin" />
+                <AvatarFallback>CDL</AvatarFallback>
+              </Avatar>
+            </div>
+            <Button variant="outline" size="icon">
+              <Bell className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Dashboard Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Active Tests</p>
+                <h3 className="text-2xl font-bold">{labTests.filter(t => t.isActive).length}</h3>
+              </div>
+              <div className="h-10 w-10 bg-blue-200 rounded-full flex items-center justify-center">
+                <TestTube className="h-5 w-5 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-green-50 to-green-100">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Completed Tests</p>
+                <h3 className="text-2xl font-bold">123</h3>
+              </div>
+              <div className="h-10 w-10 bg-green-200 rounded-full flex items-center justify-center">
+                <Activity className="h-5 w-5 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-amber-50 to-amber-100">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Pending Appointments</p>
+                <h3 className="text-2xl font-bold">{appointments.filter(a => a.status === "pending").length}</h3>
+              </div>
+              <div className="h-10 w-10 bg-amber-200 rounded-full flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-amber-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Revenue</p>
+                <h3 className="text-2xl font-bold">KES 78,500</h3>
+              </div>
+              <div className="h-10 w-10 bg-purple-200 rounded-full flex items-center justify-center">
+                <ChevronDown className="h-5 w-5 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-6 w-full justify-start overflow-x-auto space-x-2">
+            <TabsTrigger value="tests" className="gap-2">
+              <TestTube className="h-4 w-4" />
+              <span>Lab Tests</span>
+            </TabsTrigger>
+            <TabsTrigger value="appointments" className="gap-2">
+              <Calendar className="h-4 w-4" />
+              <span>Appointments</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tests Tab */}
+          <TabsContent value="tests">
+            <Card>
+              <CardHeader className="border-b pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold">Manage Tests</h2>
+                  <p className="text-gray-600 text-sm">Add, modify, or deactivate laboratory tests</p>
+                </div>
+                <Button onClick={handleAddNewTest} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  {showTestForm ? "Hide Form" : "Add New Test"}
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {showTestForm && (
+                  <Card className="mb-6 border border-primary-blue/20 bg-blue-50/30">
+                    <CardContent className="pt-6">
+                      <Form {...testForm}>
+                        <form onSubmit={testForm.handleSubmit(onTestSubmit)} className="space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={testForm.control}
+                              name="name"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Test Name</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="e.g., Complete Blood Count" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={testForm.control}
+                              name="price"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Price (KES)</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type="number" 
+                                      placeholder="e.g., 1500" 
+                                      {...field} 
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={testForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Description</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Describe the test..."
+                                    className="min-h-[100px]"
+                                    {...field}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={testForm.control}
+                            name="turnaroundTime"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Turnaround Time</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g., 2 hours" {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <div className="flex justify-end gap-4">
+                            <Button 
+                              type="button" 
+                              variant="outline"
+                              onClick={() => {
+                                setShowTestForm(false);
+                                setSelectedTest(null);
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button type="submit" className="gap-2">
+                              <Save className="h-4 w-4" />
+                              {selectedTest ? "Update Test" : "Add Test"}
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Test Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Price (KES)</TableHead>
+                        <TableHead>Turnaround Time</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {labTests.map((test) => (
+                        <TableRow key={test.id}>
+                          <TableCell className="font-medium flex items-center gap-2">
+                            <test.icon className="h-4 w-4 text-primary-blue" />
+                            {test.name}
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate">{test.description}</TableCell>
+                          <TableCell>{test.price.toLocaleString()}</TableCell>
+                          <TableCell>{test.turnaroundTime}</TableCell>
+                          <TableCell>
+                            <Badge variant={test.isActive ? "default" : "secondary"} className={test.isActive ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-gray-100 text-gray-800 hover:bg-gray-200"}>
+                              {test.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleEditTest(test)}
+                              >
+                                Edit
+                              </Button>
+                              <Button 
+                                variant={test.isActive ? "destructive" : "outline"} 
+                                size="sm"
+                                onClick={() => handleToggleTestStatus(test.id)}
+                              >
+                                {test.isActive ? "Deactivate" : "Activate"}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Appointments Tab */}
+          <TabsContent value="appointments">
+            <Card>
+              <CardHeader className="border-b pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold">Upcoming Appointments</h2>
+                  <p className="text-gray-600 text-sm">Manage patient test appointments</p>
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  <Input className="pl-10 w-full md:w-64" placeholder="Search appointments..." />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Patient</TableHead>
+                        <TableHead>Test</TableHead>
+                        <TableHead>Date & Time</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {appointments.map((appointment) => (
+                        <TableRow key={appointment.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={appointment.patientImage} alt={appointment.patientName} />
+                                <AvatarFallback>{appointment.patientName.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium">{appointment.patientName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{appointment.testName}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span>{new Date(appointment.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                              <span className="text-gray-500 text-xs">{appointment.time}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(appointment.status)}>
+                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getPaymentStatusColor(appointment.paymentStatus)}>
+                              {appointment.paymentStatus.charAt(0).toUpperCase() + appointment.paymentStatus.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>KES {appointment.amount.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              {appointment.status === "pending" && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                >
+                                  Complete
+                                </Button>
+                              )}
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                              >
+                                View
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default LabDashboard;
