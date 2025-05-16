@@ -42,7 +42,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[500px] p-0 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="bg-gradient-to-r from-primary-blue to-secondary-green p-6 text-white">
           <DialogTitle className="text-2xl font-bold text-center">Welcome to Afya Mawinguni</DialogTitle>
         </DialogHeader>
