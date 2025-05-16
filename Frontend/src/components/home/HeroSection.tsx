@@ -12,7 +12,6 @@ const HeroSection = () => {
         </p>
         <AuthButton 
           defaultTab="signup"
-          className="bg-secondary-green hover:bg-secondary-green/90 text-custom-white font-medium"
         >
           Create Account
         </AuthButton>
