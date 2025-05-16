@@ -1,9 +1,26 @@
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import AuthButton from "./auth/AuthButton";
+import { useEffect } from "react";
 
 const Header = () => {
+  const location = useLocation();
+
+  const scrollToSection = (id: string) => {
+    // First, check if we're on the home page
+    if (location.pathname !== '/') {
+      // If not, navigate to home page with the hash
+      window.location.href = `/#${id}`;
+      return;
+    }
+    
+    // If already on home page, scroll to the section
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   return (
     <header className="bg-custom-white shadow-sm">
       <div className="container mx-auto px-4">
@@ -18,12 +35,18 @@ const Header = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/features" className="text-custom-dark hover:text-primary-blue font-medium">
+            <button 
+              onClick={() => scrollToSection('services')} 
+              className="text-custom-dark hover:text-primary-blue font-medium"
+            >
               Services
-            </Link>
-            <Link to="/accounts" className="text-custom-dark hover:text-primary-blue font-medium">
+            </button>
+            <button 
+              onClick={() => scrollToSection('accounts')} 
+              className="text-custom-dark hover:text-primary-blue font-medium"
+            >
               Accounts
-            </Link>
+            </button>
             
             {/* New Provider Dashboard Links */}
             <div className="group relative">

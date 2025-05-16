@@ -36,10 +36,14 @@ const Index = () => {
       <HeroSection />
 
       {/* Features Section */}
-      <FeaturesSection />
+      <div id="services">
+        <FeaturesSection />
+      </div>
 
       {/* Account Types Section */}
-      <AccountsSection />
+      <div id="accounts">
+        <AccountsSection />
+      </div>
       
       {/* Call to Action Section */}
       <section className="bg-gradient-to-r from-primary-blue to-secondary-green py-16 text-white">
