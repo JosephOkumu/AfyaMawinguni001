@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -97,7 +96,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-primary-blue hover:bg-primary-blue/90 text-white py-3"
+                  className="w-full bg-gradient-to-r from-primary-blue to-secondary-green text-white py-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 font-medium text-lg hover:scale-[1.02] hover:brightness-105"
+                  size="lg"
                 >
                   Sign In
                 </Button>
@@ -205,7 +205,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-secondary-green hover:bg-secondary-green/90 text-white py-3"
+                  className="w-full bg-gradient-to-r from-secondary-green to-primary-blue text-white py-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 font-medium text-lg hover:scale-[1.02] hover:brightness-105"
+                  size="lg"
                 >
                   Sign Up as {userType.charAt(0).toUpperCase() + userType.slice(1)}
                 </Button>
