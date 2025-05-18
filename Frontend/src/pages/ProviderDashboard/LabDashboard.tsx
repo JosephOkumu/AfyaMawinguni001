@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,7 +25,9 @@ import {
   Plus, 
   Calendar, 
   Bell, 
-  Settings
+  Settings,
+  User,
+  X
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -40,6 +43,21 @@ interface LabTest {
   turnaroundTime: string;
   icon: React.ElementType;
   isActive: boolean;
+}
+
+interface LaboratoryProfile {
+  facilityName: string;
+  address: string;
+  phoneNumber: string;
+  email: string;
+  website: string;
+  operatingHours: string;
+  description: string;
+  specialties: string[];
+  certifications: string[];
+  contactPersonName: string;
+  contactPersonRole: string;
+  profileImage: string;
 }
 
 interface Appointment {
@@ -59,7 +77,29 @@ const LabDashboard = () => {
   const [activeTab, setActiveTab] = useState<string>("tests");
   const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
   const [showTestForm, setShowTestForm] = useState<boolean>(false);
+  const [showProfileDialog, setShowProfileDialog] = useState<boolean>(false);
   const { toast } = useToast();
+  
+  // Laboratory profile state
+  const [laboratoryProfile, setLaboratoryProfile] = useState<LaboratoryProfile>({
+    facilityName: "Central Diagnostic Laboratory",
+    address: "123 Health Avenue, Nairobi, Kenya",
+    phoneNumber: "+254 712 345 678",
+    email: "info@centraldl.com",
+    website: "www.centraldl.com",
+    operatingHours: "Monday-Friday: 8:00AM-8:00PM, Saturday: 9:00AM-5:00PM, Sunday: Closed",
+    description: "Central Diagnostic Laboratory is a state-of-the-art facility offering comprehensive diagnostic services with modern equipment and highly trained professionals.",
+    specialties: ["Hematology", "Biochemistry", "Microbiology", "Molecular Diagnostics", "Immunology"],
+    certifications: ["ISO 15189", "Kenya Laboratory Accreditation Service", "CAP Certification"],
+    contactPersonName: "Dr. Sarah Kimani",
+    contactPersonRole: "Laboratory Director",
+    profileImage: "https://randomuser.me/api/portraits/men/41.jpg"
+  });
+  
+  // Profile form setup
+  const profileForm = useForm<LaboratoryProfile>({
+    defaultValues: laboratoryProfile
+  });
   
   // Test form
   const testForm = useForm<Omit<LabTest, "id" | "icon" | "isActive">>({
@@ -231,6 +271,15 @@ const LabDashboard = () => {
       description: `${test?.name} has been ${test?.isActive ? "activated" : "deactivated"}.`,
     });
   };
+  
+  // Profile form handler
+  const onProfileSubmit = async (data: LaboratoryProfile) => {
+    setLaboratoryProfile(data);
+    toast({
+      title: "Profile Updated",
+      description: "Your laboratory profile has been updated successfully.",
+    });
+  };
 
   const getStatusColor = (status: Appointment["status"]) => {
     switch (status) {
@@ -274,9 +323,223 @@ const LabDashboard = () => {
             <Button variant="outline" size="icon">
               <Bell className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon">
-              <Settings className="h-4 w-4" />
-            </Button>
+            <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto">
+                <DialogHeader className="sticky top-0 z-10 bg-white px-6 py-4 border-b flex flex-row justify-between items-center">
+                  <DialogTitle className="text-xl font-semibold">Laboratory Profile Settings</DialogTitle>
+                  <DialogClose asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </DialogClose>
+                </DialogHeader>
+                <div className="px-6 py-4">
+                  <Form {...profileForm}>
+                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+                      <div className="flex flex-col lg:flex-row gap-8">
+                        {/* Profile Image Section */}
+                        <div className="lg:w-1/3 flex flex-col items-center">
+                          <div className="w-48 h-48 rounded-full mb-6 overflow-hidden border-4 border-primary-blue/20">
+                            <img 
+                              src={laboratoryProfile.profileImage} 
+                              alt="Laboratory Profile"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <Button variant="outline" className="gap-2 w-full md:w-auto mb-4">
+                            <input type="file" className="hidden" id="profile-image" />
+                            <label htmlFor="profile-image" className="cursor-pointer flex items-center justify-center gap-2">
+                              <Plus className="h-4 w-4" />
+                              Change Profile Image
+                            </label>
+                          </Button>
+                          
+                          {/* Certifications */}
+                          <div className="w-full bg-blue-50 rounded-md p-4 mt-4">
+                            <h3 className="font-semibold mb-2">Certifications & Accreditations</h3>
+                            <div className="flex flex-wrap gap-2">
+                              {laboratoryProfile.certifications.map((cert, index) => (
+                                <Badge key={index} className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+                                  {cert}
+                                </Badge>
+                              ))}
+                            </div>
+                            <div className="mt-4">
+                              <div className="flex gap-2">
+                                <Input placeholder="Add certification" className="flex-1" id="new-cert" />
+                                <Button variant="outline" size="sm" type="button">
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Profile Details Form */}
+                        <div className="lg:w-2/3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={profileForm.control}
+                              name="facilityName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Facility Name</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Laboratory name" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={profileForm.control}
+                              name="email"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Email Address</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="contact@example.com" type="email" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <FormField
+                              control={profileForm.control}
+                              name="phoneNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Phone Number</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="+254 7XX XXX XXX" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={profileForm.control}
+                              name="website"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Website</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="www.example.com" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <FormField
+                            control={profileForm.control}
+                            name="address"
+                            render={({ field }) => (
+                              <FormItem className="mt-4">
+                                <FormLabel>Address</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Physical address" {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={profileForm.control}
+                            name="operatingHours"
+                            render={({ field }) => (
+                              <FormItem className="mt-4">
+                                <FormLabel>Operating Hours</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g., Mon-Fri: 8AM-5PM" {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={profileForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem className="mt-4">
+                                <FormLabel>Laboratory Description</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Describe your laboratory and services..."
+                                    className="min-h-[120px]"
+                                    {...field}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <div className="mt-4">
+                            <FormLabel>Specialties</FormLabel>
+                            <div className="flex flex-wrap gap-2 mt-2 mb-2">
+                              {laboratoryProfile.specialties.map((specialty, index) => (
+                                <Badge key={index} className="bg-green-100 text-green-800 hover:bg-green-200">
+                                  {specialty}
+                                </Badge>
+                              ))}
+                            </div>
+                            <div className="flex gap-2">
+                              <Input placeholder="Add specialty" className="flex-1" id="new-specialty" />
+                              <Button variant="outline" size="sm" type="button">
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <FormField
+                              control={profileForm.control}
+                              name="contactPersonName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Contact Person</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Full name" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={profileForm.control}
+                              name="contactPersonRole"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Role/Position</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="e.g., Laboratory Director" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-end gap-4 pt-4 border-t">
+                        <Button variant="outline" type="button" onClick={() => profileForm.reset()}>Reset Changes</Button>
+                        <Button type="submit" className="gap-2" onClick={() => {
+                          onProfileSubmit(profileForm.getValues());
+                          setShowProfileDialog(false);
+                        }}>
+                          <Save className="h-4 w-4" />
+                          Save Profile
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -581,6 +844,8 @@ const LabDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          
+
         </Tabs>
       </div>
     </div>
