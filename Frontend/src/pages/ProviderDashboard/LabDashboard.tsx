@@ -70,6 +70,9 @@ interface Appointment {
   status: "pending" | "completed" | "cancelled";
   paymentStatus: "paid" | "unpaid" | "partial";
   amount: number;
+  location: string;
+  assignedStaff: string;
+  notes: string;
 }
 
 const LabDashboard = () => {
@@ -78,6 +81,10 @@ const LabDashboard = () => {
   const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
   const [showTestForm, setShowTestForm] = useState<boolean>(false);
   const [showProfileDialog, setShowProfileDialog] = useState<boolean>(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [showAppointmentDetails, setShowAppointmentDetails] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState<boolean>(false);
   const { toast } = useToast();
   
   // Laboratory profile state
@@ -161,6 +168,7 @@ const LabDashboard = () => {
   ]);
 
   const appointments: Appointment[] = [
+
     {
       id: 1,
       patientName: "John Doe",
@@ -170,7 +178,10 @@ const LabDashboard = () => {
       time: "10:00 AM",
       status: "pending",
       paymentStatus: "paid",
-      amount: 1200
+      amount: 1200,
+      location: "Lab Room 3, East Wing",
+      assignedStaff: "Dr. Elizabeth Johnson",
+      notes: "Patient should fast for 8 hours before the test. Bring previous lab results if available."
     },
     {
       id: 2,
@@ -181,7 +192,10 @@ const LabDashboard = () => {
       time: "11:30 AM",
       status: "completed",
       paymentStatus: "paid",
-      amount: 800
+      amount: 800,
+      location: "Lab Room 1, Main Floor",
+      assignedStaff: "Dr. Robert Chen",
+      notes: "The patient is diabetic. Special care should be taken during sample collection."
     },
     {
       id: 3,
@@ -192,7 +206,10 @@ const LabDashboard = () => {
       time: "09:15 AM",
       status: "pending",
       paymentStatus: "unpaid",
-      amount: 1500
+      amount: 1500,
+      location: "Lab Room 5, Second Floor",
+      assignedStaff: "Dr. Lisa Wong",
+      notes: "Patient must fast for 12 hours prior to the test. Water is allowed."
     },
     {
       id: 4,
@@ -203,7 +220,10 @@ const LabDashboard = () => {
       time: "02:00 PM",
       status: "pending",
       paymentStatus: "partial",
-      amount: 3500
+      amount: 3500,
+      location: "Isolation Room 2, West Wing",
+      assignedStaff: "Dr. Michael Omondi",
+      notes: "Patient has reported COVID-19 exposure. Follow strict isolation protocols during testing."
     }
   ];
 
@@ -831,6 +851,10 @@ const LabDashboard = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm"
+                                onClick={() => {
+                                  setSelectedAppointment(appointment);
+                                  setShowAppointmentDetails(true);
+                                }}
                               >
                                 View
                               </Button>
@@ -848,6 +872,316 @@ const LabDashboard = () => {
 
         </Tabs>
       </div>
+      
+      {/* Appointment Details Dialog */}
+      <Dialog open={showAppointmentDetails} onOpenChange={(open) => {
+        setShowAppointmentDetails(open);
+        if (!open) {
+          setIsEditing(false);
+        }
+      }}>
+        <DialogContent className="sm:max-w-[650px]">
+          <DialogHeader>
+            <div className="flex justify-between items-center">
+              <DialogTitle>Appointment Details</DialogTitle>
+              {selectedAppointment && selectedAppointment.status === "pending" && (
+                <div className="flex gap-2">
+                  {!isEditing ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setIsEditing(true)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                      </svg>
+                      Edit Details
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setIsEditing(false)}
+                    >
+                      Cancel Editing
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </DialogHeader>
+          
+          {selectedAppointment && (
+            <div className="space-y-6">
+              {/* Patient Information - Always Read-Only */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">Patient Information</h3>
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={selectedAppointment.patientImage} alt={selectedAppointment.patientName} />
+                    <AvatarFallback>{selectedAppointment.patientName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold">{selectedAppointment.patientName}</p>
+                    <p className="text-sm text-gray-500">Patient ID: PT-{1000 + selectedAppointment.id}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Test Type:</p>
+                    <p>{selectedAppointment.testName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Amount:</p>
+                    <p>KES {selectedAppointment.amount.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Appointment Specifics Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">Appointment Specifics</h3>
+                
+                {/* Date and Time Details */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-gray-500">Date and Time</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium">Date:</p>
+                      <p>{new Date(selectedAppointment.date).toLocaleDateString('en-US', { 
+                        weekday: 'long',
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Time:</p>
+                      <p>{selectedAppointment.time}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Location - Editable */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-gray-500">Location</h4>
+                  {isEditing ? (
+                    <Input 
+                      value={selectedAppointment.location} 
+                      onChange={(e) => {
+                        setSelectedAppointment({
+                          ...selectedAppointment,
+                          location: e.target.value
+                        });
+                      }}
+                    />
+                  ) : (
+                    <p>{selectedAppointment.location}</p>
+                  )}
+                </div>
+                
+                {/* Assigned Staff - Editable */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-gray-500">Assigned Staff</h4>
+                  {isEditing ? (
+                    <Input 
+                      value={selectedAppointment.assignedStaff} 
+                      onChange={(e) => {
+                        setSelectedAppointment({
+                          ...selectedAppointment,
+                          assignedStaff: e.target.value
+                        });
+                      }}
+                    />
+                  ) : (
+                    <p>{selectedAppointment.assignedStaff}</p>
+                  )}
+                </div>
+                
+                {/* Notes & Instructions - Editable */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-gray-500">Notes & Special Instructions</h4>
+                  {isEditing ? (
+                    <Textarea 
+                      value={selectedAppointment.notes} 
+                      onChange={(e) => {
+                        setSelectedAppointment({
+                          ...selectedAppointment,
+                          notes: e.target.value
+                        });
+                      }}
+                      className="min-h-[100px]"
+                    />
+                  ) : (
+                    <p className="text-sm">{selectedAppointment.notes}</p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Status Information */}
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm text-gray-500">Current Status</h4>
+                <div className="flex gap-2 items-center">
+                  <Badge className={getStatusColor(selectedAppointment.status)}>
+                    {selectedAppointment.status.charAt(0).toUpperCase() + selectedAppointment.status.slice(1)}
+                  </Badge>
+                  
+                  <Badge className={getPaymentStatusColor(selectedAppointment.paymentStatus)}>
+                    {selectedAppointment.paymentStatus.charAt(0).toUpperCase() + selectedAppointment.paymentStatus.slice(1)}
+                  </Badge>
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-4 border-t">
+                <div className="flex gap-2">
+                  {selectedAppointment.status === "pending" && (
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => {
+                        // Update appointment status locally for demo
+                        const updatedAppointments = appointments.map(appointment => 
+                          appointment.id === selectedAppointment.id 
+                            ? { ...appointment, status: "cancelled" as const } 
+                            : appointment
+                        );
+                        // In a real app, you would call an API here
+                        toast({
+                          title: "Appointment Cancelled",
+                          description: `Appointment for ${selectedAppointment.patientName} has been cancelled.`,
+                        });
+                        setShowAppointmentDetails(false);
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Cancel Appointment
+                    </Button>
+                  )}
+                  
+                  {selectedAppointment.status === "pending" && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowRescheduleDialog(true)}
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Reschedule
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="flex gap-2">
+                  {isEditing && (
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={() => {
+                        // Save changes in a real app would call API
+                        toast({
+                          title: "Details Updated",
+                          description: `Appointment details for ${selectedAppointment.patientName} have been updated.`,
+                        });
+                        setIsEditing(false);
+                      }}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </Button>
+                  )}
+                  
+                  {selectedAppointment.status === "pending" && !isEditing && (
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => {
+                        // Update appointment status locally for demo
+                        const updatedAppointments = appointments.map(appointment => 
+                          appointment.id === selectedAppointment.id 
+                            ? { ...appointment, status: "completed" as const } 
+                            : appointment
+                        );
+                        // In a real app, you would call an API here
+                        toast({
+                          title: "Test Completed",
+                          description: `The ${selectedAppointment.testName} for ${selectedAppointment.patientName} has been marked as completed.`,
+                        });
+                        setShowAppointmentDetails(false);
+                      }}
+                    >
+                      Complete Test
+                    </Button>
+                  )}
+                  
+                  <Button variant="outline" onClick={() => setShowAppointmentDetails(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Reschedule Dialog */}
+      <Dialog open={showRescheduleDialog} onOpenChange={setShowRescheduleDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Reschedule Appointment</DialogTitle>
+          </DialogHeader>
+          
+          {selectedAppointment && (
+            <div className="space-y-6">
+              <div>
+                <FormLabel>New Date</FormLabel>
+                <Input 
+                  type="date" 
+                  defaultValue={selectedAppointment.date}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <FormLabel>New Time</FormLabel>
+                <Input 
+                  type="time" 
+                  defaultValue={selectedAppointment.time.split(' ')[0]}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <FormLabel>Reason for Rescheduling</FormLabel>
+                <Textarea 
+                  placeholder="Provide a reason for rescheduling..."
+                  className="mt-1"
+                />
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowRescheduleDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    toast({
+                      title: "Appointment Rescheduled",
+                      description: `Appointment for ${selectedAppointment.patientName} has been rescheduled.`,
+                    });
+                    setShowRescheduleDialog(false);
+                  }}
+                >
+                  Confirm Reschedule
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
