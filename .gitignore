@@ -1,104 +1,137 @@
-# Sensitive information
+# ===========================================
+# Laravel & PHP
+# ===========================================
+/vendor/
+/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment
 .env
-*.env
-.env.*
+.env.*.local
 !.env.example
 
-# Environment variables
-.flaskenv
-.python-version
+# Laravel 4 & 5 specific
+bootstrap/compiled.php
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
 
-# Credentials
-*.pem
-*.key
-*.crt
-*.p12
-*.pfx
-*.cer
-*.csr
-*.srl
+# Laravel 5 & Lumen specific with changed public path & public/build
+/public/storage
+/public/hot
+/public/build
 
-# Database files
+# Laravel 5 & Lumen specific with changed public path
+/public/storage
+/storage/*.key
+/storage/app/public/*
+!storage/app/public/.gitignore
+/storage/framework/cache/data/*
+!storage/framework/cache/data/.gitignore
+/storage/framework/sessions/*
+!storage/framework/sessions/.gitignore
+/storage/framework/views/*.php
+!storage/framework/views/.gitignore
+/storage/logs/*
+!storage/logs/.gitignore
+
+# Laravel 5 & Lumen specific with changed public path
+/public/storage
+/public/hot
+
+# Laravel 5 & Lumen specific with changed public path
+/public/storage
+/public/hot
+
+# ===========================================
+# Development Tools & IDEs
+# ===========================================
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+
+# ===========================================
+# OS Generated
+# ===========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===========================================
+# Project Specific
+# ===========================================
+# Uploads directory content (but keep the directory)
+Backend/uploads/*
+!Backend/uploads/.gitignore
+
+# ===========================================
+# Logs and databases
+# ===========================================
+*.log
+*.sql
 *.sqlite
 *.sqlite3
 *.db
-*.sql.gz
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-.pytest_cache/
-.coverage
-htmlcov/
-venv/
-.venv/
-ENV/
+# ===========================================
+# Testing
+# ===========================================
+/coverage
+.phpunit.result.cache
 
-# JavaScript/Node
+# ===========================================
+# Composer
+# ===========================================
+composer.lock
+/vendor/
+
+# ===========================================
+# Node/NPM
+# ===========================================
 node_modules/
 npm-debug.log
-yarn-debug.log
 yarn-error.log
-.pnp/
-.pnp.js
-.next/
-out/
-build/
-.DS_Store
-*.log
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
-# IDE files
-.idea/
-.vscode/
+# ===========================================
+# Environment
+# ===========================================
+.env
+.env.*.local
+!.env.example
+
+# ===========================================
+# Build files
+# ===========================================
+/build/
+/dist/
+
+# ===========================================
+# Temp files
+# ===========================================
 *.swp
+*~
 *.swo
 *~
-.DS_Store
-
-# OS generated files
-.DS_Store*
-ehthumbs.db
-Icon?
-Thumbs.db
-
-# Uploads directory content (but keep the directory)
-Backend/uploads/*
-!Backend/uploads/.gitkeep
-
-# Logs
-logs/
-*.log
-log/
-
-# Temporary files
-*.tmp
 *.bak
-*.swp
-*~.nib
-.*.sw[a-p]
+*.backup
+*_backup
+*.tmp
+*.sass-cache
+
+# ===========================================
+# IDE specific files
+# ===========================================
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
 
 # Testing
 coverage/

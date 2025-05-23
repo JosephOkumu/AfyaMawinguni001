@@ -1,117 +1,61 @@
-# Afya Mawinguni Backend
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-This is the backend implementation for the Afya Mawinguni healthcare platform, providing API endpoints for medicines, lab tests, doctor consultations, nursing services, and user management.
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-## Features
+## About Laravel
 
-- User authentication and authorization (JWT)
-- User profiles for patients, doctors, nursing staff, and laboratory staff
-- Medicine catalog with pharmacy inventory
-- Lab test management and booking
-- Doctor consultation scheduling
-- Home nursing service booking
-- Order management for medicine purchases
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-## Prerequisites
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-- Python 3.8 or higher
-- MySQL 5.7 or higher
-- pip (Python package manager)
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## Installation
+## Learning Laravel
 
-1. Clone the repository (if you haven't already):
-   ```
-   git clone <repository-url>
-   cd AfyaMawinguni001/Backend
-   ```
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-2. Create a virtual environment and activate it:
-   ```
-   # On Windows
-   python -m venv venv
-   venv\\Scripts\\activate
+You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
 
-   # On macOS/Linux
-   python -m venv venv
-   source venv/bin/activate
-   ```
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-3. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+## Laravel Sponsors
 
-4. Set up your MySQL database:
-   - Create a MySQL database named `afya_mawinguni`
-   - Import the database schema from `database_schema.sql`
-   ```
-   mysql -u your_username -p afya_mawinguni < database_schema.sql
-   ```
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-5. Create a `.env` file in the Backend directory with your configuration:
-   ```
-   SECRET_KEY=your_secret_key
-   DEBUG=True
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_USER=your_db_username
-   DB_PASSWORD=your_db_password
-   DB_NAME=afya_mawinguni
-   JWT_SECRET_KEY=your_jwt_secret_key
-   CORS_ORIGINS=http://localhost:3000,http://localhost:5173
-   ```
+### Premium Partners
 
-## Running the Application
+- **[Vehikl](https://vehikl.com)**
+- **[Tighten Co.](https://tighten.co)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
+- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
+- **[Redberry](https://redberry.international/laravel-development)**
+- **[Active Logic](https://activelogic.com)**
 
-1. Start the Flask development server:
-   ```
-   python app.py
-   ```
+## Contributing
 
-2. The API will be available at `http://localhost:8000`
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-## API Endpoints
+## Code of Conduct
 
-### Authentication
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Log in and get JWT token
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-### Medicines
-- `GET /api/medicines` - Get all medicines
-- `GET /api/medicines/{id}` - Get medicine details by ID
-- `GET /api/medicines/categories` - Get medicine categories
-- `GET /api/medicines/pharmacies` - Get pharmacies
+## Security Vulnerabilities
 
-### Lab Tests
-- `GET /api/lab-tests` - Get all lab tests
-- `GET /api/lab-tests/{id}` - Get lab test details by ID
-- `GET /api/lab-tests/facilities` - Get lab facilities
-- `POST /api/lab-tests/book` - Book a lab test
-
-### Doctors
-- `GET /api/doctors` - Get all doctors
-- `GET /api/doctors/{id}` - Get doctor details by ID
-- `GET /api/doctors/specialties` - Get doctor specialties
-- `GET /api/doctors/available-slots` - Get available appointment slots
-- `POST /api/doctors/book-appointment` - Book a doctor appointment
-
-### Nursing
-- `GET /api/nursing` - Get all nursing providers
-- `GET /api/nursing/{id}` - Get nursing provider details by ID
-- `GET /api/nursing/services` - Get nursing services
-- `GET /api/nursing/categories` - Get nursing service categories
-- `POST /api/nursing/book` - Book a nursing service
-
-### Appointments
-- `GET /api/appointments` - Get user's appointments
-- `PUT /api/appointments/{type}/{id}` - Update appointment status
-
-### Orders
-- `GET /api/orders` - Get user's orders
-- `POST /api/orders` - Create a new order
-- `GET /api/orders/{id}` - Get order details
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
