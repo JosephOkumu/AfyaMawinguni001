@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -16,6 +19,14 @@ import {
 
 type UserType = "patient" | "doctor" | "nursing" | "laboratory";
 
+// Map frontend user types to backend user_type_id
+const userTypeMapping: Record<UserType, number> = {
+  patient: 1,
+  doctor: 2,
+  nursing: 3,
+  laboratory: 4
+};
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,17 +38,160 @@ interface AuthModalProps {
 const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">(defaultTab);
   const [userType, setUserType] = useState<UserType>("patient");
+  const [loading, setLoading] = useState(false);
+  
+  // Form field states
+  const [signinEmail, setSigninEmail] = useState("");
+  const [signinPassword, setSigninPassword] = useState("");
+  
+  const [signupName, setSignupName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPhone, setSignupPhone] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
+  const [signupLicense, setSignupLicense] = useState("");
+  const [signupNationalId, setSignupNationalId] = useState("");
+  
+  const { login, register } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSignIn = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle sign in logic here
-    console.log("Sign in submitted");
+    setLoading(true);
+    
+    try {
+      await login(signinEmail, signinPassword);
+      toast({
+        title: "Success",
+        description: "You have successfully signed in",
+        variant: "default",
+      });
+      onClose();
+      
+      // Redirect based on user type
+      setTimeout(() => {
+        const user = localStorage.getItem("user");
+        if (user) {
+          const userData = JSON.parse(user);
+          switch (userData.user_type.name) {
+            case "patient":
+              navigate("/patient-dashboard");
+              break;
+            case "doctor":
+              navigate("/doctor-dashboard");
+              break;
+            case "lab_provider":
+              navigate("/provider/laboratory");
+              break;
+            case "nursing_provider":
+              navigate("/nursing-dashboard");
+              break;
+            default:
+              navigate("/");
+          }
+        }
+      }, 500);
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast({
+        title: "Login Failed",
+        description: error.response?.data?.message || "Invalid credentials",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle sign up logic here
-    console.log("Sign up submitted with user type:", userType);
+    setLoading(true);
+    
+    // Validate passwords match
+    if (signupPassword !== signupConfirmPassword) {
+      toast({
+        title: "Registration Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+    
+    // Prepare registration data
+    const registrationData = {
+      name: signupName,
+      email: signupEmail,
+      password: signupPassword,
+      password_confirmation: signupConfirmPassword,
+      phone_number: signupPhone,
+      user_type: userType, // Send user_type as string instead of user_type_id
+    };
+    
+    // Add verification fields for healthcare providers
+    if (userType !== "patient") {
+      Object.assign(registrationData, {
+        license_number: signupLicense,
+        national_id: signupNationalId,
+      });
+    }
+    
+    try {
+      console.log('Sending registration data:', JSON.stringify(registrationData, null, 2));
+      await register(registrationData);
+      toast({
+        title: "Success",
+        description: "You have successfully registered. Welcome to Afya Mawinguni!",
+        variant: "default",
+      });
+      onClose();
+      
+      // Redirect based on user type
+      setTimeout(() => {
+        switch (userType) {
+          case "patient":
+            navigate("/patient-dashboard");
+            break;
+          case "doctor":
+            navigate("/doctor-dashboard");
+            break;
+          case "laboratory":
+            navigate("/provider/laboratory");
+            break;
+          case "nursing":
+            navigate("/nursing-dashboard");
+            break;
+          default:
+            navigate("/");
+        }
+      }, 500);
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      
+      // Handle validation errors more specifically
+      if (error.response && error.response.status === 422) {
+        const validationErrors = error.response.data.errors;
+        console.log('Validation errors:', validationErrors);
+        
+        // Display the first validation error message
+        const firstError = Object.values(validationErrors)[0];
+        const errorMessage = Array.isArray(firstError) ? firstError[0] : String(firstError);
+        
+        toast({
+          title: "Validation Error",
+          description: errorMessage || "Please check your form inputs and try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Registration Failed",
+          description: error.response?.data?.message || "Unable to register. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -77,6 +231,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                       type="email" 
                       placeholder="Enter your email" 
                       className="pl-10"
+                      value={signinEmail}
+                      onChange={(e) => setSigninEmail(e.target.value)}
                       required
                     />
                   </div>
@@ -93,6 +249,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                       type="password" 
                       placeholder="Enter your password" 
                       className="pl-10"
+                      value={signinPassword}
+                      onChange={(e) => setSigninPassword(e.target.value)}
                       required
                     />
                   </div>
@@ -110,8 +268,9 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                   type="submit" 
                   className="w-full bg-gradient-to-r from-primary-blue to-secondary-green text-white py-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 font-medium text-lg hover:scale-[1.02] hover:brightness-105"
                   size="lg"
+                  disabled={loading}
                 >
-                  Sign In
+                  {loading ? "Signing In..." : "Sign In"}
                 </Button>
               </form>
             </TabsContent>
@@ -171,6 +330,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                       type="text" 
                       placeholder="Enter your full name" 
                       className="pl-10"
+                      value={signupName}
+                      onChange={(e) => setSignupName(e.target.value)}
                       required
                     />
                   </div>
@@ -187,6 +348,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                       type="email" 
                       placeholder="Enter your email" 
                       className="pl-10"
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
                       required
                     />
                   </div>
@@ -205,6 +368,9 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                       type="tel" 
                       placeholder="Enter your phone number" 
                       className="pl-10"
+                      value={signupPhone}
+                      onChange={(e) => setSignupPhone(e.target.value)}
+                      required
                     />
                   </div>
                 </div>
@@ -220,6 +386,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                       type="password" 
                       placeholder="Create a password" 
                       className="pl-10"
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
                       required
                     />
                   </div>
@@ -236,6 +404,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                       type="password" 
                       placeholder="Confirm your password" 
                       className="pl-10"
+                      value={signupConfirmPassword}
+                      onChange={(e) => setSignupConfirmPassword(e.target.value)}
                       required
                     />
                   </div>
@@ -262,6 +432,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                           type="text" 
                           placeholder={`Enter your ${userType === 'doctor' ? 'medical' : userType === 'laboratory' ? 'laboratory' : 'nursing'} license number`}
                           className="pl-10"
+                          value={signupLicense}
+                          onChange={(e) => setSignupLicense(e.target.value)}
                           required
                         />
                       </div>
@@ -281,6 +453,8 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                           type="text" 
                           placeholder="Enter your National ID number"
                           className="pl-10"
+                          value={signupNationalId}
+                          onChange={(e) => setSignupNationalId(e.target.value)}
                           required
                         />
                       </div>
@@ -299,8 +473,9 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
                   type="submit" 
                   className="w-full bg-gradient-to-r from-secondary-green to-primary-blue text-white py-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 font-medium text-lg hover:scale-[1.02] hover:brightness-105"
                   size="lg"
+                  disabled={loading}
                 >
-                  Sign Up as {userType.charAt(0).toUpperCase() + userType.slice(1)}
+                  {loading ? "Signing Up..." : `Sign Up as ${userType.charAt(0).toUpperCase() + userType.slice(1)}`}
                 </Button>
               </form>
             </TabsContent>

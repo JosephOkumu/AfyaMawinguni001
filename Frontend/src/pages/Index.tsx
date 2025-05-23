@@ -10,6 +10,7 @@ import AIChat from "@/components/AIChat";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Phone } from "lucide-react";
+import ApiTest from "@/components/ApiTest";
 
 const Index = () => {
   const [appDownloadDialogOpen, setAppDownloadDialogOpen] = useState(false);
@@ -67,30 +68,34 @@ const Index = () => {
         </div>
       </section>
 
+      {/* API Test Component - For Development/Debugging */}
+      <div className="container mx-auto px-6 py-8">
+        <h2 className="text-2xl font-bold mb-6 text-center">API Connection Test</h2>
+        <div className="max-w-md mx-auto">
+          <ApiTest />
+        </div>
+      </div>
+
       {/* App Download Dialog */}
       <Dialog open={appDownloadDialogOpen} onOpenChange={setAppDownloadDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <div className="text-center p-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-primary-blue to-secondary-green rounded-full flex items-center justify-center mx-auto mb-4">
-              <Phone className="h-8 w-8 text-white" />
+        <DialogContent className="sm:max-w-md p-6">
+          <h2 className="text-2xl font-bold mb-4 text-center">Download Our Mobile App</h2>
+          <div className="flex flex-col items-center space-y-4">
+            <div className="text-center mb-2">
+              <p>Scan the QR code or use the direct links below:</p>
             </div>
-            <h2 className="text-2xl font-bold mb-2">Download Our Mobile App</h2>
-            <p className="text-gray-600 mb-6">
-              To access Prescription & Refill services, please download our mobile app from the store:
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button 
-                className="bg-black text-white hover:bg-black/90"
-                onClick={() => window.open("https://apps.apple.com/app/afya-mawinguni/id123456789", "_blank")}
-              >
-                App Store
-              </Button>
-              <Button 
-                className="bg-green-600 text-white hover:bg-green-700"
-                onClick={() => window.open("https://play.google.com/store/apps/details?id=app.lovable.afyamawinguni", "_blank")}
-              >
+            <div className="bg-gray-100 p-6 rounded-xl">
+              <img src="/qr-code-app.png" alt="QR Code" className="w-48 h-48" />
+            </div>
+            <div className="grid grid-cols-2 gap-4 w-full">
+              <a href="https://play.google.com/store/apps/details?id=app.lovable.afyamawinguni" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800">
+                <img src="/google-play.svg" alt="Google Play" className="h-6 mr-2" />
                 Google Play
-              </Button>
+              </a>
+              <a href="https://apps.apple.com/app/afya-mawinguni/id123456789" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800">
+                <img src="/app-store.svg" alt="App Store" className="h-6 mr-2" />
+                App Store
+              </a>
             </div>
           </div>
         </DialogContent>
