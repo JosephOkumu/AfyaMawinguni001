@@ -93,7 +93,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
               navigate("/provider/laboratory");
               break;
             case "nursing":
-              navigate("/nursing-dashboard");
+              navigate("/provider/home-nursing");
               break;
             default:
               console.log("Unknown user type:", userType);
@@ -169,7 +169,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
             navigate("/provider/laboratory");
             break;
           case "nursing":
-            navigate("/nursing-dashboard");
+            navigate("/provider/home-nursing");
             break;
           default:
             navigate("/");
