@@ -88,8 +88,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
     try {
       const response = await authService.login({ email, password });
+      console.log('Login response:', response); // Debug login response
       setUser(response.user);
       setIsAuthenticated(true);
+      
+      // Save token and user data to localStorage (was missing)
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
       throw err;

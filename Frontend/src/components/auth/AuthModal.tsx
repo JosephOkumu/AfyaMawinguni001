@@ -73,20 +73,30 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
         const user = localStorage.getItem("user");
         if (user) {
           const userData = JSON.parse(user);
-          switch (userData.user_type.name) {
+          console.log("User data after login:", userData); // Debug user data
+          
+          // Get user type - handle both object format (registration) and string format (login)
+          const userType = typeof userData.user_type === 'object' 
+            ? userData.user_type.name 
+            : userData.user_type;
+            
+          console.log("User type for redirection:", userType);
+          
+          switch (userType) {
             case "patient":
               navigate("/patient-dashboard");
               break;
             case "doctor":
               navigate("/doctor-dashboard");
               break;
-            case "lab_provider":
+            case "laboratory": // Laboratory user type
               navigate("/provider/laboratory");
               break;
-            case "nursing_provider":
+            case "nursing":
               navigate("/nursing-dashboard");
               break;
             default:
+              console.log("Unknown user type:", userType);
               navigate("/");
           }
         }
