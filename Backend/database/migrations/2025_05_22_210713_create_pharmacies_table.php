@@ -11,7 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pharmacies', function (Blueprint $table) {
+        // Only create the table if it doesn't exist
+        if (!Schema::hasTable('pharmacies')) {
+            Schema::create('pharmacies', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('pharmacy_name');
@@ -35,6 +37,7 @@ return new class extends Migration
             $table->index('city');
             $table->index('is_available');
         });
+        }
     }
 
     /**

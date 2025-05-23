@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->string('phone_number')->nullable();
-            $table->foreignId('user_type_id')->constrained('user_types')->onDelete('cascade');
-            $table->boolean('is_active')->default(true);
-            $table->rememberToken();
-            $table->timestamps();
-        });
+        // This migration will only run if the users table exists and is missing the user_type_id column
+        if (Schema::hasTable('users') && !Schema::hasColumn('users', 'user_type_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                if (!Schema::hasColumn('users', 'phone_number')) {
+                    $table->string('phone_number')->nullable()->after('password');
+                }
+                if (!Schema::hasColumn('users', 'user_type_id')) {
+                    $table->foreignId('user_type_id')->constrained('user_types')->onDelete('cascade')->nullable()->after('phone_number');
+                }
+                if (!Schema::hasColumn('users', 'is_active')) {
+                    $table->boolean('is_active')->default(true)->after('user_type_id');
+                }
+            });
+        }
     }
 
     /**
@@ -30,6 +32,19 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        // Only drop columns if they exist
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
+                if (Schema::hasColumn('users', 'phone_number')) {
+                    $table->dropColumn('phone_number');
+                }
+                if (Schema::hasColumn('users', 'user_type_id')) {
+                    $table->dropColumn('user_type_id');
+                }
+                if (Schema::hasColumn('users', 'is_active')) {
+                    $table->dropColumn('is_active');
+                }
+            });
+        }
     }
 };

@@ -25,6 +25,8 @@ class User extends Authenticatable
         'phone_number',
         'user_type_id',
         'is_active',
+        'license_number',
+        'national_id',
     ];
 
     /**
@@ -48,5 +50,21 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+    
+    /**
+     * Get the user type that this user belongs to.
+     */
+    public function userType()
+    {
+        return $this->belongsTo(UserType::class);
+    }
+    
+    /**
+     * Get the profile associated with this user.
+     */
+    public function profile()
+    {
+        return $this->hasOne(UserProfile::class);
     }
 }
