@@ -10,7 +10,7 @@ import AIChat from "@/components/AIChat";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Phone } from "lucide-react";
-import ApiTest from "@/components/ApiTest";
+
 
 const Index = () => {
   const [appDownloadDialogOpen, setAppDownloadDialogOpen] = useState(false);
@@ -68,13 +68,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* API Test Component - For Development/Debugging */}
-      <div className="container mx-auto px-6 py-8">
-        <h2 className="text-2xl font-bold mb-6 text-center">API Connection Test</h2>
-        <div className="max-w-md mx-auto">
-          <ApiTest />
-        </div>
-      </div>
+
 
       {/* App Download Dialog */}
       <Dialog open={appDownloadDialogOpen} onOpenChange={setAppDownloadDialogOpen}>
