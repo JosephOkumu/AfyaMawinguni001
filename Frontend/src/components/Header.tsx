@@ -33,8 +33,9 @@ const Header = () => {
             </span>
           </Link>
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Right side navigation and buttons */}
+          <div className="flex items-center gap-6">
+            {/* Navigation Links */}
             <button 
               onClick={() => scrollToSection('services')} 
               className="text-custom-dark hover:text-primary-blue font-medium"
@@ -48,31 +49,14 @@ const Header = () => {
               Accounts
             </button>
             
-            {/* New Provider Dashboard Links */}
-            <div className="group relative">
-              <span className="text-custom-dark hover:text-primary-blue font-medium cursor-pointer">
-                Provider Dashboards
-              </span>
-              <div className="absolute hidden group-hover:flex flex-col bg-white shadow-lg rounded-md mt-2 p-2 space-y-2 z-10">
-                <Link to="/provider/home-nursing" className="hover:bg-gray-100 p-2 rounded">
-                  Home Nursing
-                </Link>
-                <Link to="/provider/doctor" className="hover:bg-gray-100 p-2 rounded">
-                  Doctor
-                </Link>
-                <Link to="/provider/laboratory" className="hover:bg-gray-100 p-2 rounded">
-                  Laboratory
-                </Link>
-              </div>
-            </div>
-            
+            {/* Sign In Button */}
             <AuthButton />
+            
+            {/* Register Button */}
+            <AuthButton defaultTab="signup">
+              Register
+            </AuthButton>
           </div>
-
-          {/* CTA Button */}
-          <AuthButton defaultTab="signup">
-            Register
-          </AuthButton>
         </nav>
       </div>
     </header>
