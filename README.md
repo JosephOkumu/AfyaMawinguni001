@@ -1,4 +1,4 @@
-# AfyaMawinguni001 - Full-Stack Web Application
+# AfyaMawinguni001
 
 This an online healthcare management platform that enables patients to easily and effectively access healthcare services from healthcare providers.
 
