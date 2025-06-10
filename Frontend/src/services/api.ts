@@ -3,7 +3,7 @@ import axios from 'axios';
 // Modify this URL to match your backend server address
 // Using the WSL IP address instead of localhost to resolve networking issues
 // IMPORTANT: Make sure your backend server is running without errors
-const API_BASE_URL = 'http://172.26.239.25:8001/api';
+const API_BASE_URL = 'http://localhost:8000/api';
 
 // Print a helpful message about connectivity
 console.log('-------------------------------------');
