@@ -87,14 +87,6 @@ const DoctorDashboard = () => {
       price: 4500,
       duration: "45 minutes",
       requiresPrescription: false
-    },
-    {
-      id: "3",
-      name: "Prescription Renewal",
-      description: "Evaluation and renewal of existing prescriptions.",
-      price: 1500,
-      duration: "15 minutes",
-      requiresPrescription: true
     }
   ]);
 
@@ -763,54 +755,6 @@ const DoctorDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Prescription Requirements Section */}
-              <Card>
-                <CardHeader>
-                  <h2 className="text-xl font-semibold">Prescription Requirements</h2>
-                  <p className="text-sm text-gray-500">
-                    Configure which services require a prescription upload from patients
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="border p-4 rounded-lg">
-                      <h3 className="font-medium">Prescription Format Requirements</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Switch id="allow-pdf" />
-                            <label htmlFor="allow-pdf" className="text-sm">Allow PDF documents</label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Switch id="allow-image" defaultChecked />
-                            <label htmlFor="allow-image" className="text-sm">Allow image uploads (JPG, PNG)</label>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Switch id="require-stamp" defaultChecked />
-                            <label htmlFor="require-stamp" className="text-sm">Require doctor's stamp/signature</label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Switch id="expiry-check" defaultChecked />
-                            <label htmlFor="expiry-check" className="text-sm">Check prescription expiry date</label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="border p-4 rounded-lg">
-                      <h3 className="font-medium">Upload Instructions for Patients</h3>
-                      <Textarea 
-                        className="mt-3"
-                        placeholder="Enter instructions for patients when uploading prescriptions"
-                        defaultValue="Please upload a clear image or PDF of your prescription. Ensure the doctor's signature, patient details, and medication information are clearly visible. Prescriptions must be dated within the last 6 months."
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
 
@@ -852,7 +796,7 @@ const DoctorDashboard = () => {
                         </Avatar>
                         <div>
                           <h3 className="font-medium">Mary Wilson</h3>
-                          <p className="text-sm text-gray-600">Prescription Renewal</p>
+                          <p className="text-sm text-gray-600">General Consultation</p>
                           <div className="flex items-center gap-2 mt-2">
                             <Calendar className="h-3.5 w-3.5 text-gray-500" />
                             <span className="text-sm">Tomorrow, 10:00 AM</span>
