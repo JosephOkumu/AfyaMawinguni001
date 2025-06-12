@@ -26,7 +26,10 @@ import {
   Calendar,
   Heart,
   Shield,
-  CreditCard
+  CreditCard,
+  Activity,
+  Users,
+  Bell
 } from "lucide-react";
 
 interface DoctorProfileForm {
@@ -258,6 +261,76 @@ const DoctorDashboard = () => {
             <span className="text-secondary-green"> MAWINGUNI</span>
           </h1>
           <p className="text-gray-600 mt-2">Doctor's Dashboard</p>
+        </div>
+
+        {/* Service Statistics Section */}
+        <div className="mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {/* Active Services Card */}
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-lg">
+              <div className="flex items-center">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-white/80">Active Services</p>
+                  <p className="text-2xl font-bold">{services.length}</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Appointments Card */}
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white shadow-lg">
+              <div className="flex items-center">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-white/80">Appointments</p>
+                  <p className="text-2xl font-bold">24</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Patients Card */}
+            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white shadow-lg">
+              <div className="flex items-center">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-white/80">Patients</p>
+                  <p className="text-2xl font-bold">18</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Rating Card */}
+            <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg p-4 text-white shadow-lg">
+              <div className="flex items-center">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <Star className="h-5 w-5" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-white/80">Avg. Rating</p>
+                  <p className="text-2xl font-bold">4.8</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Notifications Card */}
+            <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg p-4 text-white shadow-lg">
+              <div className="flex items-center">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <Bell className="h-5 w-5" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-white/80">Notifications</p>
+                  <p className="text-2xl font-bold">7</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="w-full">
