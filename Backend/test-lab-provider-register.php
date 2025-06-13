@@ -16,8 +16,7 @@ $data = [
     'password_confirmation' => 'password123',
     'phone_number' => '0700123456',
     'user_type' => 'laboratory',
-    'license_number' => 'LAB'.rand(1000, 9999).'/'.date('Y'),
-    'national_id' => (string)rand(10000000, 99999999)
+    'license_number' => 'LAB'.rand(1000, 9999).'/'.date('Y')
 ];
 echo "Request payload: " . json_encode($data) . "\n";
 

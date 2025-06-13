@@ -30,7 +30,7 @@ class AuthController extends Controller
             'phone_number' => 'nullable|string|max:20',
             'user_type' => 'required|string|in:patient,doctor,nursing,laboratory,pharmacy',
             'license_number' => 'required_if:user_type,doctor,nursing,laboratory,pharmacy|string|max:50|nullable',
-            'national_id' => 'required_if:user_type,doctor,nursing,laboratory,pharmacy|string|max:20|nullable',
+            'national_id' => 'required_if:user_type,doctor,nursing,pharmacy|string|max:20|nullable',
         ]);
 
         if ($validator->fails()) {
@@ -55,7 +55,7 @@ class AuthController extends Controller
                 'phone_number' => $request->phone_number,
                 'user_type_id' => $userType->id,
                 'license_number' => $request->license_number,
-                'national_id' => $request->national_id,
+                'national_id' => $request->user_type !== 'laboratory' ? $request->national_id : null,
             ]);
 
             // Create user profile
