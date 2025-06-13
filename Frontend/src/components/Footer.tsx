@@ -11,13 +11,13 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">Afya Mawinguni</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/features" className="hover:text-gray-300">Features</Link>
+                <Link to="#" className="hover:text-gray-300">Features</Link>
               </li>
               <li>
-                <Link to="/accounts" className="hover:text-gray-300">Accounts</Link>
+                <Link to="#" className="hover:text-gray-300">Accounts</Link>
               </li>
               <li>
-                <Link to="/login" className="hover:text-gray-300">Login</Link>
+                <Link to="#" className="hover:text-gray-300">Login</Link>
               </li>
             </ul>
           </div>
@@ -27,16 +27,16 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">For Patients</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/find-doctor" className="hover:text-gray-300">Find a Doctor</Link>
+                <Link to="#" className="hover:text-gray-300">Find a Doctor</Link>
               </li>
               <li>
-                <Link to="/book-appointment" className="hover:text-gray-300">Book Appointment</Link>
+                <Link to="#" className="hover:text-gray-300">Book Appointment</Link>
               </li>
               <li>
-                <Link to="/medical-records" className="hover:text-gray-300">Medical Records</Link>
+                <Link to="#" className="hover:text-gray-300">Medical Records</Link>
               </li>
               <li>
-                <Link to="/telemedicine" className="hover:text-gray-300">Telemedicine</Link>
+                <Link to="#" className="hover:text-gray-300">Telemedicine</Link>
               </li>
             </ul>
           </div>
@@ -46,16 +46,16 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">For Providers</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/provider-registration" className="hover:text-gray-300">Provider Registration</Link>
+                <Link to="#" className="hover:text-gray-300">Provider Registration</Link>
               </li>
               <li>
-                <Link to="/practice-management" className="hover:text-gray-300">Practice Management</Link>
+                <Link to="#" className="hover:text-gray-300">Practice Management</Link>
               </li>
               <li>
-                <Link to="/patient-coordination" className="hover:text-gray-300">Patient Coordination</Link>
+                <Link to="#" className="hover:text-gray-300">Patient Coordination</Link>
               </li>
               <li>
-                <Link to="/billing" className="hover:text-gray-300">Billing</Link>
+                <Link to="#" className="hover:text-gray-300">Billing</Link>
               </li>
             </ul>
           </div>
