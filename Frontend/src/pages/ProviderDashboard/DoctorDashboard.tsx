@@ -29,7 +29,8 @@ import {
   CreditCard,
   Activity,
   Users,
-  Bell
+  Bell,
+  CheckCircle,
 } from "lucide-react";
 
 interface DoctorProfileForm {
@@ -265,87 +266,74 @@ const DoctorDashboard = () => {
 
         {/* Service Statistics Section */}
         <div className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {/* Active Services Card */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-lg">
-              <div className="flex items-center">
-                <div className="bg-white/20 p-2 rounded-lg">
-                  <Activity className="h-5 w-5" />
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-white/80">Active Services</p>
-                  <p className="text-2xl font-bold">{services.length}</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Appointments Card */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Pending Appointments Card */}
             <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white shadow-lg">
               <div className="flex items-center">
                 <div className="bg-white/20 p-2 rounded-lg">
                   <Calendar className="h-5 w-5" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-white/80">Appointments</p>
+                  <p className="text-sm font-semibold text-white/80">Pending</p>
                   <p className="text-2xl font-bold">24</p>
                 </div>
               </div>
             </div>
-            
-            {/* Patients Card */}
-            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white shadow-lg">
+
+            {/* Completed Appointments Card */}
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-lg">
               <div className="flex items-center">
                 <div className="bg-white/20 p-2 rounded-lg">
-                  <Users className="h-5 w-5" />
+                  <CheckCircle className="h-5 w-5" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-white/80">Patients</p>
-                  <p className="text-2xl font-bold">18</p>
+                  <p className="text-sm font-semibold text-white/80">Completed</p>
+                  <p className="text-2xl font-bold">15</p>
                 </div>
               </div>
             </div>
             
-            {/* Rating Card */}
-            <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg p-4 text-white shadow-lg">
+            {/* Active Services Card */}
+            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white shadow-lg">
               <div className="flex items-center">
                 <div className="bg-white/20 p-2 rounded-lg">
-                  <Star className="h-5 w-5" />
+                  <Activity className="h-5 w-5" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-white/80">Avg. Rating</p>
-                  <p className="text-2xl font-bold">4.8</p>
+                  <p className="text-sm font-semibold text-white/80">Active Services</p>
+                  <p className="text-2xl font-bold">{services.length}</p>
                 </div>
               </div>
             </div>
 
-            {/* Notifications Card */}
+            {/* Total Revenue Card */}
             <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg p-4 text-white shadow-lg">
               <div className="flex items-center">
                 <div className="bg-white/20 p-2 rounded-lg">
-                  <Bell className="h-5 w-5" />
+                  <CreditCard className="h-5 w-5" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-white/80">Notifications</p>
-                  <p className="text-2xl font-bold">7</p>
+                  <p className="text-sm font-semibold text-white/80">Total Revenue (KES)</p>
+                  <p className="text-2xl font-bold">125,000</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="appointments" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 mb-8">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <Stethoscope className="h-4 w-4" />
-              <span>My Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="services" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span>My Services</span>
-            </TabsTrigger>
             <TabsTrigger value="appointments" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              <span>Appointments</span>
+              Appointments
+            </TabsTrigger>
+            <TabsTrigger value="services" className="flex items-center gap-2">
+              <Stethoscope className="h-4 w-4" />
+              My Services
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              My Profile
             </TabsTrigger>
           </TabsList>
 
