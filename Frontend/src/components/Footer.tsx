@@ -11,13 +11,13 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">Afya Mawinguni</h3>
             <ul className="space-y-2">
               <li>
+                <Link to="/about-us" className="hover:text-gray-300">About Us</Link>
+              </li>
+              <li>
                 <Link to="#" className="hover:text-gray-300">Features</Link>
               </li>
               <li>
                 <Link to="#" className="hover:text-gray-300">Accounts</Link>
-              </li>
-              <li>
-                <Link to="#" className="hover:text-gray-300">Login</Link>
               </li>
             </ul>
           </div>

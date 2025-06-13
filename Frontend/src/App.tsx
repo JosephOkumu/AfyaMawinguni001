@@ -22,6 +22,8 @@ import HomeNursingDashboard from "./pages/ProviderDashboard/HomeNursingDashboard
 import DoctorDashboard from "./pages/ProviderDashboard/DoctorDashboard";
 import LabDashboard from "./pages/ProviderDashboard/LabDashboard";
 
+import AboutUs from "./pages/AboutUs";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -67,6 +69,9 @@ const App = () => (
             <Route path="/provider/doctor" element={<DoctorDashboard />} />
             <Route path="/provider/laboratory" element={<LabDashboard />} />
             
+            {/* About Us Route */}
+            <Route path="/about-us" element={<AboutUs />} />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
