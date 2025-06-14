@@ -63,8 +63,8 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-lg mb-4">Contact Us</h3>
             <ul className="space-y-2">
-              <li>info@afyamawinguni.com</li>
-              <li>+254 712 345 678</li>
+              <li>sanjajohnea@gmail.com</li>
+              <li>+254 711 303004</li>
               <li>Support Center</li>
             </ul>
           </div>
