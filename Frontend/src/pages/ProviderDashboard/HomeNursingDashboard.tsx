@@ -23,7 +23,8 @@ import {
   Activity,
   Calendar,
   Users,
-  Bell
+  Bell,
+  TestTube
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -234,37 +235,58 @@ const HomeNursingDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-4">
-            <Card className="bg-white border-0 shadow-md">
-              <CardHeader className="border-b pb-3">
-                <h2 className="text-lg font-semibold text-primary-blue">Dashboard Menu</h2>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="space-y-1">
-                  <Button variant="ghost" className="w-full justify-start text-secondary-green font-medium">
-                    <Home className="h-4 w-4 mr-2" />
-                    Home
-                  </Button>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Appointments
-                  </Button>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <Star className="h-4 w-4 mr-2" />
-                    Reviews
-                  </Button>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <Clock className="h-4 w-4 mr-2" />
-                    Schedule
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Main Content Area */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="lg:col-span-4 space-y-6">
+            {/* Dashboard Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Active Services</p>
+                    <h3 className="text-2xl font-bold">{services.length}</h3>
+                  </div>
+                  <div className="h-10 w-10 bg-blue-200 rounded-full flex items-center justify-center">
+                    <TestTube className="h-5 w-5 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-green-50 to-green-100">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Completed Visits</p>
+                    <h3 className="text-2xl font-bold">123</h3>
+                  </div>
+                  <div className="h-10 w-10 bg-green-200 rounded-full flex items-center justify-center">
+                    <Activity className="h-5 w-5 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-amber-50 to-amber-100">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Pending Appointments</p>
+                    <h3 className="text-2xl font-bold">3</h3>
+                  </div>
+                  <div className="h-10 w-10 bg-amber-200 rounded-full flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-amber-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Total Revenue</p>
+                    <h3 className="text-2xl font-bold">KES 78,500</h3>
+                  </div>
+                  <div className="h-10 w-10 bg-purple-200 rounded-full flex items-center justify-center">
+                    <ChevronDown className="h-5 w-5 text-purple-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
             {/* Service List */}
             <Card className="border-0 shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-primary-blue to-secondary-green p-4 text-white">
@@ -445,6 +467,8 @@ const HomeNursingDashboard = () => {
                   </div>
                 )}
                 
+
+
                 <div className="flex justify-between items-center mb-4">
                   <p className="text-gray-600">Manage your nursing services</p>
                   <div className="relative w-64">
