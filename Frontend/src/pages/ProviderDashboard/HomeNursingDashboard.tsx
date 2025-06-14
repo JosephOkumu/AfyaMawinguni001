@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -259,84 +258,6 @@ const HomeNursingDashboard = () => {
                     <Clock className="h-4 w-4 mr-2" />
                     Schedule
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Stats Card - Updated to match laboratory dashboard style */}
-            <Card className="bg-white border-0 shadow-md">
-              <CardHeader className="border-b pb-3">
-                <h2 className="text-lg font-semibold text-primary-blue">Service Statistics</h2>
-              </CardHeader>
-              <CardContent className="pt-4 space-y-3">
-                <div className="grid grid-cols-1 gap-3">
-                  {/* Active Services Card */}
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-lg">
-                    <div className="flex items-center">
-                      <div className="bg-white/20 p-2 rounded-lg">
-                        <Activity className="h-5 w-5" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm font-medium text-white/80">Active Services</p>
-                        <p className="text-2xl font-bold">{services.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Appointments Card */}
-                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white shadow-lg">
-                    <div className="flex items-center">
-                      <div className="bg-white/20 p-2 rounded-lg">
-                        <Calendar className="h-5 w-5" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm font-medium text-white/80">Appointments</p>
-                        <p className="text-2xl font-bold">24</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Patients Card */}
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white shadow-lg">
-                    <div className="flex items-center">
-                      <div className="bg-white/20 p-2 rounded-lg">
-                        <Users className="h-5 w-5" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm font-medium text-white/80">Patients</p>
-                        <p className="text-2xl font-bold">18</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Notifications Card */}
-                  <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg p-4 text-white shadow-lg">
-                    <div className="flex items-center">
-                      <div className="bg-white/20 p-2 rounded-lg">
-                        <Bell className="h-5 w-5" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm font-medium text-white/80">Notifications</p>
-                        <p className="text-2xl font-bold">7</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Rating Card */}
-                  <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg p-4 text-white shadow-lg">
-                    <div className="flex items-center">
-                      <div className="bg-white/20 p-2 rounded-lg">
-                        <Star className="h-5 w-5" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm font-medium text-white/80">Average Rating</p>
-                        <div className="flex items-center">
-                          <p className="text-2xl font-bold mr-1">4.8</p>
-                          <span className="text-sm">/5</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
