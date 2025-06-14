@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import AuthButton from "./auth/AuthButton";
@@ -48,6 +47,12 @@ const Header = () => {
             >
               Accounts
             </button>
+            <Link 
+              to="/about-us"
+              className="text-custom-dark hover:text-primary-blue font-medium"
+            >
+              About Us
+            </Link>
             
             {/* Sign In Button */}
             <AuthButton />

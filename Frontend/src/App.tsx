@@ -21,8 +21,7 @@ import HomeNursingDetails from "./pages/HomeNursingDetails";
 import HomeNursingDashboard from "./pages/ProviderDashboard/HomeNursingDashboard";
 import DoctorDashboard from "./pages/ProviderDashboard/DoctorDashboard";
 import LabDashboard from "./pages/ProviderDashboard/LabDashboard";
-
-import AboutUs from "./pages/AboutUs";
+import AboutUs from "./components/AboutUs"; // Correcting the import path for AboutUs component
 
 const queryClient = new QueryClient();
 
@@ -70,8 +69,15 @@ const App = () => (
             <Route path="/provider/laboratory" element={<LabDashboard />} />
             
             {/* About Us Route */}
-            <Route path="/about-us" element={<AboutUs />} />
-
+            <Route path="/about-us" element={
+              <>
+                <Header />
+                <main className="flex-grow">
+                  <AboutUs />
+                </main>
+              </>
+            } />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
