@@ -63,7 +63,6 @@ interface ServiceItem {
   description: string;
   price: number;
   duration: string;
-  requiresPrescription: boolean;
 }
 
 const DoctorDashboard = () => {
@@ -81,16 +80,14 @@ const DoctorDashboard = () => {
       name: "General Consultation",
       description: "Standard medical consultation for general health concerns.",
       price: 2500,
-      duration: "30 minutes",
-      requiresPrescription: false
+      duration: "30 minutes"
     },
     {
       id: "2",
       name: "Specialized Consultation",
       description: "In-depth consultation for specific medical conditions.",
       price: 4500,
-      duration: "45 minutes",
-      requiresPrescription: false
+      duration: "45 minutes"
     }
   ]);
 
@@ -147,8 +144,7 @@ const DoctorDashboard = () => {
       name: "",
       description: "",
       price: 0,
-      duration: "",
-      requiresPrescription: false
+      duration: ""
     }
   });
 
@@ -627,8 +623,7 @@ const DoctorDashboard = () => {
                           name: "",
                           description: "",
                           price: 0,
-                          duration: "",
-                          requiresPrescription: false
+                          duration: ""
                         });
                       }
                     }}
@@ -701,41 +696,18 @@ const DoctorDashboard = () => {
                             )}
                           />
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                              control={serviceForm.control}
-                              name="duration"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Duration</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="e.g., 30 minutes" {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={serviceForm.control}
-                              name="requiresPrescription"
-                              render={({ field }) => (
-                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 space-y-0">
-                                  <div className="space-y-0.5">
-                                    <FormLabel>Requires Prescription</FormLabel>
-                                    <p className="text-xs text-muted-foreground">
-                                      Patient will need to upload a prescription
-                                    </p>
-                                  </div>
-                                  <FormControl>
-                                    <Switch
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
+                          <FormField
+                            control={serviceForm.control}
+                            name="duration"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Duration</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g., 30 minutes" {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
                           
                           <div className="flex justify-end gap-2">
                             <Button 
@@ -773,12 +745,7 @@ const DoctorDashboard = () => {
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <h3 className="font-medium">{service.name}</h3>
-                              {service.requiresPrescription && (
-                                <Badge variant="outline" className="flex items-center gap-1">
-                                  <FileText className="h-3 w-3" />
-                                  Requires Prescription
-                                </Badge>
-                              )}
+
                             </div>
                             <p className="text-sm text-gray-600 mt-1">{service.description}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm">
