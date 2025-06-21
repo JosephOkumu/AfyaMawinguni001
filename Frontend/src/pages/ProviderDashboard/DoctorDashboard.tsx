@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +32,8 @@ import {
   Users,
   Bell,
   CheckCircle,
+  Settings,
+  X,
 } from "lucide-react";
 
 interface DoctorProfileForm {
@@ -72,6 +75,7 @@ const DoctorDashboard = () => {
   const [isEditingService, setIsEditingService] = useState(false);
   const [currentServiceId, setCurrentServiceId] = useState<string | null>(null);
   const [showSubscriptionForm, setShowSubscriptionForm] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   
   // Sample services
   const [services, setServices] = useState<ServiceItem[]>([
@@ -252,14 +256,48 @@ const DoctorDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">
-            <span className="text-primary-blue">AFYA</span>
-            <span className="text-secondary-green"> MAWINGUNI</span>
-          </h1>
-          <p className="text-gray-600 mt-2">Doctor's Dashboard</p>
-        </div>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              <span className="text-primary-blue">AFYA</span>
+              <span className="text-secondary-green"> MAWINGUNI</span>
+            </h1>
+            <p className="text-gray-600 mt-2">Doctor's Dashboard</p>
+          </div>
 
+          <div className="mt-4 md:mt-0 flex items-center space-x-3">
+            <div className="flex items-center bg-white rounded-full px-3 py-1.5 border border-gray-200 shadow-sm">
+              <span className="text-sm font-medium mr-2">Dr. Medical Center</span>
+              <Avatar className="h-8 w-8 border border-secondary-green/20">
+                <AvatarImage src="https://randomuser.me/api/portraits/men/45.jpg" alt="Doctor" />
+                <AvatarFallback>DR</AvatarFallback>
+              </Avatar>
+            </div>
+            <Button variant="outline" size="icon">
+              <Bell className="h-4 w-4" />
+            </Button>
+            <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto">
+                <DialogHeader className="sticky top-0 z-10 bg-white px-6 py-4 border-b flex flex-row justify-between items-center">
+                  <DialogTitle className="text-xl font-semibold">Doctor Profile Settings</DialogTitle>
+                  <DialogClose asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </DialogClose>
+                </DialogHeader>
+                <div className="px-6 py-4">
+                  <p className="text-gray-600">Profile settings will be available here.</p>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
         {/* Service Statistics Section */}
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
