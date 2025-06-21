@@ -67,7 +67,7 @@ interface Appointment {
   testName: string;
   date: string;
   time: string;
-  status: "pending" | "completed" | "cancelled";
+  status: "pending" | "completed" | "In progress";
   paymentStatus: "paid" | "unpaid" | "partial";
   amount: number;
   location: string;
@@ -218,7 +218,7 @@ const LabDashboard = () => {
       testName: "COVID-19 PCR Test",
       date: "2023-06-16",
       time: "02:00 PM",
-      status: "pending",
+      status: "In progress",
       paymentStatus: "partial",
       amount: 3500,
       location: "Isolation Room 2, West Wing",
@@ -303,10 +303,10 @@ const LabDashboard = () => {
 
   const getStatusColor = (status: Appointment["status"]) => {
     switch (status) {
-      case "pending": return "bg-amber-100 text-amber-800";
-      case "completed": return "bg-green-100 text-green-800";
-      case "cancelled": return "bg-red-100 text-red-800";
-      default: return "";
+        case "pending": return "bg-red-100 text-red-800";
+        case "completed": return "bg-green-100 text-green-800";
+        case "In progress": return "bg-amber-100 text-amber-800";
+        default: return "";
     }
   };
 
