@@ -499,22 +499,6 @@ const LabDashboard = () => {
                             )}
                           />
                           
-                          <div className="mt-4">
-                            <FormLabel>Specialties</FormLabel>
-                            <div className="flex flex-wrap gap-2 mt-2 mb-2">
-                              {laboratoryProfile.specialties.map((specialty, index) => (
-                                <Badge key={index} className="bg-green-100 text-green-800 hover:bg-green-200">
-                                  {specialty}
-                                </Badge>
-                              ))}
-                            </div>
-                            <div className="flex gap-2">
-                              <Input placeholder="Add specialty" className="flex-1" id="new-specialty" />
-                              <Button variant="outline" size="sm" type="button">
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <FormField
