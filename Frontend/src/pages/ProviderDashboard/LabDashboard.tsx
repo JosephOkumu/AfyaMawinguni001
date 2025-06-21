@@ -818,14 +818,6 @@ const LabDashboard = () => {
                           <TableCell>KES {appointment.amount.toLocaleString()}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              {appointment.status === "pending" && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                >
-                                  Complete
-                                </Button>
-                              )}
                               <Button 
                                 variant="outline" 
                                 size="sm"
