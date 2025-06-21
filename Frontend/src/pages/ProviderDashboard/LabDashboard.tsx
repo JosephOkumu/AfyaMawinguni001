@@ -786,7 +786,7 @@ const LabDashboard = () => {
             <Card>
               <CardHeader className="border-b pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold">Upcoming Appointments</h2>
+                  <h2 className="text-xl font-semibold">Appointments History</h2>
                   <p className="text-gray-600 text-sm">Manage patient test appointments</p>
                 </div>
                 <div className="relative">
