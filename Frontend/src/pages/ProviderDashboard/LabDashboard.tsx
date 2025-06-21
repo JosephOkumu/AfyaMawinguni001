@@ -1021,8 +1021,11 @@ const LabDashboard = () => {
                     {selectedAppointment.status.charAt(0).toUpperCase() + selectedAppointment.status.slice(1)}
                   </Badge>
                   
-                  <Badge className={getPaymentStatusColor(selectedAppointment.paymentStatus)}>
-                    {selectedAppointment.paymentStatus.charAt(0).toUpperCase() + selectedAppointment.paymentStatus.slice(1)}
+                  <Badge className={getStatusColor("completed")}>
+                      Completed
+                  </Badge>
+                  <Badge className={getStatusColor("In progress")}>
+                      In progress
                   </Badge>
                 </div>
               </div>
