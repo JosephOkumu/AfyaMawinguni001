@@ -1029,6 +1029,34 @@ const LabDashboard = () => {
                   </Badge>
                 </div>
               </div>
+{/* Upload Report Section */}
+<div className="space-y-2">
+  <h4 className="font-medium text-sm text-gray-500">Upload Report</h4>
+  <div className="flex items-center gap-2">
+    <Button variant="outline" className="flex items-center gap-2">
+      <Plus className="h-4 w-4 text-green-500" />
+      <label htmlFor="upload-report" className="cursor-pointer">
+        Choose File
+      </label>
+    </Button>
+    <span className="text-sm text-gray-500">No file chosen</span>
+  </div>
+  <input
+    id="upload-report"
+    type="file"
+    accept=".pdf,.doc,.docx"
+    className="hidden"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        toast({
+          title: "File Uploaded",
+          description: `You have uploaded: ${file.name}`,
+        });
+      }
+    }}
+  />
+</div>
               
               {/* Action Buttons */}
               <div className="flex justify-between items-center pt-4 border-t">
