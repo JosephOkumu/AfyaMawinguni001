@@ -803,7 +803,6 @@ const LabDashboard = () => {
                         <TableHead>Test</TableHead>
                         <TableHead>Date & Time</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Payment</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -830,11 +829,6 @@ const LabDashboard = () => {
                           <TableCell>
                             <Badge className={getStatusColor(appointment.status)}>
                               {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getPaymentStatusColor(appointment.paymentStatus)}>
-                              {appointment.paymentStatus.charAt(0).toUpperCase() + appointment.paymentStatus.slice(1)}
                             </Badge>
                           </TableCell>
                           <TableCell>KES {appointment.amount.toLocaleString()}</TableCell>
