@@ -357,13 +357,13 @@ const DoctorDashboard = () => {
 
         <Tabs defaultValue="appointments" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 mb-8">
-            <TabsTrigger value="appointments" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Appointments
-            </TabsTrigger>
             <TabsTrigger value="services" className="flex items-center gap-2">
               <Stethoscope className="h-4 w-4" />
               My Services
+            </TabsTrigger>
+            <TabsTrigger value="appointments" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Appointments
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
