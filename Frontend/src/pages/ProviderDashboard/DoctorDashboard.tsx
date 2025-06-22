@@ -293,8 +293,215 @@ const DoctorDashboard = () => {
                     </Button>
                   </DialogClose>
                 </DialogHeader>
-                <div className="px-6 py-4">
-                  <p className="text-gray-600">Profile settings will be available here.</p>
+<div className="px-6 py-4">
+                  <Form {...profileForm}>
+                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={profileForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Full Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Dr. John Doe" {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={profileForm.control}
+                          name="specialty"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Specialty</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Stethoscope className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                                  <Input className="pl-10" placeholder="e.g., Cardiologist" {...field} />
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={profileForm.control}
+                          name="location"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Location</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                                  <Input className="pl-10" placeholder="e.g., Nairobi Medical Center" {...field} />
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={profileForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Professional Summary</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Brief description of your medical practice..."
+                                className="min-h-[120px]"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={profileForm.control}
+                        name="experience"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Years of Experience</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="e.g., 15 years" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="qualifications"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Education</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="List your medical qualifications and certifications..."
+                                className="min-h-[100px]"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={profileForm.control}
+                          name="physicalPrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Physical Consultation Fee (KES)</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="e.g., 2500" {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={profileForm.control}
+                          name="onlinePrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Online Consultation Fee (KES)</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="e.g., 2000" {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          name="availability"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Availability</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Clock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                                  <Input className="pl-10" placeholder="e.g., Mon-Fri, 9AM-5PM" {...field} />
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={profileForm.control}
+                        name="languages"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Languages Spoken</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., English, Swahili" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="acceptsInsurance"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Accept Insurance</FormLabel>
+                              <p className="text-sm text-muted-foreground">
+                                Enable this if you accept health insurance payments.
+                              </p>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="image"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Profile Photo</FormLabel>
+                            <FormControl>
+                              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary-blue transition-colors">
+                                <Input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={(e) => field.onChange(e.target.files?.[0])}
+                                  id="profile-photo-modal"
+                                />
+                                <label htmlFor="profile-photo-modal" className="cursor-pointer block">
+                                  <div className="flex flex-col items-center gap-2">
+                                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                                    <span className="text-sm text-gray-500">
+                                      Drop an image here or click to upload
+                                    </span>
+                                  </div>
+                                </label>
+                              </div>
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="flex justify-end gap-4">
+                        <Button type="submit" className="gap-2">
+                          <Save className="h-4 w-4" />
+                          Save Profile
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
                 </div>
               </DialogContent>
             </Dialog>
