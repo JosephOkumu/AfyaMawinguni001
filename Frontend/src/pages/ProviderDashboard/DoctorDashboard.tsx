@@ -144,7 +144,7 @@ const DoctorDashboard = () => {
             patient_id: 1,
             doctor_id: 1,
             appointment_datetime: new Date().toISOString(),
-            status: "scheduled",
+            status: "confirmed",
             type: "in_person",
             reason_for_visit: "Regular checkup",
             symptoms: "General wellness check",
@@ -165,7 +165,7 @@ const DoctorDashboard = () => {
             patient_id: 2,
             doctor_id: 1,
             appointment_datetime: new Date(Date.now() + 86400000).toISOString(),
-            status: "scheduled",
+            status: "confirmed",
             type: "virtual",
             reason_for_visit: "Follow-up consultation",
             symptoms: "Medication review",
@@ -212,7 +212,7 @@ const DoctorDashboard = () => {
             appointment_datetime: new Date(
               Date.now() + 259200000,
             ).toISOString(),
-            status: "scheduled",
+            status: "confirmed",
             type: "virtual",
             reason_for_visit: "Specialist consultation",
             symptoms: "Cardiac assessment",
@@ -598,6 +598,13 @@ const DoctorDashboard = () => {
           new Date(b.appointment_datetime).getTime() -
           new Date(a.appointment_datetime).getTime(),
       );
+  };
+
+  // Helper function to get confirmed appointments
+  const getConfirmedAppointments = () => {
+    return appointments.filter(
+      (appointment) => appointment.status === "confirmed",
+    );
   };
 
   // Helper function to format appointment date and time
@@ -1173,7 +1180,7 @@ const DoctorDashboard = () => {
               </Card>
             ) : (
               <AppointmentCalendar
-                appointments={appointments}
+                appointments={getConfirmedAppointments()}
                 onAppointmentClick={handleAppointmentClick}
                 onAppointmentConfirm={handleAppointmentConfirm}
                 onAppointmentReject={handleAppointmentReject}

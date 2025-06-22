@@ -56,7 +56,6 @@ interface AppointmentCalendarProps {
 type FilterType = "all" | "today" | "tomorrow" | "week" | "month";
 
 const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
-
   appointments,
   onAppointmentClick,
   onAppointmentConfirm,
@@ -543,7 +542,12 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
               )}
 
               <div className="flex gap-2 pt-4">
-                {selectedAppointment.status === "scheduled" ? (
+                {selectedAppointment.status === "completed" ? (
+                  // Only reschedule button for completed appointments
+                  <Button variant="outline" size="sm" className="flex-1">
+                    Reschedule
+                  </Button>
+                ) : selectedAppointment.status === "scheduled" ? (
                   // Actions for scheduled appointments (need confirmation)
                   <>
                     <Button
@@ -578,19 +582,50 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                   // Actions for confirmed appointments
                   <>
                     {selectedAppointment.type === "virtual" ? (
-                      <Button size="sm" className="flex-1">
-                        <Video className="h-4 w-4 mr-2" />
-                        Start Call
-                      </Button>
+                      // Virtual appointment: Start Call, Reschedule, Cancel
+                      <>
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Video className="h-4 w-4 mr-2" />
+                          Start Video Call
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1">
+                          Reschedule
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="flex-1"
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel
+                        </Button>
+                      </>
                     ) : (
-                      <Button size="sm" className="flex-1">
-                        <MapPin className="h-4 w-4 mr-2" />
-                        View Location
-                      </Button>
+                      // Physical appointment: Mark Complete, Reschedule, Cancel
+                      <>
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                        >
+                          <Check className="h-4 w-4 mr-2" />
+                          Mark as Complete
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1">
+                          Reschedule
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="flex-1"
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel
+                        </Button>
+                      </>
                     )}
-                    <Button variant="outline" size="sm" className="flex-1">
-                      Reschedule
-                    </Button>
                   </>
                 )}
               </div>
