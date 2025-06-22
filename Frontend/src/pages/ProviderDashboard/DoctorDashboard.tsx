@@ -373,7 +373,7 @@ const DoctorDashboard = () => {
 
           {/* Profile Tab */}
           <TabsContent value="profile">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
               {/* Profile Update Form */}
               <Card className="md:col-span-2">
                 <CardHeader className="border-b pb-4">
@@ -586,59 +586,6 @@ const DoctorDashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Stats and Quick Actions */}
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader className="border-b pb-4">
-                    <h2 className="text-lg font-semibold">Practice Statistics</h2>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total Patients</span>
-                        <span className="font-semibold">142</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Rating</span>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                          <span className="font-semibold ml-1">4.9</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Reviews</span>
-                        <span className="font-semibold">98</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Appointments</span>
-                        <span className="font-semibold">24 upcoming</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="border-b pb-4">
-                    <h2 className="text-lg font-semibold">Quick Actions</h2>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="space-y-3">
-                      <Button variant="outline" className="w-full justify-start gap-2">
-                        <Calendar className="h-4 w-4" />
-                        View Appointments
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start gap-2">
-                        <Star className="h-4 w-4" />
-                        View Reviews
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setActiveTab("services")}>
-                        <FileText className="h-4 w-4" />
-                        Manage Services
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
             </div>
           </TabsContent>
 
