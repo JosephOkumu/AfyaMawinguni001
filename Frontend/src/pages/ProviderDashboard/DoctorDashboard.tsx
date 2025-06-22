@@ -609,6 +609,38 @@ const DoctorDashboard = () => {
     };
   };
 
+  // Handler to confirm an appointment
+  const handleAppointmentConfirm = (appointmentId: number) => {
+    setAppointments(prevAppointments =>
+      prevAppointments.map(appointment =>
+        appointment.id === appointmentId
+          ? { ...appointment, status: "confirmed" as const }
+          : appointment
+      )
+    );
+    toast({
+      title: "Appointment Confirmed",
+      description: "The appointment has been successfully confirmed.",
+      variant: "default",
+    });
+  };
+
+  // Handler to reject an appointment
+  const handleAppointmentReject = (appointmentId: number) => {
+    setAppointments(prevAppointments =>
+      prevAppointments.map(appointment =>
+        appointment.id === appointmentId
+          ? { ...appointment, status: "cancelled" as const }
+          : appointment
+      )
+    );
+    toast({
+      title: "Appointment Rejected",
+      description: "The appointment has been rejected and cancelled.",
+      variant: "destructive",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white p-6">
       <div className="max-w-6xl mx-auto">
@@ -1016,6 +1048,8 @@ const DoctorDashboard = () => {
               <AppointmentCalendar
                 appointments={appointments}
                 onAppointmentClick={handleAppointmentClick}
+                onAppointmentConfirm={handleAppointmentConfirm}
+                onAppointmentReject={handleAppointmentReject}
               />
             )}
           </TabsContent>

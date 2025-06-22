@@ -8,6 +8,8 @@ import {
   Video,
   MapPin,
   Filter,
+  Check,
+  X,
 } from "lucide-react";
 import {
   format,
@@ -47,13 +49,18 @@ import { Appointment } from "@/services/appointmentService";
 interface AppointmentCalendarProps {
   appointments: Appointment[];
   onAppointmentClick?: (appointment: Appointment) => void;
+  onAppointmentConfirm?: (appointmentId: number) => void;
+  onAppointmentReject?: (appointmentId: number) => void;
 }
 
 type FilterType = "all" | "today" | "tomorrow" | "week" | "month";
 
 const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
+
   appointments,
   onAppointmentClick,
+  onAppointmentConfirm,
+  onAppointmentReject,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -536,20 +543,56 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
               )}
 
               <div className="flex gap-2 pt-4">
-                {selectedAppointment.type === "virtual" ? (
-                  <Button size="sm" className="flex-1">
-                    <Video className="h-4 w-4 mr-2" />
-                    Start Call
-                  </Button>
+                {selectedAppointment.status === "scheduled" ? (
+                  // Actions for scheduled appointments (need confirmation)
+                  <>
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      onClick={() => {
+                        if (onAppointmentConfirm) {
+                          onAppointmentConfirm(selectedAppointment.id);
+                          setShowAppointmentDetails(false);
+                        }
+                      }}
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Confirm
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={() => {
+                        if (onAppointmentReject) {
+                          onAppointmentReject(selectedAppointment.id);
+                          setShowAppointmentDetails(false);
+                        }
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Reject
+                    </Button>
+                  </>
                 ) : (
-                  <Button size="sm" className="flex-1">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    View Location
-                  </Button>
+                  // Actions for confirmed appointments
+                  <>
+                    {selectedAppointment.type === "virtual" ? (
+                      <Button size="sm" className="flex-1">
+                        <Video className="h-4 w-4 mr-2" />
+                        Start Call
+                      </Button>
+                    ) : (
+                      <Button size="sm" className="flex-1">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        View Location
+                      </Button>
+                    )}
+                    <Button variant="outline" size="sm" className="flex-1">
+                      Reschedule
+                    </Button>
+                  </>
                 )}
-                <Button variant="outline" size="sm" className="flex-1">
-                  Reschedule
-                </Button>
               </div>
             </div>
           )}

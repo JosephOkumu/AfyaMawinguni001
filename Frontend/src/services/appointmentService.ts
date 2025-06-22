@@ -6,7 +6,7 @@ export interface Appointment {
   patient_id: number;
   doctor_id: number;
   appointment_datetime: string;
-  status: "scheduled" | "completed" | "cancelled" | "rescheduled" | "no_show";
+  status: "scheduled" | "confirmed" | "completed" | "cancelled" | "rescheduled" | "no_show";
   type: "in_person" | "virtual";
   reason_for_visit?: string;
   symptoms?: string;
