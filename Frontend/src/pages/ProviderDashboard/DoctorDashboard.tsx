@@ -411,6 +411,21 @@ const DoctorDashboard = () => {
                             </FormItem>
                           )}
                         />
+                        <FormField
+                          control={profileForm.control}
+                          name="location"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Location</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                                  <Input className="pl-10" placeholder="e.g., Nairobi Medical Center" {...field} />
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
                       </div>
 
                       <FormField
@@ -420,11 +435,23 @@ const DoctorDashboard = () => {
                           <FormItem>
                             <FormLabel>Professional Summary</FormLabel>
                             <FormControl>
-                              <Textarea 
+                              <Textarea
                                 placeholder="Brief description of your medical practice..."
                                 className="min-h-[120px]"
                                 {...field}
                               />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={profileForm.control}
+                        name="experience"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Years of Experience</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="e.g., 15 years" {...field} />
                             </FormControl>
                           </FormItem>
                         )}
@@ -435,7 +462,7 @@ const DoctorDashboard = () => {
                         name="qualifications"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Qualifications</FormLabel>
+                            <FormLabel></FormLabel>
                             <FormControl>
                               <Textarea 
                                 placeholder="List your medical qualifications and certifications..."
