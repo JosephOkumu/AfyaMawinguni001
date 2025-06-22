@@ -65,9 +65,12 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date: Date) => {
-    return appointments.filter((appointment) =>
-      isSameDay(new Date(appointment.date), date),
-    );
+    return appointments.filter((appointment) => {
+      const appointmentDate = appointment.appointment_datetime
+        ? new Date(appointment.appointment_datetime)
+        : new Date(appointment.date || "");
+      return isSameDay(appointmentDate, date);
+    });
   };
 
   // Get filtered appointments based on filter type
@@ -80,33 +83,45 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
 
     switch (filter) {
       case "today":
-        return appointments.filter((appointment) =>
-          isWithinInterval(new Date(appointment.date), {
+        return appointments.filter((appointment) => {
+          const appointmentDate = appointment.appointment_datetime
+            ? new Date(appointment.appointment_datetime)
+            : new Date(appointment.date || "");
+          return isWithinInterval(appointmentDate, {
             start: today,
             end: endOfDay(today),
-          }),
-        );
+          });
+        });
       case "tomorrow":
-        return appointments.filter((appointment) =>
-          isWithinInterval(new Date(appointment.date), {
+        return appointments.filter((appointment) => {
+          const appointmentDate = appointment.appointment_datetime
+            ? new Date(appointment.appointment_datetime)
+            : new Date(appointment.date || "");
+          return isWithinInterval(appointmentDate, {
             start: tomorrow,
             end: endOfDay(tomorrow),
-          }),
-        );
+          });
+        });
       case "week":
-        return appointments.filter((appointment) =>
-          isWithinInterval(new Date(appointment.date), {
+        return appointments.filter((appointment) => {
+          const appointmentDate = appointment.appointment_datetime
+            ? new Date(appointment.appointment_datetime)
+            : new Date(appointment.date || "");
+          return isWithinInterval(appointmentDate, {
             start: today,
             end: weekEnd,
-          }),
-        );
+          });
+        });
       case "month":
-        return appointments.filter((appointment) =>
-          isWithinInterval(new Date(appointment.date), {
+        return appointments.filter((appointment) => {
+          const appointmentDate = appointment.appointment_datetime
+            ? new Date(appointment.appointment_datetime)
+            : new Date(appointment.date || "");
+          return isWithinInterval(appointmentDate, {
             start: today,
             end: monthEnd,
-          }),
-        );
+          });
+        });
       default:
         return appointments;
     }
@@ -148,11 +163,8 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   };
 
   const getAppointmentModeIcon = (appointment: Appointment) => {
-    const isVideo =
-      appointment.status === "video" ||
-      appointment.notes?.toLowerCase().includes("video") ||
-      appointment.notes?.toLowerCase().includes("online");
-    return isVideo ? (
+    const isVirtual = appointment.type === "virtual";
+    return isVirtual ? (
       <Video className="h-3 w-3" />
     ) : (
       <MapPin className="h-3 w-3" />
@@ -160,21 +172,33 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   };
 
   const getAppointmentModeColor = (appointment: Appointment) => {
-    const isVideo =
-      appointment.status === "video" ||
-      appointment.notes?.toLowerCase().includes("video") ||
-      appointment.notes?.toLowerCase().includes("online");
-    return isVideo
+    const isVirtual = appointment.type === "virtual";
+    return isVirtual
       ? "bg-green-100 text-green-800"
       : "bg-orange-100 text-orange-800";
   };
 
   const getAppointmentModeText = (appointment: Appointment) => {
-    const isVideo =
-      appointment.status === "video" ||
-      appointment.notes?.toLowerCase().includes("video") ||
-      appointment.notes?.toLowerCase().includes("online");
-    return isVideo ? "Video Call" : "Physical Visit";
+    const isVirtual = appointment.type === "virtual";
+    return isVirtual ? "Video Call" : "Physical Visit";
+  };
+
+  const getAppointmentTime = (appointment: Appointment) => {
+    if (appointment.time) return appointment.time;
+    if (appointment.appointment_datetime) {
+      return format(new Date(appointment.appointment_datetime), "h:mm a");
+    }
+    return "Time TBD";
+  };
+
+  const getAppointmentDate = (appointment: Appointment) => {
+    if (appointment.appointment_datetime) {
+      return new Date(appointment.appointment_datetime);
+    }
+    if (appointment.date) {
+      return new Date(appointment.date);
+    }
+    return new Date();
   };
 
   const renderCalendarView = () => (
@@ -221,15 +245,18 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                 <div
                   key={day.toISOString()}
                   className={`
-                    relative p-2 min-h-[80px] border border-gray-100 cursor-pointer
-                    transition-all duration-200 hover:bg-gray-50
-                    ${!isCurrentMonth ? "text-gray-400 bg-gray-50" : ""}
-                    ${isCurrentDay ? "bg-blue-50 border-blue-200" : ""}
-                    ${selectedDate && isSameDay(day, selectedDate) ? "bg-blue-100 border-blue-300" : ""}
+                    relative p-2 min-h-[100px] border border-gray-200 cursor-pointer
+                    transition-all duration-200 hover:bg-gray-50 hover:shadow-sm
+                    ${!isCurrentMonth ? "text-gray-400 bg-gray-50/50" : "bg-white"}
+                    ${isCurrentDay ? "bg-blue-50 border-blue-300 shadow-sm" : ""}
+                    ${selectedDate && isSameDay(day, selectedDate) ? "bg-blue-100 border-blue-400 shadow-md" : ""}
+                    ${hasAppointments ? "border-l-4 border-l-blue-500" : ""}
                   `}
                   onClick={() => handleDateClick(day)}
                 >
-                  <div className="text-sm font-medium mb-1">
+                  <div
+                    className={`text-sm font-medium mb-1 ${isCurrentDay ? "text-blue-700 font-bold" : ""}`}
+                  >
                     {format(day, "d")}
                   </div>
 
@@ -239,7 +266,8 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                         <div
                           key={appointment.id}
                           className={`
-                            text-xs px-1 py-0.5 rounded truncate
+                            text-xs px-2 py-1 rounded-md truncate cursor-pointer
+                            transition-all duration-150 hover:shadow-sm
                             ${getAppointmentModeColor(appointment)}
                           `}
                           onClick={(e) => {
@@ -249,13 +277,13 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                         >
                           <div className="flex items-center gap-1">
                             {getAppointmentModeIcon(appointment)}
-                            <span>{appointment.time}</span>
+                            <span>{getAppointmentTime(appointment)}</span>
                           </div>
                         </div>
                       ))}
 
                       {dayAppointments.length > 2 && (
-                        <div className="text-xs text-gray-500 px-1">
+                        <div className="text-xs text-blue-600 px-2 py-1 bg-blue-50 rounded-md font-medium">
                           +{dayAppointments.length - 2} more
                         </div>
                       )}
@@ -263,8 +291,10 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                   )}
 
                   {hasAppointments && (
-                    <div className="absolute top-1 right-1">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="absolute top-2 right-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -297,7 +327,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
           filteredAppointments.map((appointment) => (
             <Card
               key={appointment.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
             >
               <CardContent
                 className="p-4"
@@ -309,8 +339,11 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                       <div className="flex items-center gap-2 mb-1">
                         <Clock className="h-4 w-4 text-gray-500" />
                         <span className="font-medium text-blue-600">
-                          {format(new Date(appointment.date), "MMM dd, yyyy")}{" "}
-                          at {appointment.time}
+                          {format(
+                            getAppointmentDate(appointment),
+                            "MMM dd, yyyy",
+                          )}{" "}
+                          at {getAppointmentTime(appointment)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -347,7 +380,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   return (
     <div className="space-y-6">
       {/* Controls */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-4 p-4 bg-gray-50 rounded-lg border">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <Filter className="h-4 w-4 text-gray-500" />
@@ -410,7 +443,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                   </label>
                   <p className="text-sm text-gray-900">
                     {format(
-                      new Date(selectedAppointment.date),
+                      getAppointmentDate(selectedAppointment),
                       "MMMM dd, yyyy",
                     )}
                   </p>
@@ -420,7 +453,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                     Time
                   </label>
                   <p className="text-sm text-gray-900">
-                    {selectedAppointment.time}
+                    {getAppointmentTime(selectedAppointment)}
                   </p>
                 </div>
               </div>
@@ -472,21 +505,38 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                 </div>
               </div>
 
-              {selectedAppointment.notes && (
+              {(selectedAppointment.notes ||
+                selectedAppointment.reason_for_visit ||
+                selectedAppointment.symptoms) && (
                 <div>
                   <label className="text-sm font-medium text-gray-500">
-                    Notes
+                    Details
                   </label>
-                  <p className="text-sm text-gray-900 mt-1">
-                    {selectedAppointment.notes}
-                  </p>
+                  <div className="space-y-1 mt-1">
+                    {selectedAppointment.reason_for_visit && (
+                      <p className="text-sm text-gray-900">
+                        <span className="font-medium">Reason:</span>{" "}
+                        {selectedAppointment.reason_for_visit}
+                      </p>
+                    )}
+                    {selectedAppointment.symptoms && (
+                      <p className="text-sm text-gray-900">
+                        <span className="font-medium">Symptoms:</span>{" "}
+                        {selectedAppointment.symptoms}
+                      </p>
+                    )}
+                    {selectedAppointment.notes && (
+                      <p className="text-sm text-gray-900">
+                        <span className="font-medium">Notes:</span>{" "}
+                        {selectedAppointment.notes}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
 
               <div className="flex gap-2 pt-4">
-                {selectedAppointment.status === "video" ||
-                selectedAppointment.notes?.toLowerCase().includes("video") ||
-                selectedAppointment.notes?.toLowerCase().includes("online") ? (
+                {selectedAppointment.type === "virtual" ? (
                   <Button size="sm" className="flex-1">
                     <Video className="h-4 w-4 mr-2" />
                     Start Call
