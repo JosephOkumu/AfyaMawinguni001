@@ -3,7 +3,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+} from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import {
   Upload,
@@ -24,21 +30,39 @@ import {
   Calendar,
   Users,
   Bell,
-  TestTube
+  Settings,
+  TestTube,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
+
+interface ProviderProfileForm {
+  name: string;
+  phoneNumber: string;
+  email: string;
+  location: string;
+  professionalSummary: string;
+  availability: string;
+  startingPrice: string;
+}
 
 interface NursingServiceForm {
   id?: string;
@@ -56,43 +80,61 @@ const mockServices = [
   {
     id: "1",
     name: "General Nursing Care",
-    description: "Basic nursing care including medication administration, wound care, and vital signs monitoring.",
+    description:
+      "Basic nursing care including medication administration, wound care, and vital signs monitoring.",
     location: "Nairobi Central",
     availability: "24/7",
     experience: "5+ years",
     price: "1500",
-    image: "https://randomuser.me/api/portraits/women/44.jpg"
+    image: "https://randomuser.me/api/portraits/women/44.jpg",
   },
   {
     id: "2",
     name: "Specialized Care for Chronic Conditions",
-    description: "Customized care for patients with diabetes, hypertension, and other chronic conditions.",
+    description:
+      "Customized care for patients with diabetes, hypertension, and other chronic conditions.",
     location: "Westlands",
     availability: "Weekdays, 8AM-6PM",
     experience: "8+ years",
     price: "2500",
-    image: "https://randomuser.me/api/portraits/men/22.jpg"
+    image: "https://randomuser.me/api/portraits/men/22.jpg",
   },
   {
     id: "3",
     name: "Post-Surgical Care",
-    description: "Specialized nursing care for patients recovering from surgery, including wound care and medication management.",
+    description:
+      "Specialized nursing care for patients recovering from surgery, including wound care and medication management.",
     location: "Karen",
     availability: "On demand",
     experience: "10+ years",
     price: "2800",
-    image: "https://randomuser.me/api/portraits/women/55.jpg"
-  }
+    image: "https://randomuser.me/api/portraits/women/55.jpg",
+  },
 ];
 
 const HomeNursingDashboard = () => {
   const [services, setServices] = useState(mockServices);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentService, setCurrentService] = useState<NursingServiceForm | null>(null);
+  const [currentService, setCurrentService] =
+    useState<NursingServiceForm | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+
+  const profileForm = useForm<ProviderProfileForm>({
+    defaultValues: {
+      name: "Nairobi Care",
+      phoneNumber: "+254712345678",
+      email: "nairobi.care@example.com",
+      location: "Nairobi, Kenya",
+      professionalSummary:
+        "Experienced home nursing care provider with over 5 years of experience in patient care.",
+      availability: "24/7",
+      startingPrice: "1500",
+    },
+  });
 
   const form = useForm<NursingServiceForm>({
     defaultValues: {
@@ -102,8 +144,8 @@ const HomeNursingDashboard = () => {
       availability: "",
       experience: "",
       price: "",
-      image: null
-    }
+      image: null,
+    },
   });
 
   const resetForm = () => {
@@ -114,7 +156,7 @@ const HomeNursingDashboard = () => {
       availability: "",
       experience: "",
       price: "",
-      image: null
+      image: null,
     });
     setIsEditing(false);
     setCurrentService(null);
@@ -131,7 +173,7 @@ const HomeNursingDashboard = () => {
       availability: "",
       experience: "",
       price: "",
-      image: null
+      image: null,
     });
     setShowAddForm(!showAddForm);
   };
@@ -147,7 +189,7 @@ const HomeNursingDashboard = () => {
       availability: service.availability,
       experience: service.experience,
       price: service.price,
-      image: null
+      image: null,
     });
     setShowAddForm(true);
   };
@@ -159,56 +201,66 @@ const HomeNursingDashboard = () => {
 
   const confirmDelete = () => {
     if (serviceToDelete) {
-      setServices(services.filter(service => service.id !== serviceToDelete));
+      setServices(services.filter((service) => service.id !== serviceToDelete));
       setShowDeleteDialog(false);
       setServiceToDelete(null);
       toast({
         title: "Service Deleted",
         description: "The service has been successfully deleted.",
-        variant: "default"
+        variant: "default",
       });
     }
   };
 
-  const filteredServices = services.filter(service => 
-    service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.location.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredServices = services.filter(
+    (service) =>
+      service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.location.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const onSubmit = async (data: NursingServiceForm) => {
     // In a real app, this would send data to the server
     console.log(data);
-    
+
     if (isEditing && currentService) {
       // Update existing service
-      const updatedServices = services.map(service => 
-        service.id === currentService.id 
+      const updatedServices = services.map((service) =>
+        service.id === currentService.id
           ? { ...service, ...data, image: service.image } // Keep the existing image URL
-          : service
+          : service,
       );
       setServices(updatedServices);
       toast({
         title: "Service Updated",
         description: "Your service has been successfully updated.",
-        variant: "default"
+        variant: "default",
       });
     } else {
       // Add new service
       const newService = {
         ...data,
         id: Date.now().toString(),
-        image: "https://randomuser.me/api/portraits/women/44.jpg" // Placeholder image
+        image: "https://randomuser.me/api/portraits/women/44.jpg", // Placeholder image
       };
       setServices([...services, newService]);
       toast({
         title: "Service Added",
         description: "Your new service has been successfully added.",
-        variant: "default"
+        variant: "default",
       });
     }
-    
+
     resetForm();
+  };
+
+  const handleProfileSubmit = (data: ProviderProfileForm) => {
+    console.log("Profile data:", data);
+    toast({
+      title: "Profile Updated",
+      description: "Your provider profile has been successfully updated.",
+    });
+    setShowProfileDialog(false);
   };
 
   return (
@@ -220,17 +272,170 @@ const HomeNursingDashboard = () => {
               <span className="text-primary-blue">AFYA</span>
               <span className="text-secondary-green"> MAWINGUNI</span>
             </h1>
-            <p className="text-gray-600 mt-2">Home Nursing Service Provider Dashboard</p>
+            <p className="text-gray-600 mt-2">
+              Home Nursing Service Provider Dashboard
+            </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 border-2 border-secondary-green/20">
-              <AvatarImage src="https://randomuser.me/api/portraits/women/68.jpg" alt="Provider" />
-              <AvatarFallback>NP</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="font-medium">Nairobi Care</span>
-              <span className="text-sm text-gray-500">Provider</span>
+          <div className="mt-4 md:mt-0 flex items-center space-x-3">
+            <div className="flex items-center bg-white rounded-full px-3 py-1.5 border border-gray-200 shadow-sm">
+              <span className="text-sm font-medium mr-2">Nairobi Care</span>
+              <Avatar className="h-8 w-8 border border-secondary-green/20">
+                <AvatarImage
+                  src="https://randomuser.me/api/portraits/women/68.jpg"
+                  alt="Provider"
+                />
+                <AvatarFallback>NP</AvatarFallback>
+              </Avatar>
             </div>
+            <Button variant="outline" size="icon">
+              <Bell className="h-4 w-4" />
+            </Button>
+            <Dialog
+              open={showProfileDialog}
+              onOpenChange={setShowProfileDialog}
+            >
+              <DialogTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto">
+                <DialogHeader className="sticky top-0 z-10 bg-white px-6 py-4 border-b flex flex-row justify-between items-center">
+                  <DialogTitle className="text-xl font-semibold">
+                    Provider Profile Settings
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="px-6 py-4">
+                  <Form {...profileForm}>
+                    <form
+                      onSubmit={profileForm.handleSubmit(handleProfileSubmit)}
+                      className="space-y-6"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={profileForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Provider Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter provider name"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={profileForm.control}
+                          name="phoneNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone Number</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter phone number"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={profileForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="email"
+                                  placeholder="Enter email address"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={profileForm.control}
+                          name="location"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Location</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter your location"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={profileForm.control}
+                          name="availability"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Availability</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g., 24/7, Weekdays 8AM-6PM"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={profileForm.control}
+                          name="startingPrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Starting Price (KES)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Enter starting price"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={profileForm.control}
+                        name="professionalSummary"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Professional Summary</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe your experience, qualifications, and specializations"
+                                className="min-h-[120px]"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <DialogFooter className="sticky bottom-0 bg-white pt-4 border-t">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowProfileDialog(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit">Save Profile</Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -250,7 +455,7 @@ const HomeNursingDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-gradient-to-br from-green-50 to-green-100">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
@@ -262,11 +467,13 @@ const HomeNursingDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-gradient-to-br from-amber-50 to-amber-100">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Pending Appointments</p>
+                    <p className="text-sm text-gray-600">
+                      Pending Appointments
+                    </p>
                     <h3 className="text-2xl font-bold">3</h3>
                   </div>
                   <div className="h-10 w-10 bg-amber-200 rounded-full flex items-center justify-center">
@@ -274,7 +481,7 @@ const HomeNursingDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-gradient-to-br from-purple-50 to-purple-100">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
@@ -292,9 +499,9 @@ const HomeNursingDashboard = () => {
               <div className="bg-gradient-to-r from-primary-blue to-secondary-green p-4 text-white">
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-bold">My Services</h2>
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     className="bg-white text-primary-blue hover:bg-gray-100 flex items-center gap-1"
                     onClick={handleAddNewClick}
                   >
@@ -319,7 +526,10 @@ const HomeNursingDashboard = () => {
                       {isEditing ? "Edit Service" : "Add New Service"}
                     </h3>
                     <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="space-y-4"
+                      >
                         <FormField
                           control={form.control}
                           name="name"
@@ -327,12 +537,15 @@ const HomeNursingDashboard = () => {
                             <FormItem>
                               <FormLabel>Service Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="e.g., Home Care Package" {...field} />
+                                <Input
+                                  placeholder="e.g., Home Care Package"
+                                  {...field}
+                                />
                               </FormControl>
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={form.control}
                           name="description"
@@ -340,7 +553,7 @@ const HomeNursingDashboard = () => {
                             <FormItem>
                               <FormLabel>Service Description</FormLabel>
                               <FormControl>
-                                <Textarea 
+                                <Textarea
                                   placeholder="Describe your nursing service..."
                                   className="min-h-[100px]"
                                   {...field}
@@ -360,7 +573,11 @@ const HomeNursingDashboard = () => {
                                 <FormControl>
                                   <div className="relative">
                                     <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                    <Input className="pl-10" placeholder="e.g., Nairobi Central" {...field} />
+                                    <Input
+                                      className="pl-10"
+                                      placeholder="e.g., Nairobi Central"
+                                      {...field}
+                                    />
                                   </div>
                                 </FormControl>
                               </FormItem>
@@ -374,7 +591,11 @@ const HomeNursingDashboard = () => {
                               <FormItem>
                                 <FormLabel>Price (KES)</FormLabel>
                                 <FormControl>
-                                  <Input type="number" placeholder="e.g., 2500" {...field} />
+                                  <Input
+                                    type="number"
+                                    placeholder="e.g., 2500"
+                                    {...field}
+                                  />
                                 </FormControl>
                               </FormItem>
                             )}
@@ -391,7 +612,11 @@ const HomeNursingDashboard = () => {
                                 <FormControl>
                                   <div className="relative">
                                     <Clock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                    <Input className="pl-10" placeholder="e.g., Monday-Friday, 9AM-5PM" {...field} />
+                                    <Input
+                                      className="pl-10"
+                                      placeholder="e.g., Monday-Friday, 9AM-5PM"
+                                      {...field}
+                                    />
                                   </div>
                                 </FormControl>
                               </FormItem>
@@ -407,7 +632,11 @@ const HomeNursingDashboard = () => {
                                 <FormControl>
                                   <div className="relative">
                                     <Star className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                    <Input className="pl-10" placeholder="e.g., 5 years" {...field} />
+                                    <Input
+                                      className="pl-10"
+                                      placeholder="e.g., 5 years"
+                                      {...field}
+                                    />
                                   </div>
                                 </FormControl>
                               </FormItem>
@@ -427,10 +656,15 @@ const HomeNursingDashboard = () => {
                                     type="file"
                                     className="hidden"
                                     accept="image/*"
-                                    onChange={(e) => field.onChange(e.target.files?.[0])}
+                                    onChange={(e) =>
+                                      field.onChange(e.target.files?.[0])
+                                    }
                                     id="service-image"
                                   />
-                                  <label htmlFor="service-image" className="cursor-pointer">
+                                  <label
+                                    htmlFor="service-image"
+                                    className="cursor-pointer"
+                                  >
                                     <div className="flex flex-col items-center gap-2">
                                       <Image className="h-6 w-6 text-gray-400" />
                                       <span className="text-sm text-gray-500">
@@ -450,9 +684,9 @@ const HomeNursingDashboard = () => {
                         />
 
                         <div className="flex justify-end gap-4 pt-2">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
+                          <Button
+                            type="button"
+                            variant="outline"
                             onClick={resetForm}
                           >
                             Cancel
@@ -466,23 +700,21 @@ const HomeNursingDashboard = () => {
                     </Form>
                   </div>
                 )}
-                
-
 
                 <div className="flex justify-between items-center mb-4">
                   <p className="text-gray-600">Manage your nursing services</p>
                   <div className="relative w-64">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input 
-                      type="search" 
-                      placeholder="Search services..." 
+                    <Input
+                      type="search"
+                      placeholder="Search services..."
                       className="pl-10 w-full border-gray-200 focus-visible:ring-secondary-green"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                 </div>
-                
+
                 {filteredServices.length > 0 ? (
                   <div className="overflow-x-auto">
                     <Table>
@@ -497,21 +729,36 @@ const HomeNursingDashboard = () => {
                       </TableHeader>
                       <TableBody>
                         {filteredServices.map((service) => (
-                          <TableRow key={service.id} className="hover:bg-gray-50">
+                          <TableRow
+                            key={service.id}
+                            className="hover:bg-gray-50"
+                          >
                             <TableCell>
                               <div className="flex items-center space-x-3">
                                 <Avatar className="h-10 w-10 border border-gray-200">
-                                  <AvatarImage src={service.image} alt={service.name} />
-                                  <AvatarFallback>{service.name.charAt(0)}</AvatarFallback>
+                                  <AvatarImage
+                                    src={service.image}
+                                    alt={service.name}
+                                  />
+                                  <AvatarFallback>
+                                    {service.name.charAt(0)}
+                                  </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <div className="font-medium text-gray-900 max-w-[200px] truncate">{service.name}</div>
-                                  <div className="text-xs text-gray-500 max-w-[200px] truncate">{service.description}</div>
+                                  <div className="font-medium text-gray-900 max-w-[200px] truncate">
+                                    {service.name}
+                                  </div>
+                                  <div className="text-xs text-gray-500 max-w-[200px] truncate">
+                                    {service.description}
+                                  </div>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              <Badge
+                                variant="outline"
+                                className="bg-green-50 text-green-700 border-green-200"
+                              >
                                 {service.price}
                               </Badge>
                             </TableCell>
@@ -519,17 +766,17 @@ const HomeNursingDashboard = () => {
                             <TableCell>{service.location}</TableCell>
                             <TableCell>
                               <div className="flex items-center space-x-2">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                                   onClick={() => handleEditService(service)}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   className="text-red-600 hover:text-red-800 hover:bg-red-50"
                                   onClick={() => handleDeleteClick(service.id)}
                                 >
@@ -559,11 +806,15 @@ const HomeNursingDashboard = () => {
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this service? This action cannot be undone.
+              Are you sure you want to delete this service? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex space-x-2 justify-end mt-4">
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
