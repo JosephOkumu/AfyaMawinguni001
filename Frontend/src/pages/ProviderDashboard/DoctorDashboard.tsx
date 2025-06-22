@@ -567,8 +567,8 @@ const DoctorDashboard = () => {
         <Tabs defaultValue="services" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 mb-8">
             <TabsTrigger value="services" className="flex items-center gap-2">
-              <Stethoscope className="h-4 w-4" />
-              My Services
+              <Clock className="h-4 w-4" />
+              My Schedule
             </TabsTrigger>
             <TabsTrigger value="appointments" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -576,182 +576,168 @@ const DoctorDashboard = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Services Tab */}
           <TabsContent value="services">
-            <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-6">
+              {/* Today's Schedule */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <h2 className="text-xl font-semibold">My Services</h2>
-                  <Button 
-                    onClick={() => {
-                      if (isAddingService) {
-                        setIsAddingService(false);
-                        setIsEditingService(false);
-                        serviceForm.reset();
-                      } else {
-                        setIsAddingService(true);
-                        setIsEditingService(false);
-                        serviceForm.reset({
-                          name: "",
-                          description: "",
-                          price: 0,
-                          duration: ""
-                        });
-                      }
-                    }}
-                    className="gap-2"
-                  >
-                    {isAddingService ? (
-                      <>Hide Form</>
-                    ) : (
-                      <>
-                        <Plus className="h-4 w-4" />
-                        Add New Service
-                      </>
-                    )}
-                  </Button>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-gray-800">Today</h3>
+                    <Badge variant="secondary" className="ml-2">3 appointments</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-medium text-blue-600">10:00 AM</div>
+                      <div className="text-sm text-gray-700">John Doe</div>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                      Online
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-medium text-blue-600">2:00 PM</div>
+                      <div className="text-sm text-gray-700">Jane Smith</div>
+                    </div>
+                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-1"></div>
+                      Physical
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-medium text-blue-600">4:30 PM</div>
+                      <div className="text-sm text-gray-700">Mike Johnson</div>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                      Online
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tomorrow's Schedule */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-gray-800">Tomorrow</h3>
+                    <Badge variant="secondary" className="ml-2">2 appointments</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-medium text-blue-600">9:00 AM</div>
+                      <div className="text-sm text-gray-700">Sarah Wilson</div>
+                    </div>
+                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-1"></div>
+                      Physical
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-medium text-blue-600">3:00 PM</div>
+                      <div className="text-sm text-gray-700">David Brown</div>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                      Online
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* This Week */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-gray-800">This Week</h3>
+                    <Badge variant="secondary" className="ml-2">5 more appointments</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-medium text-blue-600">Wed 11:00 AM</div>
+                      <div className="text-sm text-gray-700">Emma Davis</div>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                      Online
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-medium text-blue-600">Thu 1:30 PM</div>
+                      <div className="text-sm text-gray-700">Robert Miller</div>
+                    </div>
+                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-1"></div>
+                      Physical
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-medium text-blue-600">Fri 10:00 AM</div>
+                      <div className="text-sm text-gray-700">Lisa Anderson</div>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                      Online
+                    </Badge>
+                  </div>
+                  <div className="text-center">
+                    <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                      View 2 more appointments
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Next Week */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-gray-800">Next Week</h3>
+                    <Badge variant="secondary" className="ml-2">8 appointments</Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  {isAddingService && (
-                    <div className="mb-8 bg-gray-50 p-4 rounded-lg border">
-                      <h3 className="font-medium mb-4">
-                        {isEditingService ? "Edit Service" : "Add New Service"}
-                      </h3>
-                      <Form {...serviceForm}>
-                        <form onSubmit={serviceForm.handleSubmit(onAddService)} className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                              control={serviceForm.control}
-                              name="name"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Service Name</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="e.g., General Consultation" {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={serviceForm.control}
-                              name="price"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Price (KES)</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      type="number" 
-                                      placeholder="e.g., 2500" 
-                                      {...field}
-                                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          
-                          <FormField
-                            control={serviceForm.control}
-                            name="description"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Description</FormLabel>
-                                <FormControl>
-                                  <Textarea 
-                                    placeholder="Describe the service..." 
-                                    className="h-24"
-                                    {...field}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={serviceForm.control}
-                            name="duration"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Duration</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="e.g., 30 minutes" {...field} />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              type="button" 
-                              variant="outline"
-                              onClick={() => {
-                                setIsAddingService(false);
-                                setIsEditingService(false);
-                                serviceForm.reset();
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                            <Button type="submit">
-                              {isEditingService ? "Update Service" : "Add Service"}
-                            </Button>
-                          </div>
-                        </form>
-                      </Form>
-                    </div>
-                  )}
+                  <div className="text-center py-4">
+                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-3">8 appointments scheduled</p>
+                    <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                      View Next Week Schedule
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-                  {/* Services List */}
-                  <div className="space-y-4">
-                    {services.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        No services added yet. Click the button above to add a new service.
-                      </div>
-                    ) : (
-                      services.map((service) => (
-                        <div 
-                          key={service.id}
-                          className="p-4 border rounded-lg hover:bg-gray-50 transition-colors flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-medium">{service.name}</h3>
-
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">{service.description}</p>
-                            <div className="flex items-center gap-4 mt-2 text-sm">
-                              <span className="text-green-600 font-medium">KES {service.price.toLocaleString()}</span>
-                              <span className="text-gray-500 flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {service.duration}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 self-end md:self-center">
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              onClick={() => editService(service.id)}
-                              className="h-8 gap-1"
-                            >
-                              <Edit className="h-3.5 w-3.5" />
-                              Edit
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              onClick={() => deleteService(service.id)}
-                              className="h-8 gap-1 text-red-500 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    )}
+              {/* Next Two Weeks */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-gray-800">Next Two Weeks</h3>
+                    <Badge variant="secondary" className="ml-2">12 appointments</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-4">
+                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-3">12 appointments scheduled</p>
+                    <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                      View Extended Schedule
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
