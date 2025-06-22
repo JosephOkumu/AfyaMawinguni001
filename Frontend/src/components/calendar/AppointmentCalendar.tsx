@@ -202,7 +202,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   };
 
   const renderCalendarView = () => (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Calendar Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">
@@ -310,7 +310,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
     const filteredAppointments = getFilteredAppointments();
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         {filteredAppointments.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
@@ -429,14 +429,14 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
         open={showAppointmentDetails}
         onOpenChange={setShowAppointmentDetails}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Appointment Details</DialogTitle>
           </DialogHeader>
 
           {selectedAppointment && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-8">
                 <div>
                   <label className="text-sm font-medium text-gray-500">
                     Date

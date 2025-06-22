@@ -989,7 +989,7 @@ const DoctorDashboard = () => {
           <TabsList className="grid grid-cols-2 mb-8">
             <TabsTrigger value="schedule" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              My Schedule
+              Appointments Schedule
             </TabsTrigger>
             <TabsTrigger
               value="appointments"
