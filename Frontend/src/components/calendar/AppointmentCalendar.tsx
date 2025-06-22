@@ -511,36 +511,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                 </div>
               </div>
 
-              {(selectedAppointment.notes ||
-                selectedAppointment.reason_for_visit ||
-                selectedAppointment.symptoms) && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Details
-                  </label>
-                  <div className="space-y-1 mt-1">
-                    {selectedAppointment.reason_for_visit && (
-                      <p className="text-sm text-gray-900">
-                        <span className="font-medium">Reason:</span>{" "}
-                        {selectedAppointment.reason_for_visit}
-                      </p>
-                    )}
-                    {selectedAppointment.symptoms && (
-                      <p className="text-sm text-gray-900">
-                        <span className="font-medium">Symptoms:</span>{" "}
-                        {selectedAppointment.symptoms}
-                      </p>
-                    )}
-                    {selectedAppointment.notes && (
-                      <p className="text-sm text-gray-900">
-                        <span className="font-medium">Notes:</span>{" "}
-                        {selectedAppointment.notes}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
               <div className="flex gap-2 pt-4">
                 {selectedAppointment.status === "completed" ? (
                   // Only reschedule button for completed appointments
