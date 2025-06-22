@@ -10,13 +10,19 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">Afya Mawinguni</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/about-us" className="hover:text-gray-300">About Us</Link>
+                <Link to="/about-us" className="hover:text-gray-300">
+                  About Us
+                </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-gray-300">Features</Link>
+                <Link to="#" className="hover:text-gray-300">
+                  Features
+                </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-gray-300">Accounts</Link>
+                <Link to="#" className="hover:text-gray-300">
+                  Accounts
+                </Link>
               </li>
             </ul>
           </div>
@@ -26,16 +32,24 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">For Patients</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="#" className="hover:text-gray-300">Find a Doctor</Link>
+                <Link to="#" className="hover:text-gray-300">
+                  Find a Doctor
+                </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-gray-300">Book Appointment</Link>
+                <Link to="#" className="hover:text-gray-300">
+                  Book Appointment
+                </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-gray-300">Medical Records</Link>
+                <Link to="#" className="hover:text-gray-300">
+                  Medical Records
+                </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-gray-300">Telemedicine</Link>
+                <Link to="#" className="hover:text-gray-300">
+                  Telemedicine
+                </Link>
               </li>
             </ul>
           </div>
@@ -45,16 +59,24 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">For Providers</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="#" className="hover:text-gray-300">Provider Registration</Link>
+                <Link to="#" className="hover:text-gray-300">
+                  Provider Registration
+                </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-gray-300">Practice Management</Link>
+                <Link to="#" className="hover:text-gray-300">
+                  Practice Management
+                </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-gray-300">Patient Coordination</Link>
+                <Link to="#" className="hover:text-gray-300">
+                  Patient Coordination
+                </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-gray-300">Billing</Link>
+                <Link to="#" className="hover:text-gray-300">
+                  Billing
+                </Link>
               </li>
             </ul>
           </div>
@@ -63,13 +85,12 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-lg mb-4">Contact Us</h3>
             <ul className="space-y-2">
-              <li>sanjajohnea@gmail.com</li>
-              <li>+254 711 303004</li>
+              <li>info@afyamawinguni.com</li>
               <li>Support Center</li>
             </ul>
           </div>
         </div>
-        
+
         <div className="mt-8 pt-8 border-t border-gray-700 text-center text-sm">
           <p> 2025 Afya Mawinguni. All rights reserved.</p>
         </div>
