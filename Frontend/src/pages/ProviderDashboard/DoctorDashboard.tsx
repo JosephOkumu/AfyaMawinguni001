@@ -1,29 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Upload, 
-  Save, 
-  Image as ImageIcon, 
-  MapPin, 
-  Clock, 
-  Star, 
-  FileText, 
-  Stethoscope, 
-  Edit, 
-  Trash2, 
-  Plus, 
+import AppointmentCalendar from "@/components/calendar/AppointmentCalendar";
+import appointmentService, { Appointment } from "@/services/appointmentService";
+import {
+  Upload,
+  Save,
+  Image as ImageIcon,
+  MapPin,
+  Clock,
+  Star,
+  FileText,
+  Stethoscope,
+  Edit,
+  Trash2,
+  Plus,
   Calendar,
   Heart,
   Shield,
@@ -71,13 +93,15 @@ interface ServiceItem {
 
 const DoctorDashboard = () => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("services");
+  const [activeTab, setActiveTab] = useState("schedule");
   const [isAddingService, setIsAddingService] = useState(false);
   const [isEditingService, setIsEditingService] = useState(false);
   const [currentServiceId, setCurrentServiceId] = useState<string | null>(null);
   const [showSubscriptionForm, setShowSubscriptionForm] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
-  
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
+
   // Sample services
   const [services, setServices] = useState<ServiceItem[]>([
     {
@@ -85,19 +109,109 @@ const DoctorDashboard = () => {
       name: "General Consultation",
       description: "Standard medical consultation for general health concerns.",
       price: 2500,
-      duration: "30 minutes"
+      duration: "30 minutes",
     },
     {
       id: "2",
       name: "Specialized Consultation",
       description: "In-depth consultation for specific medical conditions.",
       price: 4500,
-      duration: "45 minutes"
-    }
+      duration: "45 minutes",
+    },
   ]);
 
+  // Load appointments
+  useEffect(() => {
+    const loadAppointments = async () => {
+      try {
+        setIsLoadingAppointments(true);
+        const doctorAppointments =
+          await appointmentService.getAppointments("doctor");
+        setAppointments(doctorAppointments);
+      } catch (error) {
+        console.error("Failed to load appointments:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load appointments. Please try again.",
+          variant: "destructive",
+        });
+        // For demo purposes, set some sample appointments
+        setAppointments([
+          {
+            id: 1,
+            patient_id: 1,
+            doctor_id: 1,
+            date: new Date().toISOString().split("T")[0],
+            time: "10:00 AM",
+            status: "confirmed",
+            notes: "Regular checkup",
+            patient: {
+              id: 1,
+              user_id: 1,
+              user: {
+                name: "John Doe",
+                email: "john@example.com",
+                phone_number: "+254712345678",
+              },
+            },
+          },
+          {
+            id: 2,
+            patient_id: 2,
+            doctor_id: 1,
+            date: new Date(Date.now() + 86400000).toISOString().split("T")[0],
+            time: "2:00 PM",
+            status: "video",
+            notes: "Follow-up consultation",
+            patient: {
+              id: 2,
+              user_id: 2,
+              user: {
+                name: "Jane Smith",
+                email: "jane@example.com",
+                phone_number: "+254787654321",
+              },
+            },
+          },
+          {
+            id: 3,
+            patient_id: 3,
+            doctor_id: 1,
+            date: new Date(Date.now() + 172800000).toISOString().split("T")[0],
+            time: "11:30 AM",
+            status: "confirmed",
+            notes: "Consultation for chronic condition",
+            patient: {
+              id: 3,
+              user_id: 3,
+              user: {
+                name: "Mike Johnson",
+                email: "mike@example.com",
+                phone_number: "+254798765432",
+              },
+            },
+          },
+        ]);
+      } finally {
+        setIsLoadingAppointments(false);
+      }
+    };
+
+    loadAppointments();
+  }, [toast]);
+
+  const handleAppointmentClick = (appointment: Appointment) => {
+    toast({
+      title: "Appointment Selected",
+      description: `Appointment with ${appointment.patient?.user?.name} at ${appointment.time}`,
+      variant: "default",
+    });
+  };
+
   // Sample subscription plans
-  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([
+  const [subscriptionPlans, setSubscriptionPlans] = useState<
+    SubscriptionPlan[]
+  >([
     {
       id: "1",
       name: "Basic Care",
@@ -106,23 +220,24 @@ const DoctorDashboard = () => {
       features: [
         "10% discount on all consultations",
         "Priority scheduling",
-        "24/7 chat support"
+        "24/7 chat support",
       ],
-      isActive: true
+      isActive: true,
     },
     {
       id: "2",
       name: "Premium Care",
       price: 4500,
-      description: "Comprehensive healthcare subscription with maximum benefits",
+      description:
+        "Comprehensive healthcare subscription with maximum benefits",
       features: [
         "25% discount on all consultations",
         "Same-day appointments",
         "Free medication delivery",
-        "Unlimited video consultations"
+        "Unlimited video consultations",
       ],
-      isActive: true
-    }
+      isActive: true,
+    },
   ]);
 
   // Form for doctor profile
@@ -130,18 +245,20 @@ const DoctorDashboard = () => {
     defaultValues: {
       name: "Dr. John Doe",
       specialty: "Cardiologist",
-      description: "Experienced cardiologist specializing in preventive cardiac care and heart disease management.",
+      description:
+        "Experienced cardiologist specializing in preventive cardiac care and heart disease management.",
       location: "Nairobi Medical Center, 3rd Floor",
       availability: "Mon-Fri, 9AM-5PM",
       experience: "15 years",
       physicalPrice: "2500",
       onlinePrice: "2000",
       image: null,
-      qualifications: "MD, Cardiology - University of Nairobi\nFellowship in Interventional Cardiology - Kenyatta National Hospital\nMember of African Cardiology Association",
+      qualifications:
+        "MD, Cardiology - University of Nairobi\nFellowship in Interventional Cardiology - Kenyatta National Hospital\nMember of African Cardiology Association",
       languages: "English, Swahili",
       acceptsInsurance: true,
-      consultationModes: ["In-person", "Video", "Chat"]
-    }
+      consultationModes: ["In-person", "Video", "Chat"],
+    },
   });
 
   // Form for service management
@@ -150,8 +267,8 @@ const DoctorDashboard = () => {
       name: "",
       description: "",
       price: 0,
-      duration: ""
-    }
+      duration: "",
+    },
   });
 
   // Form for subscription plan
@@ -162,8 +279,8 @@ const DoctorDashboard = () => {
       price: 0,
       description: "",
       features: [],
-      isActive: true
-    }
+      isActive: true,
+    },
   });
 
   const onProfileSubmit = async (data: DoctorProfileForm) => {
@@ -177,9 +294,13 @@ const DoctorDashboard = () => {
   const onAddService = (data: ServiceItem) => {
     if (isEditingService && currentServiceId) {
       // Update existing service
-      setServices(services.map(service => 
-        service.id === currentServiceId ? { ...data, id: currentServiceId } : service
-      ));
+      setServices(
+        services.map((service) =>
+          service.id === currentServiceId
+            ? { ...data, id: currentServiceId }
+            : service,
+        ),
+      );
       toast({
         title: "Service updated",
         description: "The service has been updated successfully.",
@@ -188,7 +309,7 @@ const DoctorDashboard = () => {
       // Add new service
       const newService = {
         ...data,
-        id: Math.random().toString(36).substring(2, 9)
+        id: Math.random().toString(36).substring(2, 9),
       };
       setServices([...services, newService]);
       toast({
@@ -203,7 +324,7 @@ const DoctorDashboard = () => {
   };
 
   const editService = (serviceId: string) => {
-    const service = services.find(s => s.id === serviceId);
+    const service = services.find((s) => s.id === serviceId);
     if (service) {
       serviceForm.reset(service);
       setCurrentServiceId(serviceId);
@@ -213,7 +334,7 @@ const DoctorDashboard = () => {
   };
 
   const deleteService = (serviceId: string) => {
-    setServices(services.filter(service => service.id !== serviceId));
+    setServices(services.filter((service) => service.id !== serviceId));
     toast({
       title: "Service deleted",
       description: "The service has been removed.",
@@ -224,7 +345,9 @@ const DoctorDashboard = () => {
     const newPlan = {
       ...data,
       id: Math.random().toString(36).substring(2, 9),
-      features: data.description.split('\n').filter(item => item.trim() !== '')
+      features: data.description
+        .split("\n")
+        .filter((item) => item.trim() !== ""),
     };
     setSubscriptionPlans([...subscriptionPlans, newPlan]);
     toast({
@@ -237,18 +360,20 @@ const DoctorDashboard = () => {
 
   const toggleSubscriptionStatus = (planId: string) => {
     setSubscriptionPlans(
-      subscriptionPlans.map(plan => 
-        plan.id === planId ? { ...plan, isActive: !plan.isActive } : plan
-      )
+      subscriptionPlans.map((plan) =>
+        plan.id === planId ? { ...plan, isActive: !plan.isActive } : plan,
+      ),
     );
     toast({
       title: "Plan status updated",
-      description: `The plan has been ${subscriptionPlans.find(p => p.id === planId)?.isActive ? 'deactivated' : 'activated'}.`,
+      description: `The plan has been ${subscriptionPlans.find((p) => p.id === planId)?.isActive ? "deactivated" : "activated"}.`,
     });
   };
 
   const deleteSubscriptionPlan = (planId: string) => {
-    setSubscriptionPlans(subscriptionPlans.filter(plan => plan.id !== planId));
+    setSubscriptionPlans(
+      subscriptionPlans.filter((plan) => plan.id !== planId),
+    );
     toast({
       title: "Subscription plan deleted",
       description: "The subscription plan has been removed.",
@@ -269,16 +394,24 @@ const DoctorDashboard = () => {
 
           <div className="mt-4 md:mt-0 flex items-center space-x-3">
             <div className="flex items-center bg-white rounded-full px-3 py-1.5 border border-gray-200 shadow-sm">
-              <span className="text-sm font-medium mr-2">Dr. Medical Center</span>
+              <span className="text-sm font-medium mr-2">
+                Dr. Medical Center
+              </span>
               <Avatar className="h-8 w-8 border border-secondary-green/20">
-                <AvatarImage src="https://randomuser.me/api/portraits/men/45.jpg" alt="Doctor" />
+                <AvatarImage
+                  src="https://randomuser.me/api/portraits/men/45.jpg"
+                  alt="Doctor"
+                />
                 <AvatarFallback>DR</AvatarFallback>
               </Avatar>
             </div>
             <Button variant="outline" size="icon">
               <Bell className="h-4 w-4" />
             </Button>
-            <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+            <Dialog
+              open={showProfileDialog}
+              onOpenChange={setShowProfileDialog}
+            >
               <DialogTrigger asChild>
                 <Button variant="outline" size="icon">
                   <Settings className="h-4 w-4" />
@@ -286,16 +419,25 @@ const DoctorDashboard = () => {
               </DialogTrigger>
               <DialogContent className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto">
                 <DialogHeader className="sticky top-0 z-10 bg-white px-6 py-4 border-b flex flex-row justify-between items-center">
-                  <DialogTitle className="text-xl font-semibold">Doctor Profile Settings</DialogTitle>
+                  <DialogTitle className="text-xl font-semibold">
+                    Doctor Profile Settings
+                  </DialogTitle>
                   <DialogClose asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full"
+                    >
                       <X className="h-4 w-4" />
                     </Button>
                   </DialogClose>
                 </DialogHeader>
-<div className="px-6 py-4">
+                <div className="px-6 py-4">
                   <Form {...profileForm}>
-                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+                    <form
+                      onSubmit={profileForm.handleSubmit(onProfileSubmit)}
+                      className="space-y-6"
+                    >
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={profileForm.control}
@@ -319,7 +461,11 @@ const DoctorDashboard = () => {
                               <FormControl>
                                 <div className="relative">
                                   <Stethoscope className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                  <Input className="pl-10" placeholder="e.g., Cardiologist" {...field} />
+                                  <Input
+                                    className="pl-10"
+                                    placeholder="e.g., Cardiologist"
+                                    {...field}
+                                  />
                                 </div>
                               </FormControl>
                             </FormItem>
@@ -334,7 +480,11 @@ const DoctorDashboard = () => {
                               <FormControl>
                                 <div className="relative">
                                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                  <Input className="pl-10" placeholder="e.g., Nairobi Medical Center" {...field} />
+                                  <Input
+                                    className="pl-10"
+                                    placeholder="e.g., Nairobi Medical Center"
+                                    {...field}
+                                  />
                                 </div>
                               </FormControl>
                             </FormItem>
@@ -365,7 +515,11 @@ const DoctorDashboard = () => {
                           <FormItem>
                             <FormLabel>Years of Experience</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="e.g., 15 years" {...field} />
+                              <Input
+                                type="number"
+                                placeholder="e.g., 15 years"
+                                {...field}
+                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -393,9 +547,15 @@ const DoctorDashboard = () => {
                           name="physicalPrice"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Physical Consultation Fee (KES)</FormLabel>
+                              <FormLabel>
+                                Physical Consultation Fee (KES)
+                              </FormLabel>
                               <FormControl>
-                                <Input type="number" placeholder="e.g., 2500" {...field} />
+                                <Input
+                                  type="number"
+                                  placeholder="e.g., 2500"
+                                  {...field}
+                                />
                               </FormControl>
                             </FormItem>
                           )}
@@ -406,9 +566,15 @@ const DoctorDashboard = () => {
                           name="onlinePrice"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Online Consultation Fee (KES)</FormLabel>
+                              <FormLabel>
+                                Online Consultation Fee (KES)
+                              </FormLabel>
                               <FormControl>
-                                <Input type="number" placeholder="e.g., 2000" {...field} />
+                                <Input
+                                  type="number"
+                                  placeholder="e.g., 2000"
+                                  {...field}
+                                />
                               </FormControl>
                             </FormItem>
                           )}
@@ -423,7 +589,11 @@ const DoctorDashboard = () => {
                               <FormControl>
                                 <div className="relative">
                                   <Clock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                  <Input className="pl-10" placeholder="e.g., Mon-Fri, 9AM-5PM" {...field} />
+                                  <Input
+                                    className="pl-10"
+                                    placeholder="e.g., Mon-Fri, 9AM-5PM"
+                                    {...field}
+                                  />
                                 </div>
                               </FormControl>
                             </FormItem>
@@ -438,7 +608,10 @@ const DoctorDashboard = () => {
                           <FormItem>
                             <FormLabel>Languages Spoken</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., English, Swahili" {...field} />
+                              <Input
+                                placeholder="e.g., English, Swahili"
+                                {...field}
+                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -450,9 +623,12 @@ const DoctorDashboard = () => {
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">Accept Insurance</FormLabel>
+                              <FormLabel className="text-base">
+                                Accept Insurance
+                              </FormLabel>
                               <p className="text-sm text-muted-foreground">
-                                Enable this if you accept health insurance payments.
+                                Enable this if you accept health insurance
+                                payments.
                               </p>
                             </div>
                             <FormControl>
@@ -477,10 +653,15 @@ const DoctorDashboard = () => {
                                   type="file"
                                   className="hidden"
                                   accept="image/*"
-                                  onChange={(e) => field.onChange(e.target.files?.[0])}
+                                  onChange={(e) =>
+                                    field.onChange(e.target.files?.[0])
+                                  }
                                   id="profile-photo-modal"
                                 />
-                                <label htmlFor="profile-photo-modal" className="cursor-pointer block">
+                                <label
+                                  htmlFor="profile-photo-modal"
+                                  className="cursor-pointer block"
+                                >
                                   <div className="flex flex-col items-center gap-2">
                                     <ImageIcon className="h-8 w-8 text-gray-400" />
                                     <span className="text-sm text-gray-500">
@@ -530,12 +711,14 @@ const DoctorDashboard = () => {
                   <CheckCircle className="h-5 w-5" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-semibold text-white/80">Completed</p>
+                  <p className="text-sm font-semibold text-white/80">
+                    Completed
+                  </p>
                   <p className="text-2xl font-bold">15</p>
                 </div>
               </div>
             </div>
-            
+
             {/* Active Services Card */}
             <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white shadow-lg">
               <div className="flex items-center">
@@ -543,7 +726,9 @@ const DoctorDashboard = () => {
                   <Activity className="h-5 w-5" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-semibold text-white/80">Active Services</p>
+                  <p className="text-sm font-semibold text-white/80">
+                    Active Services
+                  </p>
                   <p className="text-2xl font-bold">{services.length}</p>
                 </div>
               </div>
@@ -556,7 +741,9 @@ const DoctorDashboard = () => {
                   <CreditCard className="h-5 w-5" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-semibold text-white/80">Total Revenue (KES)</p>
+                  <p className="text-sm font-semibold text-white/80">
+                    Total Revenue (KES)
+                  </p>
                   <p className="text-2xl font-bold">125,000</p>
                 </div>
               </div>
@@ -564,184 +751,44 @@ const DoctorDashboard = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="services" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          defaultValue="schedule"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
           <TabsList className="grid grid-cols-2 mb-8">
-            <TabsTrigger value="services" className="flex items-center gap-2">
+            <TabsTrigger value="schedule" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
               My Schedule
             </TabsTrigger>
-            <TabsTrigger value="appointments" className="flex items-center gap-2">
+            <TabsTrigger
+              value="appointments"
+              className="flex items-center gap-2"
+            >
               <Calendar className="h-4 w-4" />
               Appointments
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="services">
-            <div className="space-y-6">
-              {/* Today's Schedule */}
+          <TabsContent value="schedule">
+            {isLoadingAppointments ? (
               <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-gray-800">Today</h3>
-                    <Badge variant="secondary" className="ml-2">3 appointments</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm font-medium text-blue-600">10:00 AM</div>
-                      <div className="text-sm text-gray-700">John Doe</div>
-                    </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                      Online
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm font-medium text-blue-600">2:00 PM</div>
-                      <div className="text-sm text-gray-700">Jane Smith</div>
-                    </div>
-                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-1"></div>
-                      Physical
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm font-medium text-blue-600">4:30 PM</div>
-                      <div className="text-sm text-gray-700">Mike Johnson</div>
-                    </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                      Online
-                    </Badge>
+                <CardContent className="p-8 text-center">
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <span className="text-gray-600">
+                      Loading appointments...
+                    </span>
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Tomorrow's Schedule */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-gray-800">Tomorrow</h3>
-                    <Badge variant="secondary" className="ml-2">2 appointments</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm font-medium text-blue-600">9:00 AM</div>
-                      <div className="text-sm text-gray-700">Sarah Wilson</div>
-                    </div>
-                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-1"></div>
-                      Physical
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm font-medium text-blue-600">3:00 PM</div>
-                      <div className="text-sm text-gray-700">David Brown</div>
-                    </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                      Online
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* This Week */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-gray-800">This Week</h3>
-                    <Badge variant="secondary" className="ml-2">5 more appointments</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm font-medium text-blue-600">Wed 11:00 AM</div>
-                      <div className="text-sm text-gray-700">Emma Davis</div>
-                    </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                      Online
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm font-medium text-blue-600">Thu 1:30 PM</div>
-                      <div className="text-sm text-gray-700">Robert Miller</div>
-                    </div>
-                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-1"></div>
-                      Physical
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm font-medium text-blue-600">Fri 10:00 AM</div>
-                      <div className="text-sm text-gray-700">Lisa Anderson</div>
-                    </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                      Online
-                    </Badge>
-                  </div>
-                  <div className="text-center">
-                    <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                      View 2 more appointments
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Next Week */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-gray-800">Next Week</h3>
-                    <Badge variant="secondary" className="ml-2">8 appointments</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-4">
-                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 mb-3">8 appointments scheduled</p>
-                    <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                      View Next Week Schedule
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Next Two Weeks */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-gray-800">Next Two Weeks</h3>
-                    <Badge variant="secondary" className="ml-2">12 appointments</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-4">
-                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 mb-3">12 appointments scheduled</p>
-                    <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                      View Extended Schedule
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            ) : (
+              <AppointmentCalendar
+                appointments={appointments}
+                onAppointmentClick={handleAppointmentClick}
+              />
+            )}
           </TabsContent>
 
           {/* Appointments Tab */}
@@ -762,7 +809,9 @@ const DoctorDashboard = () => {
                         </Avatar>
                         <div>
                           <h3 className="font-medium">John Doe</h3>
-                          <p className="text-sm text-gray-600">General Consultation</p>
+                          <p className="text-sm text-gray-600">
+                            General Consultation
+                          </p>
                           <div className="flex items-center gap-2 mt-2">
                             <Calendar className="h-3.5 w-3.5 text-gray-500" />
                             <span className="text-sm">Today, 2:30 PM</span>
@@ -772,7 +821,7 @@ const DoctorDashboard = () => {
                       <Badge>Upcoming</Badge>
                     </div>
                   </div>
-                  
+
                   <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between">
                       <div className="flex gap-3">
@@ -782,7 +831,9 @@ const DoctorDashboard = () => {
                         </Avatar>
                         <div>
                           <h3 className="font-medium">Mary Wilson</h3>
-                          <p className="text-sm text-gray-600">General Consultation</p>
+                          <p className="text-sm text-gray-600">
+                            General Consultation
+                          </p>
                           <div className="flex items-center gap-2 mt-2">
                             <Calendar className="h-3.5 w-3.5 text-gray-500" />
                             <span className="text-sm">Tomorrow, 10:00 AM</span>
