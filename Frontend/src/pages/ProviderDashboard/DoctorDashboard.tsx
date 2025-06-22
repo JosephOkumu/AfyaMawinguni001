@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
@@ -52,6 +53,7 @@ import {
   CreditCard,
   Activity,
   Users,
+  User,
   Bell,
   CheckCircle,
   Settings,
@@ -437,6 +439,24 @@ const DoctorDashboard = () => {
       title: "Subscription plan deleted",
       description: "The subscription plan has been removed.",
     });
+  };
+
+  // Helper function to get past appointments
+  const getPastAppointments = () => {
+    const now = new Date();
+    return appointments.filter(appointment => {
+      const appointmentDate = new Date(appointment.appointment_datetime);
+      return appointmentDate < now && (appointment.status === "completed" || appointment.status === "cancelled");
+    }).sort((a, b) => new Date(b.appointment_datetime).getTime() - new Date(a.appointment_datetime).getTime());
+  };
+
+  // Helper function to format appointment date and time
+  const getAppointmentDateTime = (appointment: Appointment) => {
+    const date = new Date(appointment.appointment_datetime);
+    return {
+      date: format(date, "MMM dd, yyyy"),
+      time: format(date, "h:mm a")
+    };
   };
 
   return (
@@ -826,7 +846,7 @@ const DoctorDashboard = () => {
               className="flex items-center gap-2"
             >
               <Calendar className="h-4 w-4" />
-              Appointments
+              Appointments History
             </TabsTrigger>
           </TabsList>
 
@@ -854,54 +874,92 @@ const DoctorDashboard = () => {
           <TabsContent value="appointments">
             <Card>
               <CardHeader>
-                <h2 className="text-xl font-semibold">Upcoming Appointments</h2>
+                <h2 className="text-xl font-semibold">Appointment History</h2>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Sample appointments - would be dynamic in a real application */}
-                  <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex gap-3">
-                        <Avatar>
-                          <AvatarImage src="https://randomuser.me/api/portraits/men/32.jpg" />
-                          <AvatarFallback>JD</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-medium">John Doe</h3>
-                          <p className="text-sm text-gray-600">
-                            General Consultation
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Calendar className="h-3.5 w-3.5 text-gray-500" />
-                            <span className="text-sm">Today, 2:30 PM</span>
-                          </div>
-                        </div>
-                      </div>
-                      <Badge>Upcoming</Badge>
+                  {getPastAppointments().length === 0 ? (
+                    <div className="p-8 text-center">
+                      <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No appointment history found
+                      </h3>
+                      <p className="text-gray-500">
+                        You don't have any past appointments yet.
+                      </p>
                     </div>
-                  </div>
+                  ) : (
+                    getPastAppointments().map((appointment) => {
+                      const { date, time } = getAppointmentDateTime(appointment);
+                      return (
+                        <Card
+                          key={appointment.id}
+                          className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
+                        >
+                          <CardContent
+                            className="p-4"
+                            onClick={() => handleAppointmentClick(appointment)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Clock className="h-4 w-4 text-gray-500" />
+                                    <span className="font-medium text-blue-600">
+                                      {date} at {time}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <User className="h-4 w-4 text-gray-500" />
+                                    <span className="text-gray-700">
+                                      {appointment.patient?.user?.name || "Unknown Patient"}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Stethoscope className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm text-gray-600">
+                                      {appointment.reason_for_visit || "General Consultation"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
 
-                  <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex gap-3">
-                        <Avatar>
-                          <AvatarImage src="https://randomuser.me/api/portraits/women/44.jpg" />
-                          <AvatarFallback>MW</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-medium">Mary Wilson</h3>
-                          <p className="text-sm text-gray-600">
-                            General Consultation
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Calendar className="h-3.5 w-3.5 text-gray-500" />
-                            <span className="text-sm">Tomorrow, 10:00 AM</span>
-                          </div>
-                        </div>
-                      </div>
-                      <Badge>Upcoming</Badge>
-                    </div>
-                  </div>
+                              <div className="flex items-center space-x-2">
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    appointment.type === "virtual"
+                                      ? "border-purple-200 text-purple-700 bg-purple-50"
+                                      : "border-green-200 text-green-700 bg-green-50"
+                                  }
+                                >
+                                  <div className="flex items-center gap-1">
+                                    {appointment.type === "virtual" ? (
+                                      <Activity className="h-3 w-3" />
+                                    ) : (
+                                      <MapPin className="h-3 w-3" />
+                                    )}
+                                    <span>{appointment.type === "virtual" ? "Virtual" : "In Person"}</span>
+                                  </div>
+                                </Badge>
+
+                                <Badge
+                                  variant={appointment.status === "completed" ? "default" : "secondary"}
+                                  className={
+                                    appointment.status === "completed"
+                                      ? "bg-green-100 text-green-800 border-green-200"
+                                      : "bg-red-100 text-red-800 border-red-200"
+                                  }
+                                >
+                                  {appointment.status === "completed" ? "Completed" : "Cancelled"}
+                                </Badge>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })
+                  )}
                 </div>
               </CardContent>
             </Card>
