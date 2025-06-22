@@ -611,12 +611,12 @@ const DoctorDashboard = () => {
 
   // Handler to confirm an appointment
   const handleAppointmentConfirm = (appointmentId: number) => {
-    setAppointments(prevAppointments =>
-      prevAppointments.map(appointment =>
+    setAppointments((prevAppointments) =>
+      prevAppointments.map((appointment) =>
         appointment.id === appointmentId
           ? { ...appointment, status: "confirmed" as const }
-          : appointment
-      )
+          : appointment,
+      ),
     );
     toast({
       title: "Appointment Confirmed",
@@ -627,18 +627,29 @@ const DoctorDashboard = () => {
 
   // Handler to reject an appointment
   const handleAppointmentReject = (appointmentId: number) => {
-    setAppointments(prevAppointments =>
-      prevAppointments.map(appointment =>
+    setAppointments((prevAppointments) =>
+      prevAppointments.map((appointment) =>
         appointment.id === appointmentId
           ? { ...appointment, status: "cancelled" as const }
-          : appointment
-      )
+          : appointment,
+      ),
     );
     toast({
       title: "Appointment Rejected",
       description: "The appointment has been rejected and cancelled.",
       variant: "destructive",
     });
+  };
+
+  // Helper function to get pending appointments
+  const getPendingAppointments = () => {
+    return appointments
+      .filter((appointment) => appointment.status === "scheduled")
+      .sort(
+        (a, b) =>
+          new Date(a.appointment_datetime).getTime() -
+          new Date(b.appointment_datetime).getTime(),
+      );
   };
 
   return (
@@ -1013,15 +1024,19 @@ const DoctorDashboard = () => {
         </div>
 
         <Tabs
-          defaultValue="schedule"
+          defaultValue="pending"
           value={activeTab}
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="grid grid-cols-2 mb-8">
+          <TabsList className="grid grid-cols-3 mb-8">
+            <TabsTrigger value="pending" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Pending Requests
+            </TabsTrigger>
             <TabsTrigger value="schedule" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              Appointments Schedule
+              My Schedule
             </TabsTrigger>
             <TabsTrigger
               value="appointments"
@@ -1031,6 +1046,118 @@ const DoctorDashboard = () => {
               Appointments History
             </TabsTrigger>
           </TabsList>
+
+          {/* Pending Requests Tab */}
+          <TabsContent value="pending">
+            <Card>
+              <CardHeader>
+                <h2 className="text-xl font-semibold">
+                  Pending Appointment Requests
+                </h2>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {getPendingAppointments().length === 0 ? (
+                    <div className="p-8 text-center">
+                      <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No pending requests
+                      </h3>
+                      <p className="text-gray-500">
+                        All appointment requests have been processed.
+                      </p>
+                    </div>
+                  ) : (
+                    getPendingAppointments().map((appointment) => {
+                      const { date, time } =
+                        getAppointmentDateTime(appointment);
+                      return (
+                        <Card
+                          key={appointment.id}
+                          className="border-l-4 border-l-orange-500 hover:shadow-md transition-all duration-200"
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Clock className="h-4 w-4 text-gray-500" />
+                                    <span className="font-medium text-orange-600">
+                                      {date} at {time}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <User className="h-4 w-4 text-gray-500" />
+                                    <span className="text-gray-700">
+                                      {appointment.patient?.user?.name ||
+                                        "Unknown Patient"}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Stethoscope className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm text-gray-600">
+                                      {appointment.reason_for_visit ||
+                                        "General Consultation"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    appointment.type === "virtual"
+                                      ? "border-purple-200 text-purple-700 bg-purple-50"
+                                      : "border-green-200 text-green-700 bg-green-50"
+                                  }
+                                >
+                                  <div className="flex items-center gap-1">
+                                    {appointment.type === "virtual" ? (
+                                      <Activity className="h-3 w-3" />
+                                    ) : (
+                                      <MapPin className="h-3 w-3" />
+                                    )}
+                                    <span>
+                                      {appointment.type === "virtual"
+                                        ? "Virtual"
+                                        : "In Person"}
+                                    </span>
+                                  </div>
+                                </Badge>
+
+                                <Button
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700"
+                                  onClick={() =>
+                                    handleAppointmentConfirm(appointment.id)
+                                  }
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Confirm
+                                </Button>
+
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() =>
+                                    handleAppointmentReject(appointment.id)
+                                  }
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  Reject
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="schedule">
             {isLoadingAppointments ? (
