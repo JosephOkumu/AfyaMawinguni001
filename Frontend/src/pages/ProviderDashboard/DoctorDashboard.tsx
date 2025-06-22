@@ -43,7 +43,8 @@ interface DoctorProfileForm {
   location: string;
   availability: string;
   experience: string;
-  price: string;
+  physicalPrice: string;
+  onlinePrice: string;
   image: File | null;
   qualifications: string;
   languages: string;
@@ -133,7 +134,8 @@ const DoctorDashboard = () => {
       location: "Nairobi Medical Center, 3rd Floor",
       availability: "Mon-Fri, 9AM-5PM",
       experience: "15 years",
-      price: "2500",
+      physicalPrice: "2500",
+      onlinePrice: "2000",
       image: null,
       qualifications: "MD, Cardiology - University of Nairobi\nFellowship in Interventional Cardiology - Kenyatta National Hospital\nMember of African Cardiology Association",
       languages: "English, Swahili",
@@ -462,7 +464,7 @@ const DoctorDashboard = () => {
                         name="qualifications"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel></FormLabel>
+                            <FormLabel>Education</FormLabel>
                             <FormControl>
                               <Textarea 
                                 placeholder="List your medical qualifications and certifications..."
@@ -473,41 +475,35 @@ const DoctorDashboard = () => {
                           </FormItem>
                         )}
                       />
-
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={profileForm.control}
-                          name="location"
+                          name="physicalPrice"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Practice Location</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                  <Input className="pl-10" placeholder="e.g., Nairobi Central" {...field} />
-                                </div>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={profileForm.control}
-                          name="price"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Consultation Fee (KES)</FormLabel>
+                              <FormLabel>Physical Consultation Fee (KES)</FormLabel>
                               <FormControl>
                                 <Input type="number" placeholder="e.g., 2500" {...field} />
                               </FormControl>
                             </FormItem>
                           )}
                         />
-                      </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={profileForm.control}
+                          name="onlinePrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Online Consultation Fee (KES)</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="e.g., 2000" {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
                           name="availability"
                           render={({ field }) => (
                             <FormItem>
@@ -516,22 +512,6 @@ const DoctorDashboard = () => {
                                 <div className="relative">
                                   <Clock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                                   <Input className="pl-10" placeholder="e.g., Mon-Fri, 9AM-5PM" {...field} />
-                                </div>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={profileForm.control}
-                          name="experience"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Years of Experience</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Star className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                  <Input className="pl-10" placeholder="e.g., 15 years" {...field} />
                                 </div>
                               </FormControl>
                             </FormItem>
