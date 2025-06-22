@@ -32,6 +32,7 @@ import {
   Bell,
   Settings,
   TestTube,
+  User,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -54,6 +55,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
 
 interface ProviderProfileForm {
   name: string;
@@ -63,6 +65,30 @@ interface ProviderProfileForm {
   professionalSummary: string;
   availability: string;
   startingPrice: string;
+}
+
+interface NursingAppointment {
+  id: number;
+  patient_id: number;
+  provider_id: number;
+  appointment_datetime: string;
+  status: "confirmed" | "scheduled" | "completed" | "cancelled";
+  type: "in_person" | "virtual";
+  reason_for_visit: string;
+  symptoms: string;
+  fee: number;
+  is_paid: boolean;
+  location: string;
+  patient: {
+    id: number;
+    user_id: number;
+    user: {
+      name: string;
+      email: string;
+      phone_number: string;
+    };
+  };
+  meeting_link?: string;
 }
 
 interface NursingServiceForm {
@@ -75,6 +101,120 @@ interface NursingServiceForm {
   price: string;
   image: File | null;
 }
+
+// Mock data for nursing appointments
+const mockAppointments: NursingAppointment[] = [
+  {
+    id: 1,
+    patient_id: 1,
+    provider_id: 1,
+    appointment_datetime: new Date().toISOString(),
+    status: "confirmed",
+    type: "in_person",
+    reason_for_visit: "Post-surgical home care",
+    symptoms: "Recovery from surgery, wound care needed",
+    fee: 2500,
+    is_paid: true,
+    location: "Karen, Nairobi",
+    patient: {
+      id: 1,
+      user_id: 1,
+      user: {
+        name: "John Doe",
+        email: "john@example.com",
+        phone_number: "+254712345678",
+      },
+    },
+  },
+  {
+    id: 2,
+    patient_id: 2,
+    provider_id: 1,
+    appointment_datetime: new Date(Date.now() + 86400000).toISOString(),
+    status: "confirmed",
+    type: "in_person",
+    reason_for_visit: "Medication administration",
+    symptoms: "Chronic diabetes management",
+    fee: 2000,
+    is_paid: true,
+    location: "Westlands, Nairobi",
+    patient: {
+      id: 2,
+      user_id: 2,
+      user: {
+        name: "Jane Smith",
+        email: "jane@example.com",
+        phone_number: "+254787654321",
+      },
+    },
+  },
+  {
+    id: 3,
+    patient_id: 3,
+    provider_id: 1,
+    appointment_datetime: new Date(Date.now() + 172800000).toISOString(),
+    status: "scheduled",
+    type: "in_person",
+    reason_for_visit: "Elderly care assistance",
+    symptoms: "General health monitoring and assistance",
+    fee: 3000,
+    is_paid: false,
+    location: "Kileleshwa, Nairobi",
+    patient: {
+      id: 3,
+      user_id: 3,
+      user: {
+        name: "Robert Johnson",
+        email: "robert@example.com",
+        phone_number: "+254798765432",
+      },
+    },
+  },
+  {
+    id: 4,
+    patient_id: 4,
+    provider_id: 1,
+    appointment_datetime: new Date(Date.now() + 259200000).toISOString(),
+    status: "scheduled",
+    type: "in_person",
+    reason_for_visit: "Physical therapy assistance",
+    symptoms: "Post-stroke rehabilitation",
+    fee: 2800,
+    is_paid: false,
+    location: "Lavington, Nairobi",
+    patient: {
+      id: 4,
+      user_id: 4,
+      user: {
+        name: "Mary Wilson",
+        email: "mary@example.com",
+        phone_number: "+254723456789",
+      },
+    },
+  },
+  {
+    id: 5,
+    patient_id: 5,
+    provider_id: 1,
+    appointment_datetime: new Date(Date.now() - 86400000).toISOString(),
+    status: "completed",
+    type: "in_person",
+    reason_for_visit: "Wound care and dressing",
+    symptoms: "Post-operative wound management",
+    fee: 2200,
+    is_paid: true,
+    location: "Kilimani, Nairobi",
+    patient: {
+      id: 5,
+      user_id: 5,
+      user: {
+        name: "David Brown",
+        email: "david@example.com",
+        phone_number: "+254734567890",
+      },
+    },
+  },
+];
 
 // Mock data for existing services
 const mockServices = [
@@ -115,6 +255,7 @@ const mockServices = [
 
 const HomeNursingDashboard = () => {
   const [services, setServices] = useState(mockServices);
+  const [appointments, setAppointments] = useState(mockAppointments);
   const [isEditing, setIsEditing] = useState(false);
   const [currentService, setCurrentService] =
     useState<NursingServiceForm | null>(null);
@@ -124,6 +265,9 @@ const HomeNursingDashboard = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("services");
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<NursingAppointment | null>(null);
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
 
   const profileForm = useForm<ProviderProfileForm>({
     defaultValues: {
@@ -263,6 +407,68 @@ const HomeNursingDashboard = () => {
       description: "Your provider profile has been successfully updated.",
     });
     setShowProfileDialog(false);
+  };
+
+  const handleAppointmentClick = (appointment: NursingAppointment) => {
+    setSelectedAppointment(appointment);
+    setShowAppointmentModal(true);
+  };
+
+  const handleMarkComplete = () => {
+    if (selectedAppointment) {
+      setAppointments((prev) =>
+        prev.map((apt) =>
+          apt.id === selectedAppointment.id
+            ? { ...apt, status: "completed" as const }
+            : apt,
+        ),
+      );
+      toast({
+        title: "Appointment Completed",
+        description: "The appointment has been marked as completed.",
+      });
+      setShowAppointmentModal(false);
+    }
+  };
+
+  const handleCancelAppointment = () => {
+    if (selectedAppointment) {
+      setAppointments((prev) =>
+        prev.map((apt) =>
+          apt.id === selectedAppointment.id
+            ? { ...apt, status: "cancelled" as const }
+            : apt,
+        ),
+      );
+      toast({
+        title: "Appointment Cancelled",
+        description: "The appointment has been cancelled.",
+      });
+      setShowAppointmentModal(false);
+    }
+  };
+
+  const getAppointmentDate = (appointment: NursingAppointment) => {
+    return new Date(appointment.appointment_datetime);
+  };
+
+  const getAppointmentTime = (appointment: NursingAppointment) => {
+    return new Date(appointment.appointment_datetime).toLocaleTimeString(
+      "en-US",
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      },
+    );
+  };
+
+  const getFilteredAppointments = () => {
+    return appointments.sort(
+      (a, b) =>
+        new Date(a.appointment_datetime).getTime() -
+        new Date(b.appointment_datetime).getTime(),
+    );
   };
 
   return (
@@ -950,91 +1156,81 @@ const HomeNursingDashboard = () => {
               <TabsContent value="schedule">
                 <Card>
                   <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-semibold">My Schedule</h2>
-                      <Button size="sm" className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Add Availability
-                      </Button>
-                    </div>
+                    <h2 className="text-xl font-semibold">My Schedule</h2>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-medium text-gray-900 mb-3">
-                          Today - December 15, 2024
-                        </h3>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                <Clock className="h-5 w-5 text-blue-600" />
-                              </div>
-                              <div>
-                                <p className="font-medium">
-                                  9:00 AM - 12:00 PM
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  Post-surgical care - Mary Kiprotich
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  Karen, Nairobi
-                                </p>
-                              </div>
-                            </div>
-                            <Badge className="bg-blue-100 text-blue-800">
-                              Confirmed
-                            </Badge>
-                          </div>
-
-                          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                                <Clock className="h-5 w-5 text-green-600" />
-                              </div>
-                              <div>
-                                <p className="font-medium">2:00 PM - 4:00 PM</p>
-                                <p className="text-sm text-gray-600">
-                                  Medication administration - James Ochieng
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  Westlands, Nairobi
-                                </p>
-                              </div>
-                            </div>
-                            <Badge className="bg-green-100 text-green-800">
-                              In Progress
-                            </Badge>
-                          </div>
+                    <div className="space-y-4">
+                      {getFilteredAppointments().length === 0 ? (
+                        <div className="p-8 text-center">
+                          <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            No appointments found
+                          </h3>
+                          <p className="text-gray-500">
+                            No appointments scheduled.
+                          </p>
                         </div>
-                      </div>
+                      ) : (
+                        getFilteredAppointments().map((appointment) => (
+                          <Card
+                            key={appointment.id}
+                            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
+                          >
+                            <CardContent
+                              className="p-4"
+                              onClick={() =>
+                                handleAppointmentClick(appointment)
+                              }
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <Clock className="h-4 w-4 text-gray-500" />
+                                      <span className="font-medium text-blue-600">
+                                        {format(
+                                          new Date(
+                                            appointment.appointment_datetime,
+                                          ),
+                                          "MMM dd, yyyy",
+                                        )}{" "}
+                                        at {getAppointmentTime(appointment)}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <User className="h-4 w-4 text-gray-500" />
+                                      <span className="text-gray-700">
+                                        {appointment.patient?.user?.name ||
+                                          "Unknown Patient"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
 
-                      <div>
-                        <h3 className="font-medium text-gray-900 mb-3">
-                          Tomorrow - December 16, 2024
-                        </h3>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                                <Clock className="h-5 w-5 text-gray-600" />
+                                <div className="flex items-center space-x-2">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-yellow-50 text-yellow-700 border-yellow-200"
+                                  >
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="h-3 w-3" />
+                                      <span>{appointment.location}</span>
+                                    </div>
+                                  </Badge>
+
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-green-100 hover:border-green-300 hover:text-green-700 font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                                  >
+                                    View
+                                  </Button>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-medium">
-                                  10:00 AM - 1:00 PM
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  Chronic condition monitoring - Peter Kamau
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  Kileleshwa, Nairobi
-                                </p>
-                              </div>
-                            </div>
-                            <Badge variant="outline">Scheduled</Badge>
-                          </div>
-                        </div>
-                      </div>
+                            </CardContent>
+                          </Card>
+                        ))
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1184,6 +1380,109 @@ const HomeNursingDashboard = () => {
               Delete
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Appointment Details Modal */}
+      <Dialog
+        open={showAppointmentModal}
+        onOpenChange={setShowAppointmentModal}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Appointment Details</DialogTitle>
+          </DialogHeader>
+
+          {selectedAppointment && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-8">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Date
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {new Date(
+                      selectedAppointment.appointment_datetime,
+                    ).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Time
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {getAppointmentTime(selectedAppointment)}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Patient Name
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedAppointment.patient?.user?.name || "Unknown Patient"}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Contact
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedAppointment.patient?.user?.phone_number ||
+                    "Not provided"}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Email
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedAppointment.patient?.user?.email || "Not provided"}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Location
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedAppointment.location}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">Fee</label>
+                <p className="text-sm text-gray-900">
+                  KES {selectedAppointment.fee.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-4 border-t">
+                <Button
+                  size="sm"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  onClick={handleMarkComplete}
+                >
+                  Mark as Complete
+                </Button>
+                <Button
+                  size="sm"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  onClick={handleCancelAppointment}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
