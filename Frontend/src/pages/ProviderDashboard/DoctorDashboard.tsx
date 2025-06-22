@@ -252,6 +252,146 @@ const DoctorDashboard = () => {
               },
             },
           },
+          // Past appointments for history
+          {
+            id: 6,
+            patient_id: 6,
+            doctor_id: 1,
+            appointment_datetime: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+            status: "completed",
+            type: "in_person",
+            reason_for_visit: "General consultation",
+            symptoms: "Stomach pain and nausea",
+            fee: 2500,
+            is_paid: true,
+            patient: {
+              id: 6,
+              user_id: 6,
+              user: {
+                name: "Alice Johnson",
+                email: "alice@example.com",
+                phone_number: "+254701234568",
+              },
+            },
+          },
+          {
+            id: 7,
+            patient_id: 7,
+            doctor_id: 1,
+            appointment_datetime: new Date(
+              Date.now() - 172800000,
+            ).toISOString(), // 2 days ago
+            status: "completed",
+            type: "virtual",
+            reason_for_visit: "Follow-up consultation",
+            symptoms: "Blood pressure monitoring",
+            meeting_link: "https://meet.example.com/ghi789",
+            fee: 2000,
+            is_paid: true,
+            patient: {
+              id: 7,
+              user_id: 7,
+              user: {
+                name: "Robert Wilson",
+                email: "robert@example.com",
+                phone_number: "+254712345679",
+              },
+            },
+          },
+          {
+            id: 8,
+            patient_id: 8,
+            doctor_id: 1,
+            appointment_datetime: new Date(
+              Date.now() - 259200000,
+            ).toISOString(), // 3 days ago
+            status: "cancelled",
+            type: "in_person",
+            reason_for_visit: "Dental examination",
+            symptoms: "Tooth pain",
+            fee: 3000,
+            is_paid: false,
+            patient: {
+              id: 8,
+              user_id: 8,
+              user: {
+                name: "Emma Davis",
+                email: "emma@example.com",
+                phone_number: "+254787654322",
+              },
+            },
+          },
+          {
+            id: 9,
+            patient_id: 9,
+            doctor_id: 1,
+            appointment_datetime: new Date(
+              Date.now() - 604800000,
+            ).toISOString(), // 1 week ago
+            status: "completed",
+            type: "virtual",
+            reason_for_visit: "Specialist consultation",
+            symptoms: "Skin condition assessment",
+            meeting_link: "https://meet.example.com/jkl012",
+            fee: 4000,
+            is_paid: true,
+            patient: {
+              id: 9,
+              user_id: 9,
+              user: {
+                name: "Michael Chen",
+                email: "michael@example.com",
+                phone_number: "+254798765433",
+              },
+            },
+          },
+          {
+            id: 10,
+            patient_id: 10,
+            doctor_id: 1,
+            appointment_datetime: new Date(
+              Date.now() - 1209600000,
+            ).toISOString(), // 2 weeks ago
+            status: "completed",
+            type: "in_person",
+            reason_for_visit: "Routine check-up",
+            symptoms: "General health assessment",
+            fee: 2500,
+            is_paid: true,
+            patient: {
+              id: 10,
+              user_id: 10,
+              user: {
+                name: "Lisa Anderson",
+                email: "lisa@example.com",
+                phone_number: "+254701234569",
+              },
+            },
+          },
+          {
+            id: 11,
+            patient_id: 11,
+            doctor_id: 1,
+            appointment_datetime: new Date(
+              Date.now() - 1814400000,
+            ).toISOString(), // 3 weeks ago
+            status: "cancelled",
+            type: "virtual",
+            reason_for_visit: "Mental health consultation",
+            symptoms: "Anxiety and stress management",
+            meeting_link: "https://meet.example.com/mno345",
+            fee: 3500,
+            is_paid: false,
+            patient: {
+              id: 11,
+              user_id: 11,
+              user: {
+                name: "James Martinez",
+                email: "james@example.com",
+                phone_number: "+254712345680",
+              },
+            },
+          },
         ]);
       } finally {
         setIsLoadingAppointments(false);
@@ -444,10 +584,20 @@ const DoctorDashboard = () => {
   // Helper function to get past appointments
   const getPastAppointments = () => {
     const now = new Date();
-    return appointments.filter(appointment => {
-      const appointmentDate = new Date(appointment.appointment_datetime);
-      return appointmentDate < now && (appointment.status === "completed" || appointment.status === "cancelled");
-    }).sort((a, b) => new Date(b.appointment_datetime).getTime() - new Date(a.appointment_datetime).getTime());
+    return appointments
+      .filter((appointment) => {
+        const appointmentDate = new Date(appointment.appointment_datetime);
+        return (
+          appointmentDate < now &&
+          (appointment.status === "completed" ||
+            appointment.status === "cancelled")
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.appointment_datetime).getTime() -
+          new Date(a.appointment_datetime).getTime(),
+      );
   };
 
   // Helper function to format appointment date and time
@@ -455,7 +605,7 @@ const DoctorDashboard = () => {
     const date = new Date(appointment.appointment_datetime);
     return {
       date: format(date, "MMM dd, yyyy"),
-      time: format(date, "h:mm a")
+      time: format(date, "h:mm a"),
     };
   };
 
@@ -890,7 +1040,8 @@ const DoctorDashboard = () => {
                     </div>
                   ) : (
                     getPastAppointments().map((appointment) => {
-                      const { date, time } = getAppointmentDateTime(appointment);
+                      const { date, time } =
+                        getAppointmentDateTime(appointment);
                       return (
                         <Card
                           key={appointment.id}
@@ -912,13 +1063,15 @@ const DoctorDashboard = () => {
                                   <div className="flex items-center gap-2">
                                     <User className="h-4 w-4 text-gray-500" />
                                     <span className="text-gray-700">
-                                      {appointment.patient?.user?.name || "Unknown Patient"}
+                                      {appointment.patient?.user?.name ||
+                                        "Unknown Patient"}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2 mt-1">
                                     <Stethoscope className="h-4 w-4 text-gray-500" />
                                     <span className="text-sm text-gray-600">
-                                      {appointment.reason_for_visit || "General Consultation"}
+                                      {appointment.reason_for_visit ||
+                                        "General Consultation"}
                                     </span>
                                   </div>
                                 </div>
@@ -939,19 +1092,29 @@ const DoctorDashboard = () => {
                                     ) : (
                                       <MapPin className="h-3 w-3" />
                                     )}
-                                    <span>{appointment.type === "virtual" ? "Virtual" : "In Person"}</span>
+                                    <span>
+                                      {appointment.type === "virtual"
+                                        ? "Virtual"
+                                        : "In Person"}
+                                    </span>
                                   </div>
                                 </Badge>
 
                                 <Badge
-                                  variant={appointment.status === "completed" ? "default" : "secondary"}
+                                  variant={
+                                    appointment.status === "completed"
+                                      ? "default"
+                                      : "secondary"
+                                  }
                                   className={
                                     appointment.status === "completed"
                                       ? "bg-green-100 text-green-800 border-green-200"
                                       : "bg-red-100 text-red-800 border-red-200"
                                   }
                                 >
-                                  {appointment.status === "completed" ? "Completed" : "Cancelled"}
+                                  {appointment.status === "completed"
+                                    ? "Completed"
+                                    : "Cancelled"}
                                 </Badge>
                               </div>
                             </div>
