@@ -274,6 +274,73 @@ class LabProviderController extends Controller
     }
 
     /**
+     * Upload profile image for the authenticated lab provider
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function uploadProfileImage(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $labProvider = LabProvider::where('user_id', $user->id)->first();
+
+        if (!$labProvider) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lab provider profile not found'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $image = $request->file('profile_image');
+            $imageName = 'lab_' . $labProvider->id . '_' . time() . '.' . $image->getClientOriginalExtension();
+
+            // Store in public/storage/lab_images directory
+            $imagePath = $image->storeAs('lab_images', $imageName, 'public');
+
+            // Get the full URL
+            $imageUrl = url('storage/' . $imagePath);
+
+            // Update lab provider profile
+            $labProvider->update(['profile_image' => $imageUrl]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Profile image uploaded successfully',
+                'data' => [
+                    'profile_image' => $imageUrl
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to upload image: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Remove the specified lab provider from storage.
      *
      * @param  int  $id

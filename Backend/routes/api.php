@@ -46,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/lab-provider/debug', [LabProviderController::class, 'debug']);
     Route::get('/lab-provider/profile', [LabProviderController::class, 'profile']);
     Route::put('/lab-provider/profile', [LabProviderController::class, 'updateProfile']);
+    Route::post('/lab-provider/upload-image', [LabProviderController::class, 'uploadProfileImage']);
 
     // Lab Test routes
     Route::apiResource('lab-tests', LabTestController::class);

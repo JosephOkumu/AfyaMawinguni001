@@ -160,6 +160,31 @@ const labService = {
     });
     return response.data.data;
   },
+
+  // Upload profile image
+  uploadProfileImage: async (file: File): Promise<string> => {
+    console.log("=== LAB SERVICE IMAGE UPLOAD ===");
+    console.log("File to upload:", file.name, file.size, file.type);
+
+    const formData = new FormData();
+    formData.append("profile_image", file);
+
+    console.log("FormData created, making API call...");
+
+    const response = await api.post<{
+      status: string;
+      data: { profile_image: string };
+    }>("/lab-provider/upload-image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    console.log("Upload response:", response.data);
+    console.log("New image URL:", response.data.data.profile_image);
+
+    return response.data.data.profile_image;
+  },
 };
 
 export default labService;

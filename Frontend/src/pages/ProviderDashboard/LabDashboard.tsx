@@ -122,6 +122,7 @@ const LabDashboard = () => {
 
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [newCertification, setNewCertification] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Profile form setup
   const profileForm = useForm<LaboratoryProfile>({
@@ -165,9 +166,7 @@ const LabDashboard = () => {
           description: profile.description || "",
           contact_person_name: profile.contact_person_name || "",
           contact_person_role: profile.contact_person_role || "",
-          profile_image:
-            profile.profile_image ||
-            "https://randomuser.me/api/portraits/men/41.jpg",
+          profile_image: profile.profile_image || "",
           certifications: Array.isArray(profile.certifications)
             ? profile.certifications
             : profile.certifications
@@ -439,6 +438,95 @@ const LabDashboard = () => {
     }
   };
 
+  // Image upload handler
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    console.log("=== IMAGE UPLOAD DEBUG ===");
+    console.log("File selected:", file.name, file.type, file.size);
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid File",
+        description: "Please select an image file (PNG, JPG, JPEG, GIF).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (2MB limit)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please select an image smaller than 2MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+
+      // Create immediate preview using blob URL
+      const previewUrl = URL.createObjectURL(file);
+      console.log("Preview URL created:", previewUrl);
+
+      // Update the preview immediately with the blob URL
+      const updatedProfile = {
+        ...laboratoryProfile,
+        profile_image: previewUrl,
+      };
+      setLaboratoryProfile(updatedProfile);
+      profileForm.setValue("profile_image", previewUrl);
+
+      console.log("Image preview updated, starting upload...");
+
+      // Upload the actual file to server
+      const imageUrl = await labService.uploadProfileImage(file);
+      console.log("Server upload complete. New URL:", imageUrl);
+
+      // Clean up the blob URL
+      URL.revokeObjectURL(previewUrl);
+
+      // Update with the actual server URL
+      const finalProfile = {
+        ...laboratoryProfile,
+        profile_image: imageUrl,
+      };
+      setLaboratoryProfile(finalProfile);
+      profileForm.setValue("profile_image", imageUrl);
+
+      toast({
+        title: "Image Uploaded",
+        description: "Profile image has been updated successfully.",
+      });
+    } catch (error: any) {
+      console.error("Failed to upload image:", error);
+
+      // Revert to previous image on error
+      setLaboratoryProfile(laboratoryProfile);
+
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
+      // Reset the file input
+      if (event.target) {
+        event.target.value = "";
+      }
+    }
+  };
+
   // Certification management functions
   const addCertification = () => {
     if (newCertification.trim()) {
@@ -524,10 +612,14 @@ const LabDashboard = () => {
               </span>
               <Avatar className="h-8 w-8 border border-secondary-green/20">
                 <AvatarImage
-                  src="https://randomuser.me/api/portraits/men/41.jpg"
+                  src={laboratoryProfile.profile_image}
                   alt="Lab Admin"
                 />
-                <AvatarFallback>CDL</AvatarFallback>
+                <AvatarFallback>
+                  {laboratoryProfile.lab_name
+                    ? laboratoryProfile.lab_name.substring(0, 2).toUpperCase()
+                    : "LAB"}
+                </AvatarFallback>
               </Avatar>
             </div>
             <Button variant="outline" size="icon">
@@ -560,39 +652,77 @@ const LabDashboard = () => {
                 <div className="px-6 py-4">
                   <Form {...profileForm}>
                     <form
-                      onSubmit={profileForm.handleSubmit(onProfileSubmit)}
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        profileForm.handleSubmit(onProfileSubmit)(e);
+                      }}
                       className="space-y-6"
                     >
                       <div className="flex flex-col lg:flex-row gap-8">
                         {/* Profile Image Section */}
                         <div className="lg:w-1/3 flex flex-col items-center">
-                          <div className="w-48 h-48 rounded-full mb-6 overflow-hidden border-4 border-primary-blue/20">
-                            <img
-                              src={
-                                laboratoryProfile.profile_image ||
-                                "https://randomuser.me/api/portraits/men/41.jpg"
-                              }
-                              alt="Laboratory Profile"
-                              className="w-full h-full object-cover"
-                            />
+                          <div className="w-48 h-48 rounded-full mb-6 overflow-hidden border-4 border-primary-blue/20 relative bg-gray-100">
+                            {laboratoryProfile.profile_image ? (
+                              <img
+                                src={laboratoryProfile.profile_image}
+                                alt="Laboratory Profile"
+                                className="w-full h-full object-cover"
+                                key={laboratoryProfile.profile_image}
+                                onError={(e) => {
+                                  console.error(
+                                    "Image failed to load:",
+                                    laboratoryProfile.profile_image,
+                                  );
+                                  e.currentTarget.style.display = "none";
+                                }}
+                                onLoad={() => {
+                                  console.log(
+                                    "Image loaded successfully:",
+                                    laboratoryProfile.profile_image,
+                                  );
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                <User className="h-20 w-20 text-gray-400" />
+                              </div>
+                            )}
+                            {isUploadingImage && (
+                              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                <div className="text-white text-sm font-medium">
+                                  Uploading...
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <Button
-                            variant="outline"
-                            className="gap-2 w-full md:w-auto mb-4"
-                          >
+                          <div className="relative">
                             <input
                               type="file"
                               className="hidden"
                               id="profile-image"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              onClick={(e) => e.stopPropagation()}
                             />
-                            <label
-                              htmlFor="profile-image"
-                              className="cursor-pointer flex items-center justify-center gap-2"
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="gap-2 w-full md:w-auto mb-4"
+                              disabled={isUploadingImage}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                document
+                                  .getElementById("profile-image")
+                                  ?.click();
+                              }}
                             >
                               <Plus className="h-4 w-4" />
-                              Change Profile Image
-                            </label>
-                          </Button>
+                              {isUploadingImage
+                                ? "Uploading..."
+                                : "Change Profile Image"}
+                            </Button>
+                          </div>
 
                           {/* Certifications */}
                           <div className="w-full bg-blue-50 rounded-md p-4 mt-4">
@@ -785,10 +915,14 @@ const LabDashboard = () => {
                         <Button
                           type="submit"
                           className="gap-2"
-                          disabled={isProfileLoading}
+                          disabled={isProfileLoading || isUploadingImage}
                         >
                           <Save className="h-4 w-4" />
-                          {isProfileLoading ? "Saving..." : "Save Profile"}
+                          {isProfileLoading
+                            ? "Saving..."
+                            : isUploadingImage
+                              ? "Processing..."
+                              : "Save Profile"}
                         </Button>
                       </div>
                     </form>
