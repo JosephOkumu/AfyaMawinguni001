@@ -1,19 +1,40 @@
-import api from './api';
+import api from "./api";
 
 export interface LabProvider {
   id: number;
   user_id: number;
-  facilities: string;
-  services_offered: string;
-  operating_hours: string;
-  location: string;
+  lab_name: string;
+  license_number: string;
+  website?: string;
+  address: string;
+  operating_hours?: string;
+  description?: string;
+  contact_person_name?: string;
+  contact_person_role?: string;
+  profile_image?: string;
+  certifications?: string[];
+  is_available: boolean;
+  average_rating: number;
   user: {
     id: number;
     name: string;
     email: string;
     phone_number: string;
-    license_number: string;
   };
+}
+
+export interface LabProfileUpdateData {
+  lab_name?: string;
+  license_number?: string;
+  website?: string;
+  address?: string;
+  operating_hours?: string;
+  description?: string;
+  contact_person_name?: string;
+  contact_person_role?: string;
+  profile_image?: string;
+  certifications?: string[];
+  is_available?: boolean;
 }
 
 export interface LabTest {
@@ -35,7 +56,7 @@ export interface LabTest {
       name: string;
       email: string;
       phone_number: string;
-    }
+    };
   };
 }
 
@@ -49,31 +70,61 @@ export interface LabTestCreateData {
 const labService = {
   // Lab Provider methods
   getAllLabProviders: async (): Promise<LabProvider[]> => {
-    const response = await api.get<{ data: LabProvider[] }>('/lab-providers');
+    const response = await api.get<{ data: LabProvider[] }>("/lab-providers");
     return response.data.data;
   },
 
   getLabProvider: async (id: number): Promise<LabProvider> => {
-    const response = await api.get<{ data: LabProvider }>(`/lab-providers/${id}`);
+    const response = await api.get<{ data: LabProvider }>(
+      `/lab-providers/${id}`,
+    );
     return response.data.data;
   },
 
-  updateLabProviderProfile: async (data: Partial<LabProvider>): Promise<LabProvider> => {
+  updateLabProviderProfile: async (
+    data: Partial<LabProvider>,
+  ): Promise<LabProvider> => {
     const providerId = data.id;
     if (providerId) {
       // Update existing profile
-      const response = await api.put<{ data: LabProvider }>(`/lab-providers/${providerId}`, data);
+      const response = await api.put<{ data: LabProvider }>(
+        `/lab-providers/${providerId}`,
+        data,
+      );
       return response.data.data;
     } else {
       // Create new profile
-      const response = await api.post<{ data: LabProvider }>('/lab-providers', data);
+      const response = await api.post<{ data: LabProvider }>(
+        "/lab-providers",
+        data,
+      );
       return response.data.data;
     }
   },
 
+  // Get current lab provider profile
+  getProfile: async (): Promise<LabProvider> => {
+    const response = await api.get<{ data: LabProvider }>(
+      "/lab-provider/profile",
+    );
+    return response.data.data;
+  },
+
+  // Update current lab provider profile
+  updateProfile: async (data: LabProfileUpdateData): Promise<LabProvider> => {
+    const response = await api.put<{ data: LabProvider }>(
+      "/lab-provider/profile",
+      data,
+    );
+    return response.data.data;
+  },
+
   // Lab Test methods
-  getLabTests: async (role: 'patient' | 'lab-provider' = 'patient'): Promise<LabTest[]> => {
-    const endpoint = role === 'patient' ? '/patient/lab-tests' : '/lab-provider/lab-tests';
+  getLabTests: async (
+    role: "patient" | "lab-provider" = "patient",
+  ): Promise<LabTest[]> => {
+    const endpoint =
+      role === "patient" ? "/patient/lab-tests" : "/lab-provider/lab-tests";
     const response = await api.get<{ data: LabTest[] }>(endpoint);
     return response.data.data;
   },
@@ -84,24 +135,31 @@ const labService = {
   },
 
   requestLabTest: async (data: LabTestCreateData): Promise<LabTest> => {
-    const response = await api.post<{ data: LabTest }>('/lab-tests', data);
+    const response = await api.post<{ data: LabTest }>("/lab-tests", data);
     return response.data.data;
   },
 
-  updateLabTest: async (id: number, data: Partial<LabTest>): Promise<LabTest> => {
+  updateLabTest: async (
+    id: number,
+    data: Partial<LabTest>,
+  ): Promise<LabTest> => {
     const response = await api.put<{ data: LabTest }>(`/lab-tests/${id}`, data);
     return response.data.data;
   },
 
   // For lab providers to update test results
-  updateTestResults: async (id: number, results: string, status: string = 'completed'): Promise<LabTest> => {
+  updateTestResults: async (
+    id: number,
+    results: string,
+    status: string = "completed",
+  ): Promise<LabTest> => {
     const response = await api.put<{ data: LabTest }>(`/lab-tests/${id}`, {
       results,
       status,
-      completion_date: new Date().toISOString().split('T')[0] // Current date in YYYY-MM-DD format
+      completion_date: new Date().toISOString().split("T")[0], // Current date in YYYY-MM-DD format
     });
     return response.data.data;
-  }
+  },
 };
 
 export default labService;
