@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Lab Provider routes
     Route::apiResource('lab-providers', LabProviderController::class);
+    Route::get('/lab-provider/debug', [LabProviderController::class, 'debug']);
     Route::get('/lab-provider/profile', [LabProviderController::class, 'profile']);
     Route::put('/lab-provider/profile', [LabProviderController::class, 'updateProfile']);
 

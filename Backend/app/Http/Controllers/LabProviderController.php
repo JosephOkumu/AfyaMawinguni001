@@ -139,6 +139,23 @@ class LabProviderController extends Controller
     }
 
     /**
+     * Debug method to test authentication and user info
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function debug()
+    {
+        $user = Auth::user();
+
+        return response()->json([
+            'authenticated' => !!$user,
+            'user' => $user,
+            'lab_providers_count' => LabProvider::count(),
+            'user_lab_provider' => $user ? LabProvider::where('user_id', $user->id)->first() : null
+        ]);
+    }
+
+    /**
      * Get the current authenticated lab provider's profile
      *
      * @return \Illuminate\Http\JsonResponse
@@ -150,17 +167,27 @@ class LabProviderController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
+                'debug' => [
+                    'authenticated' => false,
+                    'middleware' => 'auth:sanctum should be working'
+                ]
             ], 401);
         }
 
         $labProvider = LabProvider::where('user_id', $user->id)->with('user')->first();
 
         if (!$labProvider) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Lab provider profile not found'
-            ], 404);
+            // Create a default lab provider profile if none exists
+            $labProvider = LabProvider::create([
+                'user_id' => $user->id,
+                'lab_name' => $user->name . ' Laboratory',
+                'license_number' => 'LAB-' . $user->id . '-' . date('Y'),
+                'address' => 'Address not set',
+                'is_available' => true,
+                'average_rating' => 0.00
+            ]);
+            $labProvider->load('user');
         }
 
         return response()->json([
@@ -196,17 +223,18 @@ class LabProviderController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'lab_name' => 'string|max:255',
-            'license_number' => 'string|unique:lab_providers,license_number,'.$labProvider->id,
-            'website' => 'nullable|url|max:255',
-            'address' => 'string',
-            'operating_hours' => 'nullable|json',
+            'lab_name' => 'nullable|string|max:255',
+            'license_number' => 'nullable|string|unique:lab_providers,license_number,'.$labProvider->id,
+            'website' => 'nullable|string|max:255',
+            'address' => 'nullable|string',
+            'operating_hours' => 'nullable|string',
             'description' => 'nullable|string',
             'contact_person_name' => 'nullable|string|max:255',
             'contact_person_role' => 'nullable|string|max:255',
             'profile_image' => 'nullable|string',
-            'certifications' => 'nullable|json',
-            'is_available' => 'boolean',
+            'certifications' => 'nullable|array',
+            'certifications.*' => 'string',
+            'is_available' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -217,7 +245,26 @@ class LabProviderController extends Controller
             ], 422);
         }
 
-        $labProvider->update($request->all());
+        // Prepare data for update
+        $updateData = $request->only([
+            'lab_name',
+            'license_number',
+            'website',
+            'address',
+            'operating_hours',
+            'description',
+            'contact_person_name',
+            'contact_person_role',
+            'profile_image',
+            'is_available'
+        ]);
+
+        // Handle certifications array conversion to JSON
+        if ($request->has('certifications')) {
+            $updateData['certifications'] = json_encode($request->certifications);
+        }
+
+        $labProvider->update($updateData);
 
         return response()->json([
             'status' => 'success',

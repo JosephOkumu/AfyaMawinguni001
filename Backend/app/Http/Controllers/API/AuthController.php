@@ -42,7 +42,7 @@ class AuthController extends Controller
         try {
             // Get user type ID
             $userType = UserType::where('name', $request->user_type)->first();
-            
+
             if (!$userType) {
                 return response()->json(['message' => 'Invalid user type selected'], 422);
             }
@@ -69,13 +69,17 @@ class AuthController extends Controller
             DB::commit();
 
             return response()->json([
-                'access_token' => $token,
-                'token_type' => 'Bearer',
+                'token' => $token,
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'user_type' => $userType->name,
+                    'user_type_id' => $user->user_type_id,
+                    'user_type' => [
+                        'id' => $userType->id,
+                        'name' => $userType->name,
+                        'display_name' => $userType->display_name,
+                    ],
                 ],
             ], 201);
 
@@ -108,7 +112,7 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request->email)->firstOrFail();
-        
+
         // Check if user is active
         if (!$user->is_active) {
             return response()->json(['message' => 'Your account has been deactivated. Please contact support.'], 403);
@@ -121,13 +125,17 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'user_type' => $userType->name,
+                'user_type_id' => $user->user_type_id,
+                'user_type' => [
+                    'id' => $userType->id,
+                    'name' => $userType->name,
+                    'display_name' => $userType->display_name,
+                ],
             ],
         ]);
     }

@@ -143,6 +143,13 @@ const LabDashboard = () => {
     const loadProfile = async () => {
       try {
         setIsProfileLoading(true);
+
+        // Debug authentication
+        console.log("=== DEBUG AUTHENTICATION ===");
+        console.log("Token in localStorage:", localStorage.getItem("token"));
+        console.log("User in localStorage:", localStorage.getItem("user"));
+        console.log("Is authenticated:", !!localStorage.getItem("token"));
+
         const profile = await labService.getProfile();
 
         // Map API response to form format
@@ -371,19 +378,33 @@ const LabDashboard = () => {
   // Profile form handler
   const onProfileSubmit = async (data: LaboratoryProfile) => {
     try {
-      // Map form data to API format
+      console.log("=== PROFILE SUBMIT DEBUG ===");
+      console.log("Form data received:", data);
+
+      // Map form data to API format with proper data types
       const apiData: LabProfileUpdateData = {
-        lab_name: data.lab_name,
-        license_number: data.license_number,
-        website: data.website,
-        address: data.address,
-        operating_hours: data.operating_hours,
-        description: data.description,
-        contact_person_name: data.contact_person_name,
-        contact_person_role: data.contact_person_role,
-        profile_image: data.profile_image,
-        certifications: data.certifications,
+        lab_name: data.lab_name || "",
+        license_number: data.license_number || "",
+        website: data.website
+          ? data.website.startsWith("http://") ||
+            data.website.startsWith("https://")
+            ? data.website
+            : `https://${data.website}`
+          : "",
+        address: data.address || "",
+        operating_hours: data.operating_hours || "",
+        description: data.description || "",
+        contact_person_name: data.contact_person_name || "",
+        contact_person_role: data.contact_person_role || "",
+        profile_image: data.profile_image || "",
+        certifications: Array.isArray(data.certifications)
+          ? data.certifications
+          : [],
+        is_available: true,
       };
+
+      console.log("API data being sent:", apiData);
+      console.log("API data stringified:", JSON.stringify(apiData, null, 2));
 
       const updatedProfile = await labService.updateProfile(apiData);
 
@@ -396,11 +417,23 @@ const LabDashboard = () => {
       });
 
       setShowProfileDialog(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update profile:", error);
+      console.error("Error response:", error.response);
+      console.error("Validation errors:", error.response?.data?.errors);
+
+      // Show specific validation errors if available
+      let errorMessage =
+        "Failed to update laboratory profile. Please try again.";
+      if (error.response?.data?.errors) {
+        const validationErrors = error.response.data.errors;
+        const errorFields = Object.keys(validationErrors);
+        errorMessage = `Validation errors in: ${errorFields.join(", ")}. Check console for details.`;
+      }
+
       toast({
         title: "Error",
-        description: "Failed to update laboratory profile. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
