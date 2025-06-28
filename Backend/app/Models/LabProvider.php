@@ -17,16 +17,15 @@ class LabProvider extends Model
     protected $fillable = [
         'user_id',
         'lab_name',
-        'description',
         'license_number',
-        'certifications',
-        'services_offered',
-        'logo',
-        'operating_hours',
+        'website',
         'address',
-        'city',
-        'offers_home_sample_collection',
-        'home_collection_fee',
+        'operating_hours',
+        'description',
+        'contact_person_name',
+        'contact_person_role',
+        'profile_image',
+        'certifications',
         'is_available',
         'average_rating',
     ];
@@ -37,12 +36,10 @@ class LabProvider extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'services_offered' => 'json',
         'operating_hours' => 'json',
-        'offers_home_sample_collection' => 'boolean',
-        'home_collection_fee' => 'decimal:2',
+        'certifications' => 'json',
         'is_available' => 'boolean',
-        'average_rating' => 'integer',
+        'average_rating' => 'decimal:2',
     ];
 
     /**

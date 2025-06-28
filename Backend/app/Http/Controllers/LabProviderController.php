@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LabProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class LabProviderController extends Controller
 {
@@ -15,8 +16,8 @@ class LabProviderController extends Controller
      */
     public function index()
     {
-        $labProviders = LabProvider::all();
-        
+        $labProviders = LabProvider::with('user')->get();
+
         return response()->json([
             'status' => 'success',
             'data' => $labProviders
@@ -34,16 +35,15 @@ class LabProviderController extends Controller
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
             'lab_name' => 'required|string|max:255',
-            'description' => 'required|string',
             'license_number' => 'required|string|unique:lab_providers,license_number',
-            'certifications' => 'nullable|string',
-            'services_offered' => 'required|json',
-            'logo' => 'nullable|string',
-            'operating_hours' => 'nullable|json',
+            'website' => 'nullable|url|max:255',
             'address' => 'required|string',
-            'city' => 'required|string',
-            'offers_home_sample_collection' => 'boolean',
-            'home_collection_fee' => 'nullable|numeric|min:0',
+            'operating_hours' => 'nullable|json',
+            'description' => 'nullable|string',
+            'contact_person_name' => 'nullable|string|max:255',
+            'contact_person_role' => 'nullable|string|max:255',
+            'profile_image' => 'nullable|string',
+            'certifications' => 'nullable|json',
             'is_available' => 'boolean',
         ]);
 
@@ -60,7 +60,7 @@ class LabProviderController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Lab provider created successfully',
-            'data' => $labProvider
+            'data' => $labProvider->load('user')
         ], 201);
     }
 
@@ -72,7 +72,7 @@ class LabProviderController extends Controller
      */
     public function show($id)
     {
-        $labProvider = LabProvider::find($id);
+        $labProvider = LabProvider::with('user')->find($id);
 
         if (!$labProvider) {
             return response()->json([
@@ -99,18 +99,17 @@ class LabProviderController extends Controller
         $validator = Validator::make($request->all(), [
             'user_id' => 'exists:users,id',
             'lab_name' => 'string|max:255',
-            'description' => 'string',
             'license_number' => 'string|unique:lab_providers,license_number,'.$id,
-            'certifications' => 'nullable|string',
-            'services_offered' => 'json',
-            'logo' => 'nullable|string',
-            'operating_hours' => 'nullable|json',
+            'website' => 'nullable|url|max:255',
             'address' => 'string',
-            'city' => 'string',
-            'offers_home_sample_collection' => 'boolean',
-            'home_collection_fee' => 'nullable|numeric|min:0',
+            'operating_hours' => 'nullable|json',
+            'description' => 'nullable|string',
+            'contact_person_name' => 'nullable|string|max:255',
+            'contact_person_role' => 'nullable|string|max:255',
+            'profile_image' => 'nullable|string',
+            'certifications' => 'nullable|json',
             'is_available' => 'boolean',
-            'average_rating' => 'integer|min:0|max:5',
+            'average_rating' => 'numeric|min:0|max:5',
         ]);
 
         if ($validator->fails()) {
@@ -135,7 +134,95 @@ class LabProviderController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Lab provider updated successfully',
+            'data' => $labProvider->load('user')
+        ]);
+    }
+
+    /**
+     * Get the current authenticated lab provider's profile
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function profile()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $labProvider = LabProvider::where('user_id', $user->id)->with('user')->first();
+
+        if (!$labProvider) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lab provider profile not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
             'data' => $labProvider
+        ]);
+    }
+
+    /**
+     * Update the current authenticated lab provider's profile
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $labProvider = LabProvider::where('user_id', $user->id)->first();
+
+        if (!$labProvider) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lab provider profile not found'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'lab_name' => 'string|max:255',
+            'license_number' => 'string|unique:lab_providers,license_number,'.$labProvider->id,
+            'website' => 'nullable|url|max:255',
+            'address' => 'string',
+            'operating_hours' => 'nullable|json',
+            'description' => 'nullable|string',
+            'contact_person_name' => 'nullable|string|max:255',
+            'contact_person_role' => 'nullable|string|max:255',
+            'profile_image' => 'nullable|string',
+            'certifications' => 'nullable|json',
+            'is_available' => 'boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $labProvider->update($request->all());
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Profile updated successfully',
+            'data' => $labProvider->load('user')
         ]);
     }
 

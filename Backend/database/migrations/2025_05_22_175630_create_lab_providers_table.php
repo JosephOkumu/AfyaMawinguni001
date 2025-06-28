@@ -15,18 +15,17 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('lab_name');
-            $table->text('description');
             $table->string('license_number')->unique();
-            $table->text('certifications')->nullable();
-            $table->text('services_offered'); // JSON encoded list of test services
-            $table->string('logo')->nullable();
-            $table->text('operating_hours')->nullable(); // JSON encoded operating hours
+            $table->string('website')->nullable();
             $table->text('address');
-            $table->string('city');
-            $table->boolean('offers_home_sample_collection')->default(false);
-            $table->decimal('home_collection_fee', 10, 2)->nullable();
+            $table->text('operating_hours')->nullable(); // JSON encoded operating hours
+            $table->text('description')->nullable();
+            $table->string('contact_person_name')->nullable();
+            $table->string('contact_person_role')->nullable();
+            $table->string('profile_image')->nullable();
+            $table->text('certifications')->nullable(); // JSON encoded certifications
             $table->boolean('is_available')->default(true);
-            $table->integer('average_rating')->default(0);
+            $table->decimal('average_rating', 3, 2)->default(0.00);
             $table->timestamps();
         });
     }
