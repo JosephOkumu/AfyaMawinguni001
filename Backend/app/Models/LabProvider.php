@@ -57,4 +57,20 @@ class LabProvider extends Model
     {
         return $this->hasMany(LabTest::class);
     }
+
+    /**
+     * Get the test services offered by this lab provider.
+     */
+    public function testServices()
+    {
+        return $this->hasMany(LabTestService::class);
+    }
+
+    /**
+     * Get only active test services.
+     */
+    public function activeTestServices()
+    {
+        return $this->hasMany(LabTestService::class)->where('is_active', true)->orderBy('sort_order');
+    }
 }

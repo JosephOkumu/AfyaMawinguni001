@@ -37,6 +37,32 @@ export interface LabProfileUpdateData {
   is_available?: boolean;
 }
 
+export interface LabTestService {
+  id?: number;
+  lab_provider_id?: number;
+  test_name: string;
+  description?: string;
+  price: number;
+  turnaround_time?: string;
+  sample_type?: string;
+  preparation_instructions?: string;
+  is_active?: boolean;
+  sort_order?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface LabTestServiceCreateData {
+  test_name: string;
+  description?: string;
+  price: number;
+  turnaround_time?: string;
+  sample_type?: string;
+  preparation_instructions?: string;
+  is_active?: boolean;
+  sort_order?: number;
+}
+
 export interface LabTest {
   id: number;
   patient_id: number;
@@ -184,6 +210,79 @@ const labService = {
     console.log("New image URL:", response.data.data.profile_image);
 
     return response.data.data.profile_image;
+  },
+
+  // Test Service Management
+  // Get all test services for the authenticated lab provider
+  getTestServices: async (): Promise<LabTestService[]> => {
+    const response = await api.get<{ status: string; data: LabTestService[] }>(
+      "/lab-provider/test-services",
+    );
+    return response.data.data;
+  },
+
+  // Create a new test service
+  createTestService: async (
+    data: LabTestServiceCreateData,
+  ): Promise<LabTestService> => {
+    const response = await api.post<{
+      status: string;
+      data: LabTestService;
+    }>("/lab-provider/test-services", data);
+    return response.data.data;
+  },
+
+  // Get a specific test service
+  getTestService: async (id: number): Promise<LabTestService> => {
+    const response = await api.get<{
+      status: string;
+      data: LabTestService;
+    }>(`/lab-provider/test-services/${id}`);
+    return response.data.data;
+  },
+
+  // Update a test service
+  updateTestService: async (
+    id: number,
+    data: Partial<LabTestServiceCreateData>,
+  ): Promise<LabTestService> => {
+    const response = await api.put<{
+      status: string;
+      data: LabTestService;
+    }>(`/lab-provider/test-services/${id}`, data);
+    return response.data.data;
+  },
+
+  // Delete a test service
+  deleteTestService: async (id: number): Promise<void> => {
+    await api.delete(`/lab-provider/test-services/${id}`);
+  },
+
+  // Toggle test service status (active/inactive)
+  toggleTestServiceStatus: async (id: number): Promise<LabTestService> => {
+    const response = await api.patch<{
+      status: string;
+      data: LabTestService;
+    }>(`/lab-provider/test-services/${id}/toggle-status`);
+    return response.data.data;
+  },
+
+  // Get test services for a specific lab provider (public)
+  getTestServicesByProvider: async (
+    labProviderId: number,
+  ): Promise<{
+    testServices: LabTestService[];
+    labProvider: { id: number; lab_name: string; address: string };
+  }> => {
+    const response = await api.get<{
+      status: string;
+      data: LabTestService[];
+      lab_provider: { id: number; lab_name: string; address: string };
+    }>(`/lab-providers/${labProviderId}/test-services`);
+    return {
+      testServices: response.data.data,
+      labProvider: response.data.lab_provider,
+    };
   },
 };
 

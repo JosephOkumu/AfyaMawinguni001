@@ -7,6 +7,7 @@ use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\LabProviderController;
 use App\Http\Controllers\LabTestController;
+use App\Http\Controllers\LabTestServiceController;
 use App\Http\Controllers\NursingProviderController;
 use App\Http\Controllers\NursingServiceController;
 use App\Http\Controllers\PharmacyController;
@@ -48,6 +49,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/lab-provider/profile', [LabProviderController::class, 'updateProfile']);
     Route::post('/lab-provider/upload-image', [LabProviderController::class, 'uploadProfileImage']);
 
+    // Lab Test Service routes (for lab providers)
+    Route::get('/lab-provider/test-services', [LabTestServiceController::class, 'index']);
+    Route::post('/lab-provider/test-services', [LabTestServiceController::class, 'store']);
+    Route::get('/lab-provider/test-services/{id}', [LabTestServiceController::class, 'show']);
+    Route::put('/lab-provider/test-services/{id}', [LabTestServiceController::class, 'update']);
+    Route::delete('/lab-provider/test-services/{id}', [LabTestServiceController::class, 'destroy']);
+    Route::patch('/lab-provider/test-services/{id}/toggle-status', [LabTestServiceController::class, 'toggleStatus']);
+
     // Lab Test routes
     Route::apiResource('lab-tests', LabTestController::class);
     Route::get('/patient/lab-tests', [LabTestController::class, 'index'])->name('patient.lab-tests');
@@ -76,3 +85,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Public medicine search route
 Route::get('/medicines/search', [MedicineController::class, 'index']);
+
+// Public route to get test services by lab provider
+Route::get('/lab-providers/{labProviderId}/test-services', [LabTestServiceController::class, 'getByLabProvider']);

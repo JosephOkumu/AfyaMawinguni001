@@ -48,6 +48,8 @@ import { useToast } from "@/hooks/use-toast";
 import labService, {
   LabProvider,
   LabProfileUpdateData,
+  LabTestService,
+  LabTestServiceCreateData,
 } from "@/services/labService";
 
 // Interfaces
@@ -57,7 +59,7 @@ interface LabTest {
   description: string;
   price: number;
   turnaroundTime: string;
-  icon: React.ElementType;
+  icon: any;
   isActive: boolean;
 }
 
@@ -92,7 +94,7 @@ interface Appointment {
 const LabDashboard = () => {
   // State variables
   const [activeTab, setActiveTab] = useState<string>("tests");
-  const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
+  const [selectedTest, setSelectedTest] = useState<LabTestService | null>(null);
   const [showTestForm, setShowTestForm] = useState<boolean>(false);
   const [showProfileDialog, setShowProfileDialog] = useState<boolean>(false);
   const [selectedAppointment, setSelectedAppointment] =
@@ -123,6 +125,8 @@ const LabDashboard = () => {
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [newCertification, setNewCertification] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [testServices, setTestServices] = useState<LabTestService[]>([]);
+  const [isTestServicesLoading, setIsTestServicesLoading] = useState(true);
 
   // Profile form setup
   const profileForm = useForm<LaboratoryProfile>({
@@ -130,12 +134,12 @@ const LabDashboard = () => {
   });
 
   // Test form
-  const testForm = useForm<Omit<LabTest, "id" | "icon" | "isActive">>({
+  const testForm = useForm<LabTestServiceCreateData>({
     defaultValues: {
-      name: selectedTest?.name || "",
-      description: selectedTest?.description || "",
-      price: selectedTest?.price || 0,
-      turnaroundTime: selectedTest?.turnaroundTime || "",
+      test_name: "",
+      description: "",
+      price: 0,
+      turnaround_time: "",
     },
   });
 
@@ -190,59 +194,26 @@ const LabDashboard = () => {
     };
 
     loadProfile();
+    loadTestServices();
   }, []);
 
-  // Sample data
-  const [labTests, setLabTests] = useState<LabTest[]>([
-    {
-      id: 1,
-      name: "Complete Blood Count",
-      description:
-        "Measures different components of blood including red blood cells, white blood cells, and platelets.",
-      price: 1200,
-      turnaroundTime: "2 hours",
-      icon: Activity,
-      isActive: true,
-    },
-    {
-      id: 2,
-      name: "Blood Glucose Test",
-      description:
-        "Measures the amount of glucose in blood to diagnose diabetes.",
-      price: 800,
-      turnaroundTime: "1 hour",
-      icon: Activity,
-      isActive: true,
-    },
-    {
-      id: 3,
-      name: "Lipid Profile",
-      description:
-        "Measures cholesterol and triglycerides to assess heart disease risk.",
-      price: 1500,
-      turnaroundTime: "3 hours",
-      icon: TestTube,
-      isActive: true,
-    },
-    {
-      id: 4,
-      name: "Liver Function Test",
-      description: "Assesses liver health by measuring enzymes and proteins.",
-      price: 2000,
-      turnaroundTime: "4 hours",
-      icon: Microscope,
-      isActive: true,
-    },
-    {
-      id: 5,
-      name: "COVID-19 PCR Test",
-      description: "Detects current infection with SARS-CoV-2 virus.",
-      price: 3500,
-      turnaroundTime: "24 hours",
-      icon: TestTube,
-      isActive: true,
-    },
-  ]);
+  // Load test services
+  const loadTestServices = async () => {
+    try {
+      setIsTestServicesLoading(true);
+      const services = await labService.getTestServices();
+      setTestServices(services);
+    } catch (error) {
+      console.error("Failed to load test services:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load test services.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTestServicesLoading(false);
+    }
+  };
 
   const appointments: Appointment[] = [
     {
@@ -308,45 +279,53 @@ const LabDashboard = () => {
   ];
 
   // Event handlers
-  const onTestSubmit = async (
-    data: Omit<LabTest, "id" | "icon" | "isActive">,
-  ) => {
-    if (selectedTest) {
-      // Update existing test
-      const updatedTests = labTests.map((test) =>
-        test.id === selectedTest.id ? { ...test, ...data } : test,
-      );
-      setLabTests(updatedTests);
+  const onTestSubmit = async (data: LabTestServiceCreateData) => {
+    try {
+      if (selectedTest) {
+        // Update existing test service
+        const updatedService = await labService.updateTestService(
+          selectedTest.id!,
+          data,
+        );
+        setTestServices(
+          testServices.map((service) =>
+            service.id === selectedTest.id ? updatedService : service,
+          ),
+        );
+        toast({
+          title: "Test Updated",
+          description: `${data.test_name} has been updated successfully.`,
+        });
+      } else {
+        // Create new test service
+        const newService = await labService.createTestService(data);
+        setTestServices([...testServices, newService]);
+        toast({
+          title: "Test Added",
+          description: `${data.test_name} has been added successfully.`,
+        });
+      }
+      setShowTestForm(false);
+      setSelectedTest(null);
+      testForm.reset();
+    } catch (error: any) {
+      console.error("Failed to save test service:", error);
       toast({
-        title: "Test Updated",
-        description: `${data.name} has been updated successfully.`,
-      });
-    } else {
-      // Add new test
-      const newTest: LabTest = {
-        id: labTests.length + 1,
-        ...data,
-        icon: TestTube,
-        isActive: true,
-      };
-      setLabTests([...labTests, newTest]);
-      toast({
-        title: "Test Added",
-        description: `${data.name} has been added successfully.`,
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to save test service.",
+        variant: "destructive",
       });
     }
-    setShowTestForm(false);
-    setSelectedTest(null);
-    testForm.reset();
   };
 
-  const handleEditTest = (test: LabTest) => {
+  const handleEditTest = (test: LabTestService) => {
     setSelectedTest(test);
     testForm.reset({
-      name: test.name,
+      test_name: test.test_name,
       description: test.description,
       price: test.price,
-      turnaroundTime: test.turnaroundTime,
+      turnaround_time: test.turnaround_time,
     });
     setShowTestForm(true);
   };
@@ -354,24 +333,34 @@ const LabDashboard = () => {
   const handleAddNewTest = () => {
     setSelectedTest(null);
     testForm.reset({
-      name: "",
+      test_name: "",
       description: "",
       price: 0,
-      turnaroundTime: "",
+      turnaround_time: "",
     });
     setShowTestForm(!showTestForm);
   };
 
-  const handleToggleTestStatus = (id: number) => {
-    const updatedTests = labTests.map((test) =>
-      test.id === id ? { ...test, isActive: !test.isActive } : test,
-    );
-    setLabTests(updatedTests);
-    const test = updatedTests.find((t) => t.id === id);
-    toast({
-      title: test?.isActive ? "Test Activated" : "Test Deactivated",
-      description: `${test?.name} has been ${test?.isActive ? "activated" : "deactivated"}.`,
-    });
+  const handleToggleTestStatus = async (id: number) => {
+    try {
+      const updatedService = await labService.toggleTestServiceStatus(id);
+      setTestServices(
+        testServices.map((service) =>
+          service.id === id ? updatedService : service,
+        ),
+      );
+      toast({
+        title: updatedService.is_active ? "Test Activated" : "Test Deactivated",
+        description: `${updatedService.test_name} has been ${updatedService.is_active ? "activated" : "deactivated"}.`,
+      });
+    } catch (error: any) {
+      console.error("Failed to toggle test status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update test status.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Profile form handler
@@ -940,7 +929,7 @@ const LabDashboard = () => {
               <div>
                 <p className="text-sm text-gray-600">Active Tests</p>
                 <h3 className="text-2xl font-bold">
-                  {labTests.filter((t) => t.isActive).length}
+                  {testServices.filter((t) => t.is_active).length}
                 </h3>
               </div>
               <div className="h-10 w-10 bg-blue-200 rounded-full flex items-center justify-center">
@@ -1028,7 +1017,7 @@ const LabDashboard = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                               control={testForm.control}
-                              name="name"
+                              name="test_name"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Test Name</FormLabel>
@@ -1079,7 +1068,7 @@ const LabDashboard = () => {
                           />
                           <FormField
                             control={testForm.control}
-                            name="turnaroundTime"
+                            name="turnaround_time"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Turnaround Time</FormLabel>
@@ -1127,51 +1116,71 @@ const LabDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {labTests.map((test) => (
-                        <TableRow key={test.id}>
-                          <TableCell className="font-medium flex items-center gap-2">
-                            <test.icon className="h-4 w-4 text-primary-blue" />
-                            {test.name}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {test.description}
-                          </TableCell>
-                          <TableCell>{test.price.toLocaleString()}</TableCell>
-                          <TableCell>{test.turnaroundTime}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={test.isActive ? "default" : "secondary"}
-                              className={
-                                test.isActive
-                                  ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                              }
-                            >
-                              {test.isActive ? "Active" : "Inactive"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditTest(test)}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                variant={
-                                  test.isActive ? "destructive" : "outline"
-                                }
-                                size="sm"
-                                onClick={() => handleToggleTestStatus(test.id)}
-                              >
-                                {test.isActive ? "Deactivate" : "Activate"}
-                              </Button>
-                            </div>
+                      {isTestServicesLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8">
+                            Loading test services...
                           </TableCell>
                         </TableRow>
-                      ))}
+                      ) : testServices.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8">
+                            No test services found. Add your first test service!
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        testServices.map((test) => (
+                          <TableRow key={test.id}>
+                            <TableCell className="flex items-center gap-2">
+                              <TestTube className="h-4 w-4 text-primary-blue" />
+                              {test.test_name}
+                            </TableCell>
+                            <TableCell className="max-w-xs truncate">
+                              {test.description}
+                            </TableCell>
+                            <TableCell>
+                              KES {test.price.toLocaleString()}
+                            </TableCell>
+                            <TableCell>{test.turnaround_time}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  test.is_active ? "default" : "secondary"
+                                }
+                                className={
+                                  test.is_active
+                                    ? "bg-green-100 text-green-800 hover:bg-green-200"
+                                    : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                                }
+                              >
+                                {test.is_active ? "Active" : "Inactive"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEditTest(test)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant={
+                                    test.is_active ? "destructive" : "outline"
+                                  }
+                                  size="sm"
+                                  onClick={() =>
+                                    handleToggleTestStatus(test.id!)
+                                  }
+                                >
+                                  {test.is_active ? "Deactivate" : "Activate"}
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
                 </div>
