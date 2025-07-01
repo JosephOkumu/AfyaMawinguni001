@@ -127,17 +127,22 @@ const DoctorDashboard = () => {
     const loadAppointments = async () => {
       try {
         setIsLoadingAppointments(true);
+        
+        // TODO: Remove this line when backend appointments API is ready
+        throw new Error("Using dummy data for UI development");
+
         const doctorAppointments =
           await appointmentService.getAppointments("doctor");
         setAppointments(doctorAppointments);
       } catch (error) {
         console.error("Failed to load appointments:", error);
         toast({
-          title: "Error",
-          description: "Failed to load appointments. Please try again.",
-          variant: "destructive",
+          title: "Demo Mode",
+          description: "Showing demo appointments for UI development and testing.",
+          variant: "default",
         });
         // For demo purposes, set some sample appointments
+        // Demo appointments data - always loaded until backend API is implemented
         setAppointments([
           {
             id: 1,
