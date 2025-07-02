@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -17,104 +17,18 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import FilterPopover from "@/components/ui/FilterPopover";
+import doctorService, { Doctor } from "@/services/doctorService";
 
-const doctorImage = "/lovable-uploads/a05b3053-380f-4711-b032-bc48d1c082f0.png";
-// Mock data for doctors
-const doctors = [
-  {
-    id: 1,
-    name: "Dr. James Wilson",
-    specialty: "General Practitioner",
-    rating: 4.9,
-    imageUrl: doctorImage,
-    location: "Nairobi Central",
-    price: 2500,
-    experience: "15 years",
-    availability: ["Monday", "Tuesday", "Wednesday", "Friday"],
-  },
-  {
-    id: 2,
-    name: "Dr. Lisa Chen",
-    specialty: "Cardiologist",
-    rating: 4.8,
-    imageUrl: doctorImage,
-    location: "Westlands",
-    price: 3500,
-    experience: "12 years",
-    availability: ["Monday", "Thursday", "Saturday"],
-  },
-  {
-    id: 3,
-    name: "Dr. Robert Brown",
-    specialty: "Pediatrician",
-    rating: 4.7,
-    imageUrl: doctorImage,
-    location: "Parklands",
-    price: 2800,
-    experience: "10 years",
-    availability: ["Tuesday", "Wednesday", "Friday", "Saturday"],
-  },
-  {
-    id: 4,
-    name: "Dr. Amanda Smith",
-    specialty: "Dermatologist",
-    rating: 4.9,
-    imageUrl: doctorImage,
-    location: "Karen",
-    price: 4200,
-    experience: "8 years",
-    availability: ["Monday", "Wednesday", "Friday"],
-  },
-  {
-    id: 5,
-    name: "Dr. Michael Kimani",
-    specialty: "Orthopedic Surgeon",
-    rating: 4.6,
-    imageUrl: doctorImage,
-    location: "Upperhill",
-    price: 5000,
-    experience: "14 years",
-    availability: ["Monday", "Tuesday", "Thursday"],
-  },
-  {
-    id: 6,
-    name: "Dr. Sarah Wanjiku",
-    specialty: "Neurologist",
-    rating: 4.8,
-    imageUrl: doctorImage,
-    location: "Kilimani",
-    price: 4500,
-    experience: "11 years",
-    availability: ["Tuesday", "Thursday", "Saturday"],
-  },
-  {
-    id: 7,
-    name: "Dr. David Ochieng",
-    specialty: "Psychiatrist",
-    rating: 4.7,
-    imageUrl: doctorImage,
-    location: "Lavington",
-    price: 3800,
-    experience: "9 years",
-    availability: ["Monday", "Wednesday", "Friday"],
-  },
-  {
-    id: 8,
-    name: "Dr. Emily Njoroge",
-    specialty: "Gynecologist",
-    rating: 4.9,
-    imageUrl: doctorImage,
-    location: "Westlands",
-    price: 4000,
-    experience: "13 years",
-    availability: ["Tuesday", "Thursday", "Saturday"],
-  },
-];
+const defaultDoctorImage =
+  "/lovable-uploads/a05b3053-380f-4711-b032-bc48d1c082f0.png";
 
-// List of locations for filtering
-const locations = [...new Set(doctors.map((doctor) => doctor.location))];
-
-const DoctorCard = ({ doctor, onClick }) => {
+const DoctorCard = ({
+  doctor,
+  onClick,
+}: {
+  doctor: Doctor;
+  onClick: (doctor: Doctor) => void;
+}) => {
   // Function to render star ratings
   const renderStars = (rating) => {
     const stars = [];
@@ -153,28 +67,33 @@ const DoctorCard = ({ doctor, onClick }) => {
     <Card className="overflow-hidden hover:shadow-md transition-all duration-300 h-full">
       <div className="relative">
         <img
-          src={doctor.imageUrl}
-          alt={doctor.name}
+          src={doctor.profile_image || defaultDoctorImage}
+          alt={doctor.user.name}
           className="w-full h-48 object-cover object-center"
         />
         <Badge className="absolute top-2 right-2 bg-green-500 hover:bg-green-600">
-          KES {doctor.price}
+          KES{" "}
+          {doctor.physical_consultation_fee || doctor.default_consultation_fee}
         </Badge>
       </div>
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg text-primary-blue">
-          {doctor.name}
+          {doctor.user.name}
         </h3>
         <p className="text-sm text-gray-600 mb-2">{doctor.specialty}</p>
 
         <div className="flex items-center text-xs text-gray-500 mb-2">
           <MapPin className="h-3.5 w-3.5 mr-1 text-gray-400" />
-          {doctor.location}
+          {doctor.location || "Location not specified"}
         </div>
 
         <div className="flex items-center mb-3">
-          <div className="flex mr-1">{renderStars(doctor.rating)}</div>
-          <span className="text-sm text-gray-600">({doctor.rating})</span>
+          <div className="flex mr-1">
+            {renderStars(doctor.average_rating || 4.5)}
+          </div>
+          <span className="text-sm text-gray-600">
+            ({doctor.average_rating || 4.5})
+          </span>
         </div>
 
         <Button
@@ -193,8 +112,30 @@ const DoctorConsultation = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
-  const [priceRange, setPriceRange] = useState([0, 5000]);
+
   const [ratingFilter, setRatingFilter] = useState(0);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch doctors from backend
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setLoading(true);
+        const doctorsData = await doctorService.getAllDoctors();
+        setDoctors(doctorsData);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching doctors:", err);
+        setError("Failed to load doctors. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
 
   // Generate user initials
   const getUserInitials = (name: string) => {
@@ -205,6 +146,11 @@ const DoctorConsultation = () => {
       names[0].charAt(0) + names[names.length - 1].charAt(0)
     ).toUpperCase();
   };
+
+  // Generate unique locations from doctors data
+  const locations = [
+    ...new Set(doctors.map((doctor) => doctor.location).filter(Boolean)),
+  ];
 
   // Navigation items for the horizontal navbar
   const navItems = [
@@ -218,19 +164,19 @@ const DoctorConsultation = () => {
 
   // Apply filters to doctors list
   const filteredDoctors = doctors.filter((doctor) => {
+    const rating = doctor.average_rating || 4.5;
     return (
       (selectedLocation === "" || doctor.location === selectedLocation) &&
-      doctor.price >= priceRange[0] &&
-      doctor.price <= priceRange[1] &&
-      doctor.rating >= ratingFilter &&
+      rating >= ratingFilter &&
       (searchTerm === "" ||
-        doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doctor.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doctor.location.toLowerCase().includes(searchTerm.toLowerCase()))
+        (doctor.location &&
+          doctor.location.toLowerCase().includes(searchTerm.toLowerCase())))
     );
   });
 
-  const handleDoctorSelect = (doctor) => {
+  const handleDoctorSelect = (doctor: Doctor) => {
     navigate(`/patient-dashboard/doctor/${doctor.id}`);
   };
 
@@ -345,10 +291,8 @@ const DoctorConsultation = () => {
         <div className="mb-6 flex justify-between items-center">
           <FilterPopover
             onLocationChange={setSelectedLocation}
-            onPriceRangeChange={setPriceRange}
             onRatingChange={setRatingFilter}
             selectedLocation={selectedLocation}
-            priceRange={priceRange}
             ratingFilter={ratingFilter}
             locations={locations}
           />
@@ -366,24 +310,36 @@ const DoctorConsultation = () => {
         </div>
 
         {/* Doctors Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredDoctors.map((doctor) => (
-            <DoctorCard
-              key={doctor.id}
-              doctor={doctor}
-              onClick={handleDoctorSelect}
-            />
-          ))}
+        {loading ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-lg text-gray-600">Loading doctors...</p>
+          </div>
+        ) : error ? (
+          <div className="col-span-full text-center py-12 text-red-500">
+            <p className="text-lg">{error}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredDoctors.map((doctor) => (
+              <DoctorCard
+                key={doctor.id}
+                doctor={doctor}
+                onClick={handleDoctorSelect}
+              />
+            ))}
 
-          {filteredDoctors.length === 0 && (
-            <div className="col-span-full text-center py-12 text-gray-500">
-              <p className="text-lg">No doctors match your search criteria.</p>
-              <p className="text-sm mt-2">
-                Try adjusting your filters or search term.
-              </p>
-            </div>
-          )}
-        </div>
+            {filteredDoctors.length === 0 && !loading && (
+              <div className="col-span-full text-center py-12 text-gray-500">
+                <p className="text-lg">
+                  No doctors match your search criteria.
+                </p>
+                <p className="text-sm mt-2">
+                  Try adjusting your filters or search term.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
