@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,6 @@ import {
   TestTube,
   User,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -54,7 +53,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import nursingService, { NursingProvider } from "@/services/nursingService";
 import { format } from "date-fns";
 
 interface ProviderProfileForm {
@@ -268,6 +269,12 @@ const HomeNursingDashboard = () => {
   const [selectedAppointment, setSelectedAppointment] =
     useState<NursingAppointment | null>(null);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [nursingProfile, setNursingProfile] = useState<NursingProvider | null>(
+    null,
+  );
+  const [profileImage, setProfileImage] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profileForm = useForm<ProviderProfileForm>({
     defaultValues: {
@@ -400,13 +407,157 @@ const HomeNursingDashboard = () => {
     resetForm();
   };
 
-  const handleProfileSubmit = (data: ProviderProfileForm) => {
-    console.log("Profile data:", data);
-    toast({
-      title: "Profile Updated",
-      description: "Your provider profile has been successfully updated.",
-    });
-    setShowProfileDialog(false);
+  const loadProfile = useCallback(async () => {
+    try {
+      const profile = await nursingService.getProfile();
+      setNursingProfile(profile);
+      setProfileImage(profile.logo || "");
+
+      // Update form with profile data
+      profileForm.reset({
+        name: profile.user?.name || "",
+        phoneNumber: profile.user?.phone_number || "",
+        email: profile.user?.email || "",
+        location: "Nairobi, Kenya",
+        professionalSummary: profile.description || "",
+        availability: "24/7",
+        startingPrice: profile.base_rate_per_hour?.toString() || "",
+      });
+    } catch (error: unknown) {
+      console.log("Profile loading error:", error);
+
+      // Type guard for axios error
+      interface AxiosErrorType {
+        response?: {
+          status: number;
+        };
+      }
+
+      const isAxiosError = (err: unknown): err is AxiosErrorType => {
+        return err !== null && typeof err === "object" && "response" in err;
+      };
+
+      // If no profile exists (404 error), this is expected for new users
+      if (isAxiosError(error) && error.response?.status === 404) {
+        console.log(
+          "No nursing provider profile found - user may need to create one",
+        );
+        // Keep the default form values, don't show error to user
+        setNursingProfile(null);
+        setProfileImage("");
+      } else {
+        // For other errors, show the error message
+        console.error("Failed to load profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load profile data",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [profileForm]);
+
+  // Load profile data on component mount
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const imageUrl = await nursingService.uploadProfileImage(file);
+      setProfileImage(imageUrl);
+
+      toast({
+        title: "Image Uploaded",
+        description: "Profile image updated successfully",
+      });
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload profile image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+  };
+
+  const handleProfileSubmit = async (data: ProviderProfileForm) => {
+    try {
+      console.log("=== NURSING PROFILE SUBMIT DEBUG ===");
+      console.log("Form data received:", data);
+
+      const apiData = {
+        name: data.name || "",
+        phone_number: data.phoneNumber || "",
+        email: data.email || "",
+        provider_name: data.name || "",
+        description: data.professionalSummary || "",
+        qualifications: "Professional nursing qualifications",
+        services_offered: "Home nursing services",
+        base_rate_per_hour: data.startingPrice
+          ? parseFloat(data.startingPrice.toString())
+          : 0,
+      };
+
+      console.log("API data being sent:", apiData);
+
+      let updatedProfile;
+
+      if (!nursingProfile) {
+        // Create new profile if none exists
+        console.log("Creating new nursing provider profile...");
+        try {
+          // Try to create via the standard API endpoint
+          const createData = {
+            ...apiData,
+            license_number: `NP_${Date.now()}`, // Generate temporary license number
+          };
+          updatedProfile =
+            await nursingService.updateNursingProviderProfile(createData);
+        } catch (createError) {
+          console.log("Standard create failed, trying update endpoint...");
+          // If that fails, try the update endpoint which should create if not exists
+          updatedProfile = await nursingService.updateProfile(apiData);
+        }
+      } else {
+        // Update existing profile
+        console.log("Updating existing nursing provider profile...");
+        updatedProfile = await nursingService.updateProfile(apiData);
+      }
+
+      setNursingProfile(updatedProfile);
+
+      toast({
+        title: nursingProfile ? "Profile Updated" : "Profile Created",
+        description: nursingProfile
+          ? "Your nursing provider profile has been successfully updated."
+          : "Your nursing provider profile has been successfully created.",
+      });
+
+      setShowProfileDialog(false);
+
+      // Reload profile data to ensure consistency
+      await loadProfile();
+    } catch (error: unknown) {
+      console.error("Failed to update/create profile:", error);
+      toast({
+        title: nursingProfile ? "Update Failed" : "Creation Failed",
+        description: "Failed to save profile. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAppointmentClick = (appointment: NursingAppointment) => {
@@ -629,6 +780,63 @@ const HomeNursingDashboard = () => {
                           </FormItem>
                         )}
                       />
+
+                      {/* Profile Image Upload Section */}
+                      <div className="space-y-4 p-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-lg font-medium text-gray-900">
+                              Profile Image
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              Upload a professional profile image
+                            </p>
+                          </div>
+                          {profileImage && (
+                            <div className="flex-shrink-0">
+                              <img
+                                src={profileImage}
+                                alt="Profile"
+                                className="h-16 w-16 rounded-full object-cover border-2 border-white shadow-lg"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center space-x-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploading}
+                            className="flex items-center space-x-2"
+                          >
+                            {isUploading ? (
+                              <>
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                <span>Uploading...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-4 w-4" />
+                                <span>Choose Image</span>
+                              </>
+                            )}
+                          </Button>
+
+                          <div className="text-sm text-gray-500">
+                            <p>JPEG, PNG, JPG, GIF up to 2MB</p>
+                          </div>
+                        </div>
+
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/jpg,image/gif"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
+                      </div>
                       <DialogFooter className="sticky bottom-0 bg-white pt-4 border-t">
                         <Button
                           type="button"
