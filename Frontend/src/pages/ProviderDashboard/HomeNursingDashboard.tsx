@@ -470,10 +470,21 @@ const HomeNursingDashboard = () => {
       const imageUrl = await nursingService.uploadProfileImage(file);
       setProfileImage(imageUrl);
 
+      // Update the nursing profile state to reflect the new image
+      if (nursingProfile) {
+        setNursingProfile({
+          ...nursingProfile,
+          logo: imageUrl,
+        });
+      }
+
       toast({
         title: "Image Uploaded",
         description: "Profile image updated successfully",
       });
+
+      // Reload profile data to ensure consistency
+      await loadProfile();
     } catch (error) {
       console.error("Failed to upload image:", error);
       toast({
@@ -637,13 +648,25 @@ const HomeNursingDashboard = () => {
           </div>
           <div className="mt-4 md:mt-0 flex items-center space-x-3">
             <div className="flex items-center bg-white rounded-full px-3 py-1.5 border border-gray-200 shadow-sm">
-              <span className="text-sm font-medium mr-2">Nairobi Care</span>
+              <span className="text-sm font-medium mr-2">
+                {nursingProfile?.provider_name ||
+                  nursingProfile?.user?.name ||
+                  "Nursing Provider"}
+              </span>
               <Avatar className="h-8 w-8 border border-secondary-green/20">
                 <AvatarImage
-                  src="https://randomuser.me/api/portraits/women/68.jpg"
+                  src={profileImage || nursingProfile?.logo || ""}
                   alt="Provider"
                 />
-                <AvatarFallback>NP</AvatarFallback>
+                <AvatarFallback>
+                  {(
+                    nursingProfile?.provider_name ||
+                    nursingProfile?.user?.name ||
+                    "Nursing Provider"
+                  )
+                    .charAt(0)
+                    .toUpperCase()}
+                </AvatarFallback>
               </Avatar>
             </div>
             <Button variant="outline" size="icon">
