@@ -65,6 +65,29 @@ export interface NursingProviderProfileUpdateData {
   email?: string;
 }
 
+export interface NursingServiceOffering {
+  id: number;
+  nursing_provider_id: number;
+  name: string;
+  description: string;
+  location: string;
+  availability: string;
+  experience: string;
+  price: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NursingServiceOfferingCreateData {
+  name: string;
+  description: string;
+  location: string;
+  availability: string;
+  experience: string;
+  price: number;
+}
+
 const nursingService = {
   // Nursing Provider methods
   getAllNursingProviders: async (): Promise<NursingProvider[]> => {
@@ -197,6 +220,39 @@ const nursingService = {
     console.log("New image URL:", response.data.data.profile_image);
 
     return response.data.data.profile_image;
+  },
+
+  // Service Offerings management methods
+  getServiceOfferings: async (): Promise<NursingServiceOffering[]> => {
+    const response = await api.get<{ data: NursingServiceOffering[] }>(
+      "/nursing-provider/service-offerings",
+    );
+    return response.data.data;
+  },
+
+  createServiceOffering: async (
+    data: NursingServiceOfferingCreateData,
+  ): Promise<NursingServiceOffering> => {
+    const response = await api.post<{ data: NursingServiceOffering }>(
+      "/nursing-provider/service-offerings",
+      data,
+    );
+    return response.data.data;
+  },
+
+  updateServiceOffering: async (
+    id: number,
+    data: Partial<NursingServiceOfferingCreateData>,
+  ): Promise<NursingServiceOffering> => {
+    const response = await api.put<{ data: NursingServiceOffering }>(
+      `/nursing-provider/service-offerings/${id}`,
+      data,
+    );
+    return response.data.data;
+  },
+
+  deleteServiceOffering: async (id: number): Promise<void> => {
+    await api.delete(`/nursing-provider/service-offerings/${id}`);
   },
 };
 

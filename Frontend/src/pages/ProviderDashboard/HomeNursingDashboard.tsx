@@ -54,7 +54,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import nursingService, { NursingProvider } from "@/services/nursingService";
+import nursingService, {
+  NursingProvider,
+  NursingServiceOffering,
+  NursingServiceOfferingCreateData,
+} from "@/services/nursingService";
 import { format } from "date-fns";
 
 interface ProviderProfileForm {
@@ -253,7 +257,7 @@ const mockServices = [
 ];
 
 const HomeNursingDashboard = () => {
-  const [services, setServices] = useState(mockServices);
+  const [services, setServices] = useState<NursingServiceOffering[]>([]);
   const [appointments, setAppointments] = useState(mockAppointments);
   const [isEditing, setIsEditing] = useState(false);
   const [currentService, setCurrentService] =
@@ -272,6 +276,7 @@ const HomeNursingDashboard = () => {
   );
   const [profileImage, setProfileImage] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingServices, setIsLoadingServices] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profileForm = useForm<ProviderProfileForm>({
@@ -326,17 +331,25 @@ const HomeNursingDashboard = () => {
     setShowAddForm(!showAddForm);
   };
 
-  const handleEditService = (service) => {
+  const handleEditService = (service: NursingServiceOffering) => {
     setIsEditing(true);
-    setCurrentService(service);
-    form.reset({
-      id: service.id,
+    setCurrentService({
+      id: service.id.toString(),
       name: service.name,
       description: service.description,
       location: service.location,
       availability: service.availability,
       experience: service.experience,
-      price: service.price,
+      price: service.price.toString(),
+    });
+    form.reset({
+      id: service.id.toString(),
+      name: service.name,
+      description: service.description,
+      location: service.location,
+      availability: service.availability,
+      experience: service.experience,
+      price: service.price.toString(),
     });
     setShowAddForm(true);
   };
@@ -346,16 +359,29 @@ const HomeNursingDashboard = () => {
     setShowDeleteDialog(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (serviceToDelete) {
-      setServices(services.filter((service) => service.id !== serviceToDelete));
-      setShowDeleteDialog(false);
-      setServiceToDelete(null);
-      toast({
-        title: "Service Deleted",
-        description: "The service has been successfully deleted.",
-        variant: "default",
-      });
+      try {
+        await nursingService.deleteServiceOffering(parseInt(serviceToDelete));
+        setServices(
+          services.filter(
+            (service) => service.id.toString() !== serviceToDelete,
+          ),
+        );
+        setShowDeleteDialog(false);
+        setServiceToDelete(null);
+        toast({
+          title: "Service Deleted",
+          description: "The service has been successfully deleted.",
+        });
+      } catch (error) {
+        console.error("Failed to delete service:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete service. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -366,39 +392,75 @@ const HomeNursingDashboard = () => {
       service.location.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const onSubmit = async (data: NursingServiceForm) => {
-    // In a real app, this would send data to the server
-    console.log(data);
-
-    if (isEditing && currentService) {
-      // Update existing service
-      const updatedServices = services.map((service) =>
-        service.id === currentService.id
-          ? { ...service, ...data, image: service.image } // Keep the existing image URL
-          : service,
-      );
-      setServices(updatedServices);
+  // Load services from API
+  const loadServices = useCallback(async () => {
+    try {
+      setIsLoadingServices(true);
+      const serviceOfferings = await nursingService.getServiceOfferings();
+      setServices(serviceOfferings);
+    } catch (error) {
+      console.error("Failed to load services:", error);
       toast({
-        title: "Service Updated",
-        description: "Your service has been successfully updated.",
-        variant: "default",
+        title: "Error",
+        description: "Failed to load services",
+        variant: "destructive",
       });
-    } else {
-      // Add new service
-      const newService = {
-        ...data,
-        id: Date.now().toString(),
-        image: "https://randomuser.me/api/portraits/women/44.jpg", // Placeholder image
+    } finally {
+      setIsLoadingServices(false);
+    }
+  }, []);
+
+  const onSubmit = async (data: NursingServiceForm) => {
+    try {
+      const serviceData: NursingServiceOfferingCreateData = {
+        name: data.name,
+        description: data.description,
+        location: data.location,
+        availability: data.availability,
+        experience: data.experience,
+        price: parseFloat(data.price),
       };
-      setServices([...services, newService]);
+
+      if (isEditing && currentService) {
+        // Update existing service
+        const updatedService = await nursingService.updateServiceOffering(
+          parseInt(currentService.id!),
+          serviceData,
+        );
+
+        setServices(
+          services.map((service) =>
+            service.id === parseInt(currentService.id!)
+              ? updatedService
+              : service,
+          ),
+        );
+
+        toast({
+          title: "Service Updated",
+          description: "Your service has been successfully updated.",
+        });
+      } else {
+        // Create new service
+        const newService =
+          await nursingService.createServiceOffering(serviceData);
+        setServices([newService, ...services]);
+
+        toast({
+          title: "Service Added",
+          description: "Your new service has been successfully added.",
+        });
+      }
+
+      resetForm();
+    } catch (error) {
+      console.error("Failed to save service:", error);
       toast({
-        title: "Service Added",
-        description: "Your new service has been successfully added.",
-        variant: "default",
+        title: "Error",
+        description: "Failed to save service. Please try again.",
+        variant: "destructive",
       });
     }
-
-    resetForm();
   };
 
   const loadProfile = useCallback(async () => {
@@ -451,10 +513,11 @@ const HomeNursingDashboard = () => {
     }
   }, [profileForm]);
 
-  // Load profile data on component mount
+  // Load profile and services data on component mount
   useEffect(() => {
     loadProfile();
-  }, [loadProfile]);
+    loadServices();
+  }, [loadProfile, loadServices]);
 
   const handleImageUpload = async (file: File) => {
     if (!file) return;
@@ -1136,66 +1199,97 @@ const HomeNursingDashboard = () => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {filteredServices.map((service) => (
-                              <TableRow
-                                key={service.id}
-                                className="hover:bg-gray-50"
-                              >
-                                <TableCell>
-                                  <div className="flex items-center space-x-3">
-                                    <Avatar className="h-10 w-10 border border-gray-200">
-                                      <AvatarImage
-                                        src={service.image}
-                                        alt={service.name}
-                                      />
-                                      <AvatarFallback>
-                                        {service.name.charAt(0)}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <div className="font-medium text-gray-900 max-w-[200px] truncate">
-                                        {service.name}
-                                      </div>
-                                      <div className="text-xs text-gray-500 max-w-[200px] truncate">
-                                        {service.description}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge
-                                    variant="outline"
-                                    className="bg-green-50 text-green-700 border-green-200"
-                                  >
-                                    {service.price}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>{service.availability}</TableCell>
-                                <TableCell>{service.location}</TableCell>
-                                <TableCell>
-                                  <div className="flex items-center space-x-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                                      onClick={() => handleEditService(service)}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                                      onClick={() =>
-                                        handleDeleteClick(service.id)
-                                      }
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                            {isLoadingServices ? (
+                              <TableRow>
+                                <TableCell
+                                  colSpan={5}
+                                  className="text-center py-8"
+                                >
+                                  <div className="flex items-center justify-center space-x-2">
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                    <span>Loading services...</span>
                                   </div>
                                 </TableCell>
                               </TableRow>
-                            ))}
+                            ) : (
+                              filteredServices.map((service) => (
+                                <TableRow
+                                  key={service.id}
+                                  className="hover:bg-gray-50"
+                                >
+                                  <TableCell>
+                                    <div className="flex items-center space-x-3">
+                                      <Avatar className="h-10 w-10 border border-gray-200">
+                                        <AvatarImage
+                                          src={
+                                            profileImage ||
+                                            nursingProfile?.logo ||
+                                            ""
+                                          }
+                                          alt={
+                                            nursingProfile?.provider_name ||
+                                            "Provider"
+                                          }
+                                        />
+                                        <AvatarFallback>
+                                          {(
+                                            nursingProfile?.provider_name ||
+                                            nursingProfile?.user?.name ||
+                                            "N"
+                                          )
+                                            .charAt(0)
+                                            .toUpperCase()}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                        <div className="font-medium text-gray-900 max-w-[200px] truncate">
+                                          {service.name}
+                                        </div>
+                                        <div className="text-xs text-gray-500 max-w-[200px] truncate">
+                                          {service.description}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-green-50 text-green-700 border-green-200"
+                                    >
+                                      KES {service.price}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>{service.availability}</TableCell>
+                                  <TableCell>{service.location}</TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center space-x-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                        onClick={() =>
+                                          handleEditService(service)
+                                        }
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                        onClick={() =>
+                                          handleDeleteClick(
+                                            service.id.toString(),
+                                          )
+                                        }
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
                           </TableBody>
                         </Table>
                       </div>
