@@ -36,6 +36,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Doctor routes
     Route::apiResource('doctors', DoctorController::class);
+    Route::get('/doctor/debug', [DoctorController::class, 'debug']);
+    Route::get('/doctor/test-auth', function() {
+        return response()->json([
+            'authenticated' => true,
+            'user' => Auth::user(),
+            'timestamp' => now()
+        ]);
+    });
+    Route::get('/doctor/profile', [DoctorController::class, 'profile']);
+    Route::put('/doctor/profile', [DoctorController::class, 'updateProfile']);
+    Route::patch('/doctor/profile', [DoctorController::class, 'updateProfile']);
+    Route::post('/doctor/upload-image', [DoctorController::class, 'uploadProfileImage']);
 
     // Appointment routes
     Route::apiResource('appointments', AppointmentController::class);
