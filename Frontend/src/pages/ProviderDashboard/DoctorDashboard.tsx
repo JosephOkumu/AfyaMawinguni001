@@ -35,6 +35,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import AppointmentCalendar from "@/components/calendar/AppointmentCalendar";
 import appointmentService, { Appointment } from "@/services/appointmentService";
+import doctorService, {
+  Doctor,
+  DoctorProfileUpdateData,
+} from "@/services/doctorService";
 import {
   Upload,
   Save,
@@ -64,6 +68,7 @@ interface DoctorProfileForm {
   name: string;
   specialty: string;
   description: string;
+  hospital: string;
   location: string;
   availability: string;
   experience: string;
@@ -74,6 +79,29 @@ interface DoctorProfileForm {
   languages: string;
   acceptsInsurance: boolean;
   consultationModes: string[];
+}
+
+interface DoctorProfile {
+  specialty: string;
+  description: string;
+  professional_summary: string;
+  years_of_experience: string;
+  hospital: string;
+  location: string;
+  license_number: string;
+  qualifications: string;
+  education: string;
+  experience: string;
+  default_consultation_fee: number;
+  physical_consultation_fee: number;
+  online_consultation_fee: number;
+  profile_image: string;
+  bio: string;
+  languages: string;
+  accepts_insurance: boolean;
+  consultation_modes: string[];
+  availability: string;
+  is_available_for_consultation: boolean;
 }
 
 interface SubscriptionPlan {
@@ -104,6 +132,33 @@ const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
 
+  // Doctor profile state
+  const [doctorProfile, setDoctorProfile] = useState<DoctorProfile>({
+    specialty: "",
+    description: "",
+    professional_summary: "",
+    years_of_experience: "",
+    hospital: "",
+    location: "",
+    license_number: "",
+    qualifications: "",
+    education: "",
+    experience: "",
+    default_consultation_fee: 0,
+    physical_consultation_fee: 0,
+    online_consultation_fee: 0,
+    profile_image: "",
+    bio: "",
+    languages: "",
+    accepts_insurance: false,
+    consultation_modes: [],
+    availability: "",
+    is_available_for_consultation: true,
+  });
+
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
   // Sample services
   const [services, setServices] = useState<ServiceItem[]>([
     {
@@ -127,7 +182,7 @@ const DoctorDashboard = () => {
     const loadAppointments = async () => {
       try {
         setIsLoadingAppointments(true);
-        
+
         // TODO: Remove this line when backend appointments API is ready
         throw new Error("Using dummy data for UI development");
 
@@ -138,7 +193,8 @@ const DoctorDashboard = () => {
         console.error("Failed to load appointments:", error);
         toast({
           title: "Demo Mode",
-          description: "Showing demo appointments for UI development and testing.",
+          description:
+            "Showing demo appointments for UI development and testing.",
           variant: "default",
         });
         // For demo purposes, set some sample appointments
@@ -453,6 +509,7 @@ const DoctorDashboard = () => {
       specialty: "Cardiologist",
       description:
         "Experienced cardiologist specializing in preventive cardiac care and heart disease management.",
+      hospital: "Nairobi Medical Center",
       location: "Nairobi Medical Center, 3rd Floor",
       availability: "Mon-Fri, 9AM-5PM",
       experience: "15 years",
@@ -489,12 +546,264 @@ const DoctorDashboard = () => {
     },
   });
 
+  // Load profile data on component mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setIsProfileLoading(true);
+
+        const profile = await doctorService.getProfile();
+
+        // Map API response to form format
+        const mappedProfile: DoctorProfile = {
+          specialty: profile.specialty || "",
+          description: profile.description || "",
+          professional_summary: profile.professional_summary || "",
+          years_of_experience: profile.years_of_experience || "",
+          location: profile.location || "",
+          license_number: profile.license_number || "",
+          qualifications: profile.qualifications || "",
+          education: profile.education || "",
+          experience: profile.experience || "",
+          default_consultation_fee: profile.default_consultation_fee || 0,
+          physical_consultation_fee: profile.physical_consultation_fee || 0,
+          online_consultation_fee: profile.online_consultation_fee || 0,
+          profile_image: profile.profile_image || "",
+          bio: profile.bio || "",
+          languages: profile.languages || "",
+          accepts_insurance: profile.accepts_insurance || false,
+          consultation_modes: Array.isArray(profile.consultation_modes)
+            ? profile.consultation_modes
+            : profile.consultation_modes
+              ? JSON.parse(profile.consultation_modes)
+              : [],
+          availability:
+            typeof profile.availability === "string"
+              ? profile.availability
+              : JSON.stringify(profile.availability) || "",
+          is_available_for_consultation:
+            profile.is_available_for_consultation || true,
+        };
+
+        setDoctorProfile(mappedProfile);
+
+        // Map to form format
+        const formData: DoctorProfileForm = {
+          name: profile.user?.name || "Dr. " + profile.specialty,
+          specialty: profile.specialty || "",
+          description:
+            profile.description || profile.professional_summary || "",
+          hospital: profile.hospital || "",
+          location: profile.location || "",
+          availability: profile.availability || "",
+          experience: profile.years_of_experience || profile.experience || "",
+          physicalPrice: profile.physical_consultation_fee?.toString() || "0",
+          onlinePrice: profile.online_consultation_fee?.toString() || "0",
+          image: null,
+          qualifications: profile.qualifications || profile.education || "",
+          languages: profile.languages || "",
+          acceptsInsurance: profile.accepts_insurance || false,
+          consultationModes: Array.isArray(profile.consultation_modes)
+            ? profile.consultation_modes
+            : profile.consultation_modes
+              ? JSON.parse(profile.consultation_modes)
+              : [],
+        };
+
+        profileForm.reset(formData);
+      } catch (error) {
+        console.error("Failed to load profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load doctor profile. Using default values.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsProfileLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [profileForm, toast]);
+
   const onProfileSubmit = async (data: DoctorProfileForm) => {
-    console.log("Profile data:", data);
-    toast({
-      title: "Profile updated",
-      description: "Your profile has been updated successfully.",
-    });
+    try {
+      console.log("=== PROFILE SUBMIT DEBUG ===");
+      console.log("Form data received:", data);
+      console.log("Form data types:", {
+        name: typeof data.name,
+        specialty: typeof data.specialty,
+        description: typeof data.description,
+        location: typeof data.location,
+        availability: typeof data.availability,
+        experience: typeof data.experience,
+        physicalPrice: typeof data.physicalPrice,
+        onlinePrice: typeof data.onlinePrice,
+        qualifications: typeof data.qualifications,
+        languages: typeof data.languages,
+        acceptsInsurance: typeof data.acceptsInsurance,
+        consultationModes: typeof data.consultationModes,
+      });
+
+      // Map form data to API format
+      const apiData: DoctorProfileUpdateData = {
+        name: data.name || "",
+        specialty: data.specialty || "",
+        description: data.description || "",
+        hospital: data.hospital || "",
+        location: data.location || "",
+        availability: data.availability || "",
+        experience: data.experience || "",
+        physicalPrice: data.physicalPrice
+          ? parseFloat(data.physicalPrice.toString())
+          : 0,
+        onlinePrice: data.onlinePrice
+          ? parseFloat(data.onlinePrice.toString())
+          : 0,
+        qualifications: data.qualifications || "",
+        languages: data.languages || "",
+        acceptsInsurance: Boolean(data.acceptsInsurance),
+        consultationModes: Array.isArray(data.consultationModes)
+          ? data.consultationModes
+          : [],
+      };
+
+      console.log("API data being sent:", apiData);
+      console.log("API data stringified:", JSON.stringify(apiData, null, 2));
+
+      const updatedProfile = await doctorService.updateProfile(apiData);
+
+      // Update local state
+      setDoctorProfile({
+        ...doctorProfile,
+        ...apiData,
+      });
+
+      toast({
+        title: "Profile Updated",
+        description: "Your doctor profile has been successfully updated.",
+      });
+
+      setShowProfileDialog(false);
+    } catch (error: unknown) {
+      console.error("Failed to update profile:", error);
+
+      let errorMessage = "Failed to update doctor profile. Please try again.";
+      if (error && typeof error === "object" && "response" in error) {
+        const errorResponse = error as {
+          response?: {
+            data?: {
+              errors?: Record<string, unknown>;
+              debug_request_data?: any;
+            };
+          };
+        };
+        console.error("Error response:", errorResponse.response);
+        console.error(
+          "Debug request data:",
+          errorResponse.response?.data?.debug_request_data,
+        );
+        if (errorResponse.response?.data?.errors) {
+          const validationErrors = errorResponse.response.data.errors;
+          const errorFields = Object.keys(validationErrors);
+          console.error("Validation errors:", validationErrors);
+          errorMessage = `Validation errors in: ${errorFields.join(", ")}. Check console for details.`;
+        }
+      }
+
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Image upload handler
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    console.log("=== DOCTOR IMAGE UPLOAD DEBUG ===");
+    console.log("File selected:", file.name, file.type, file.size);
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid File",
+        description: "Please select an image file (PNG, JPG, JPEG, GIF).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (2MB limit)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please select an image smaller than 2MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+
+      // Create immediate preview using blob URL
+      const previewUrl = URL.createObjectURL(file);
+      console.log("Preview URL created:", previewUrl);
+
+      // Update the preview immediately with the blob URL
+      const updatedProfile = {
+        ...doctorProfile,
+        profile_image: previewUrl,
+      };
+      setDoctorProfile(updatedProfile);
+
+      console.log("Image preview updated, starting upload...");
+
+      // Upload the actual file to server
+      const imageUrl = await doctorService.uploadProfileImage(file);
+      console.log("Server upload complete. New URL:", imageUrl);
+
+      // Clean up the blob URL
+      URL.revokeObjectURL(previewUrl);
+
+      // Update with the actual server URL
+      const finalProfile = {
+        ...doctorProfile,
+        profile_image: imageUrl,
+      };
+      setDoctorProfile(finalProfile);
+
+      toast({
+        title: "Image Uploaded",
+        description: "Profile image has been updated successfully.",
+      });
+    } catch (error: unknown) {
+      console.error("Failed to upload image:", error);
+
+      // Revert to previous image on error
+      setDoctorProfile(doctorProfile);
+
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
+      // Reset the file input
+      if (event.target) {
+        event.target.value = "";
+      }
+    }
   };
 
   const onAddService = (data: ServiceItem) => {
@@ -755,6 +1064,25 @@ const DoctorDashboard = () => {
                             </FormItem>
                           )}
                         />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={profileForm.control}
+                          name="hospital"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Hospital</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g., Kenyatta National Hospital"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
                         <FormField
                           control={profileForm.control}
                           name="location"
@@ -937,9 +1265,38 @@ const DoctorDashboard = () => {
                                   type="file"
                                   className="hidden"
                                   accept="image/*"
-                                  onChange={(e) =>
-                                    field.onChange(e.target.files?.[0])
-                                  }
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      field.onChange(file);
+                                      try {
+                                        const imageUrl =
+                                          await doctorService.uploadProfileImage(
+                                            file,
+                                          );
+                                        setDoctorProfile({
+                                          ...doctorProfile,
+                                          profile_image: imageUrl,
+                                        });
+                                        toast({
+                                          title: "Image Uploaded",
+                                          description:
+                                            "Profile image has been updated successfully.",
+                                        });
+                                      } catch (error) {
+                                        console.error(
+                                          "Failed to upload image:",
+                                          error,
+                                        );
+                                        toast({
+                                          title: "Upload Failed",
+                                          description:
+                                            "Failed to upload image. Please try again.",
+                                          variant: "destructive",
+                                        });
+                                      }
+                                    }
+                                  }}
                                   id="profile-photo-modal"
                                 />
                                 <label
@@ -947,9 +1304,21 @@ const DoctorDashboard = () => {
                                   className="cursor-pointer block"
                                 >
                                   <div className="flex flex-col items-center gap-2">
-                                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                                    {doctorProfile.profile_image ? (
+                                      <Avatar className="h-16 w-16 mb-2">
+                                        <AvatarImage
+                                          src={doctorProfile.profile_image}
+                                          alt="Profile preview"
+                                        />
+                                        <AvatarFallback>DR</AvatarFallback>
+                                      </Avatar>
+                                    ) : (
+                                      <ImageIcon className="h-8 w-8 text-gray-400" />
+                                    )}
                                     <span className="text-sm text-gray-500">
-                                      Drop an image here or click to upload
+                                      {doctorProfile.profile_image
+                                        ? "Click to change profile image"
+                                        : "Drop an image here or click to upload"}
                                     </span>
                                   </div>
                                 </label>
