@@ -112,3 +112,7 @@ Route::get('/medicines/search', [MedicineController::class, 'index']);
 
 // Public route to get test services by lab provider
 Route::get('/lab-providers/{labProviderId}/test-services', [LabTestServiceController::class, 'getByLabProvider']);
+
+// Public route to get all doctors
+Route::get('/doctors', [DoctorController::class, 'index']);
+Route::get('/doctors/{id}', [DoctorController::class, 'show']);
