@@ -39,97 +39,47 @@ import {
   CheckCircle,
   X,
 } from "lucide-react";
+import doctorService, { Doctor } from "@/services/doctorService";
 
-// The mock doctors data (using the same data from DoctorConsultation.tsx)
-const doctors = [
+const defaultDoctorImage =
+  "/lovable-uploads/a05b3053-380f-4711-b032-bc48d1c082f0.png";
+// Dummy reviews data - will be replaced later
+const dummyReviews = [
   {
     id: 1,
-    name: "Dr. James Wilson",
-    specialty: "General Practitioner",
-    rating: 4.9,
-    imageUrl: "https://randomuser.me/api/portraits/men/36.jpg",
-    location: "Nairobi Central",
-    price: 2500,
-    experience: "15 years",
-    availability: ["Monday", "Tuesday", "Wednesday", "Friday"],
-    bio: "Dr. James Wilson is a highly experienced general practitioner with over 15 years of experience in treating a wide range of medical conditions. He specializes in preventive care, chronic disease management, and holistic health approaches.",
-    education:
-      "MD from University of Nairobi, Residency at Kenyatta National Hospital",
-    languages: ["English", "Swahili", "French"],
-    certifications: [
-      "Kenya Medical Board Certified",
-      "International Society of General Practice",
-    ],
-    videoConsultation: {
-      available: true,
-      price: 2000,
-    },
-    physicalVisit: {
-      available: true,
-      price: 2500,
-    },
-    reviews: [
-      {
-        id: 1,
-        patientName: "Michael O.",
-        rating: 5,
-        date: "March 15, 2025",
-        comment:
-          "Dr. Wilson was very thorough in his examination and explained everything clearly. He gave me effective medication and I felt better within days.",
-      },
-      {
-        id: 2,
-        patientName: "Sarah K.",
-        rating: 4,
-        date: "February 22, 2025",
-        comment:
-          "Professional and knowledgeable doctor. The waiting time was a bit long but the consultation was worth it.",
-      },
-    ],
+    patientName: "Michael O.",
+    rating: 5,
+    date: "March 15, 2025",
+    comment:
+      "Excellent doctor! Very thorough in examination and explained everything clearly. Highly recommended.",
   },
   {
     id: 2,
-    name: "Dr. Lisa Chen",
-    specialty: "Cardiologist",
-    rating: 4.8,
-    imageUrl: "https://randomuser.me/api/portraits/women/65.jpg",
-    location: "Westlands",
-    price: 3500,
-    experience: "12 years",
-    availability: ["Monday", "Thursday", "Saturday"],
-    bio: "Dr. Lisa Chen is a board-certified cardiologist specializing in heart disease prevention, cardiovascular health, and heart rhythm disorders. She has conducted extensive research in interventional cardiology.",
-    education:
-      "MD from Harvard Medical School, Cardiology Fellowship at Mayo Clinic",
-    languages: ["English", "Mandarin", "Swahili"],
-    certifications: ["American Board of Cardiology", "Kenya Cardiac Society"],
-    videoConsultation: {
-      available: true,
-      price: 3000,
-    },
-    physicalVisit: {
-      available: true,
-      price: 3500,
-    },
-    reviews: [
-      {
-        id: 1,
-        patientName: "Robert M.",
-        rating: 5,
-        date: "April 5, 2025",
-        comment:
-          "Dr. Chen is exceptional. She took her time to explain my condition and the treatment options available. Her staff is also very friendly and professional.",
-      },
-      {
-        id: 2,
-        patientName: "Jane W.",
-        rating: 5,
-        date: "March 28, 2025",
-        comment:
-          "I've been seeing Dr. Chen for my heart condition for over a year now. She is knowledgeable, caring, and always up-to-date with the latest treatments.",
-      },
-    ],
+    patientName: "Sarah K.",
+    rating: 4,
+    date: "February 22, 2025",
+    comment:
+      "Professional and knowledgeable doctor. The consultation was very helpful.",
   },
-  // Additional doctors data would go here, matching the array from DoctorConsultation.tsx
+];
+
+// Dummy FAQ data - will be replaced later
+const dummyFAQ = [
+  {
+    question: "What should I bring to my appointment?",
+    answer:
+      "Please bring a valid ID, insurance card (if applicable), and any previous medical records relevant to your condition.",
+  },
+  {
+    question: "How long is a typical consultation?",
+    answer:
+      "Consultations typically last 30-45 minutes, allowing adequate time for examination and discussion.",
+  },
+  {
+    question: "Do you accept insurance?",
+    answer:
+      "We accept most major insurance plans. Please contact us to verify coverage for your specific plan.",
+  },
 ];
 
 // Available time slots
@@ -171,23 +121,39 @@ const DoctorDetails = () => {
     ).toUpperCase();
   };
 
-  const [doctor, setDoctor] = useState(null);
-  const [consultationType, setConsultationType] = useState("video");
+  const [doctor, setDoctor] = useState<Doctor | null>(null);
+  const [consultationType, setConsultationType] = useState("physical");
   const [date, setDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("mpesa");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Find doctor by ID when component mounts
+  // Fetch doctor by ID when component mounts
   useEffect(() => {
-    const foundDoctor = doctors.find((doc) => doc.id === parseInt(id));
-    if (foundDoctor) {
-      setDoctor(foundDoctor);
-    } else {
-      // Redirect if doctor not found
-      navigate("/patient-dashboard/consultation");
+    const fetchDoctor = async () => {
+      try {
+        setLoading(true);
+        const doctorData = await doctorService.getDoctor(parseInt(id!));
+        setDoctor(doctorData);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching doctor:", err);
+        setError("Doctor not found");
+        // Redirect if doctor not found
+        setTimeout(() => {
+          navigate("/patient-dashboard/consultation");
+        }, 2000);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchDoctor();
     }
   }, [id, navigate]);
 
@@ -268,19 +234,34 @@ const DoctorDetails = () => {
     }, 2000);
   };
 
-  if (!doctor) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center">
-        <div>Loading...</div>
+        <div className="text-center">
+          <div className="text-lg text-gray-600">Loading doctor details...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !doctor) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg text-red-600">{error}</div>
+          <p className="text-sm text-gray-500 mt-2">
+            Redirecting to doctors list...
+          </p>
+        </div>
       </div>
     );
   }
 
   // Calculate consultation fee based on selected type
   const consultationFee =
-    consultationType === "video"
-      ? doctor.videoConsultation.price
-      : doctor.physicalVisit.price;
+    consultationType === "physical"
+      ? doctor.physical_consultation_fee || doctor.default_consultation_fee
+      : doctor.online_consultation_fee || doctor.default_consultation_fee;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
@@ -370,9 +351,12 @@ const DoctorDetails = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-shrink-0">
                 <Avatar className="h-28 w-28 border-4 border-white/30 shadow-lg">
-                  <AvatarImage src={doctor.imageUrl} alt={doctor.name} />
+                  <AvatarImage
+                    src={doctor.profile_image || defaultDoctorImage}
+                    alt={doctor.user.name}
+                  />
                   <AvatarFallback>
-                    {doctor.name
+                    {doctor.user.name
                       .split(" ")
                       .map((n) => n[0])
                       .join("")}
@@ -383,30 +367,38 @@ const DoctorDetails = () => {
               <div className="flex-1">
                 <div className="flex flex-col md:flex-row justify-between md:items-start">
                   <div>
-                    <h1 className="text-3xl font-bold mb-2">{doctor.name}</h1>
+                    <h1 className="text-3xl font-bold mb-2">
+                      {doctor.user.name}
+                    </h1>
                     <p className="text-lg opacity-90 mb-2">
                       {doctor.specialty}
                     </p>
                     <div className="flex items-center mb-2">
                       <MapPin className="h-4 w-4 opacity-80 mr-1" />
-                      <span className="opacity-90">{doctor.location}</span>
+                      <span className="opacity-90">
+                        {doctor.location || "Location not specified"}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex items-center mt-3 md:mt-0">
                     <div className="flex mr-2">
-                      {renderStars(doctor.rating)}
+                      {renderStars(doctor.average_rating || 4.5)}
                     </div>
                     <Badge
                       variant="outline"
                       className="bg-white/20 border-white/30 text-white p-1"
                     >
-                      {doctor.rating} / 5
+                      {doctor.average_rating || 4.5} / 5
                     </Badge>
                   </div>
                 </div>
 
-                <p className="opacity-90 mb-4 max-w-3xl">{doctor.bio}</p>
+                <p className="opacity-90 mb-4 max-w-3xl">
+                  {doctor.professional_summary ||
+                    doctor.bio ||
+                    "Professional summary not available"}
+                </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                   <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm p-3 rounded-lg">
@@ -416,7 +408,9 @@ const DoctorDetails = () => {
                     <div>
                       <div className="text-sm opacity-80">Experience</div>
                       <div className="font-bold text-lg">
-                        {doctor.experience}
+                        {doctor.years_of_experience ||
+                          doctor.experience ||
+                          "Not specified"}
                       </div>
                     </div>
                   </div>
@@ -427,7 +421,11 @@ const DoctorDetails = () => {
                     </div>
                     <div>
                       <div className="text-sm opacity-80">Education</div>
-                      <div className="font-bold text-sm">MD, Specialist</div>
+                      <div className="font-bold text-sm">
+                        {doctor.education ||
+                          doctor.qualifications ||
+                          "Not specified"}
+                      </div>
                     </div>
                   </div>
 
@@ -438,7 +436,7 @@ const DoctorDetails = () => {
                     <div>
                       <div className="text-sm opacity-80">Languages</div>
                       <div className="font-bold text-sm">
-                        {doctor.languages?.join(", ")}
+                        {doctor.languages || "English"}
                       </div>
                     </div>
                   </div>
@@ -461,43 +459,51 @@ const DoctorDetails = () => {
               <TabsContent value="about" className="space-y-4">
                 <div>
                   <h3 className="text-lg font-medium text-green-700 mb-2">
-                    Biography
+                    Professional Summary
                   </h3>
-                  <p className="text-gray-700">{doctor.bio}</p>
+                  <p className="text-gray-700">
+                    {doctor.professional_summary ||
+                      doctor.bio ||
+                      doctor.description ||
+                      "Professional summary not available"}
+                  </p>
                 </div>
 
                 <div>
                   <h3 className="text-lg font-medium text-green-700 mb-2">
                     Education
                   </h3>
-                  <p className="text-gray-700">{doctor.education}</p>
+                  <p className="text-gray-700">
+                    {doctor.education ||
+                      doctor.qualifications ||
+                      "Education information not available"}
+                  </p>
                 </div>
 
                 <div>
                   <h3 className="text-lg font-medium text-green-700 mb-2">
                     Certifications
                   </h3>
-                  <ul className="list-disc pl-5 text-gray-700">
-                    {doctor.certifications?.map((cert, index) => (
-                      <li key={index}>{cert}</li>
-                    ))}
-                  </ul>
+                  <p className="text-gray-700">
+                    Professional certifications information will be available
+                    soon.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="bg-green-50 p-4 rounded-lg">
                     <h4 className="font-medium text-green-700 flex items-center gap-2 mb-2">
                       <Video className="h-5 w-5" />
-                      Video Consultation
+                      Online Consultation
                     </h4>
                     <p className="text-gray-700 mb-1">
-                      {doctor.videoConsultation?.available
+                      {doctor.online_consultation_fee
                         ? "Available"
                         : "Not Available"}
                     </p>
-                    {doctor.videoConsultation?.available && (
+                    {doctor.online_consultation_fee && (
                       <p className="font-bold text-lg text-green-700">
-                        KES {doctor.videoConsultation.price}
+                        KES {doctor.online_consultation_fee}
                       </p>
                     )}
                   </div>
@@ -505,35 +511,33 @@ const DoctorDetails = () => {
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <h4 className="font-medium text-blue-700 flex items-center gap-2 mb-2">
                       <UserRound className="h-5 w-5" />
-                      Physical Visit
+                      Physical Consultation
                     </h4>
-                    <p className="text-gray-700 mb-1">
-                      {doctor.physicalVisit?.available
-                        ? "Available"
-                        : "Not Available"}
+                    <p className="text-gray-700 mb-1">Available</p>
+                    <p className="font-bold text-lg text-blue-700">
+                      KES{" "}
+                      {doctor.physical_consultation_fee ||
+                        doctor.default_consultation_fee}
                     </p>
-                    {doctor.physicalVisit?.available && (
-                      <p className="font-bold text-lg text-blue-700">
-                        KES {doctor.physicalVisit.price}
-                      </p>
-                    )}
                   </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="reviews">
+              <TabsContent value="reviews" className="space-y-4">
                 <div className="space-y-4">
                   <div className="flex items-center mb-4">
                     <div className="flex mr-2">
-                      {renderStars(doctor.rating)}
+                      {renderStars(doctor.average_rating || 4.5)}
                     </div>
-                    <span className="text-lg font-bold">{doctor.rating}/5</span>
+                    <span className="text-lg font-bold">
+                      {doctor.average_rating || 4.5}/5
+                    </span>
                     <span className="text-gray-500 ml-2">
-                      ({doctor.reviews?.length || 0} reviews)
+                      ({dummyReviews.length} reviews)
                     </span>
                   </div>
 
-                  {doctor.reviews?.map((review) => (
+                  {dummyReviews.map((review) => (
                     <Card key={review.id} className="border-0 shadow-sm">
                       <CardContent className="p-4">
                         <div className="flex justify-between mb-2">
@@ -552,48 +556,16 @@ const DoctorDetails = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="faq">
+              <TabsContent value="faq" className="space-y-4">
                 <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-green-700 mb-2">
-                      What should I bring to my appointment?
-                    </h4>
-                    <p className="text-gray-700">
-                      Please bring your ID, insurance information (if
-                      applicable), and any relevant medical records or test
-                      results.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium text-green-700 mb-2">
-                      How long will the appointment last?
-                    </h4>
-                    <p className="text-gray-700">
-                      Initial consultations typically last 30-45 minutes, while
-                      follow-up appointments are usually 15-30 minutes.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium text-green-700 mb-2">
-                      What happens if I need to cancel my appointment?
-                    </h4>
-                    <p className="text-gray-700">
-                      You can cancel or reschedule your appointment up to 24
-                      hours before the scheduled time without any penalty.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium text-green-700 mb-2">
-                      Do you accept insurance?
-                    </h4>
-                    <p className="text-gray-700">
-                      Yes, we accept most major insurance providers. Please
-                      check with your provider to confirm coverage.
-                    </p>
-                  </div>
+                  {dummyFAQ.map((faq, index) => (
+                    <div key={index}>
+                      <h4 className="font-medium text-green-700 mb-2">
+                        {faq.question}
+                      </h4>
+                      <p className="text-gray-700">{faq.answer}</p>
+                    </div>
+                  ))}
                 </div>
               </TabsContent>
             </Tabs>
@@ -617,27 +589,29 @@ const DoctorDetails = () => {
                 onValueChange={setConsultationType}
                 className="grid grid-cols-2 gap-4"
               >
-                <div
-                  className={`border rounded-lg p-4 flex items-center space-x-2 ${
-                    consultationType === "video"
-                      ? "bg-blue-50 border-blue-500"
-                      : ""
-                  }`}
-                >
-                  <RadioGroupItem value="video" id="video" />
-                  <Label
-                    htmlFor="video"
-                    className="flex items-center cursor-pointer"
+                {doctor.online_consultation_fee && (
+                  <div
+                    className={`border rounded-lg p-4 flex items-center space-x-2 ${
+                      consultationType === "online"
+                        ? "bg-blue-50 border-blue-500"
+                        : ""
+                    }`}
                   >
-                    <Video className="h-5 w-5 mr-2 text-blue-500" />
-                    <div>
-                      <div>Video Call</div>
-                      <div className="text-sm text-gray-500">
-                        KES {doctor.videoConsultation?.price}
+                    <RadioGroupItem value="online" id="online" />
+                    <Label
+                      htmlFor="online"
+                      className="flex items-center cursor-pointer"
+                    >
+                      <Video className="h-5 w-5 mr-2 text-blue-500" />
+                      <div>
+                        <div>Online Consultation</div>
+                        <div className="text-sm text-gray-500">
+                          KES {doctor.online_consultation_fee}
+                        </div>
                       </div>
-                    </div>
-                  </Label>
-                </div>
+                    </Label>
+                  </div>
+                )}
                 <div
                   className={`border rounded-lg p-4 flex items-center space-x-2 ${
                     consultationType === "physical"
@@ -652,9 +626,11 @@ const DoctorDetails = () => {
                   >
                     <UserRound className="h-5 w-5 mr-2 text-green-500" />
                     <div>
-                      <div>Physical Visit</div>
+                      <div>Physical Consultation</div>
                       <div className="text-sm text-gray-500">
-                        KES {doctor.physicalVisit?.price}
+                        KES{" "}
+                        {doctor.physical_consultation_fee ||
+                          doctor.default_consultation_fee}
                       </div>
                     </div>
                   </Label>
@@ -688,12 +664,8 @@ const DoctorDetails = () => {
                       const isPastDate =
                         date < new Date(new Date().setHours(0, 0, 0, 0));
 
-                      // Disable days when doctor is not available
-                      const isDoctorUnavailable = !doctor.availability.includes(
-                        dayNames[day],
-                      );
-
-                      return isPastDate || isDoctorUnavailable;
+                      // For now, allow all future dates (doctor availability parsing can be complex)
+                      return isPastDate;
                     }}
                     className="rounded-md border-none"
                   />
@@ -730,14 +702,14 @@ const DoctorDetails = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Doctor:</span>
-                    <span className="font-medium">{doctor.name}</span>
+                    <span className="font-medium">{doctor.user.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Consultation Type:</span>
                     <span className="font-medium">
-                      {consultationType === "video"
-                        ? "Video Call"
-                        : "Physical Visit"}
+                      {consultationType === "online"
+                        ? "Online Consultation"
+                        : "Physical Consultation"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -790,14 +762,14 @@ const DoctorDetails = () => {
               <div className="mb-6 border-b pb-4">
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Doctor:</span>
-                  <span className="font-medium">{doctor.name}</span>
+                  <span className="font-medium">{doctor.user.name}</span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Consultation:</span>
                   <span className="font-medium">
-                    {consultationType === "video"
-                      ? "Video Call"
-                      : "Physical Visit"}
+                    {consultationType === "online"
+                      ? "Online Consultation"
+                      : "Physical Consultation"}
                   </span>
                 </div>
                 <div className="flex justify-between mb-2">
@@ -932,7 +904,7 @@ const DoctorDetails = () => {
                 Booking Successful!
               </h2>
               <p className="text-gray-600 mb-6">
-                Your appointment with {doctor.name} has been scheduled for{" "}
+                Your appointment with {doctor.user.name} has been scheduled for{" "}
                 {date?.toLocaleDateString("en-GB")} at {timeSlot}.
               </p>
               <Button
