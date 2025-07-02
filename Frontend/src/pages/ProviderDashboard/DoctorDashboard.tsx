@@ -102,6 +102,12 @@ interface DoctorProfile {
   consultation_modes: string[];
   availability: string;
   is_available_for_consultation: boolean;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    phone_number: string;
+  };
 }
 
 interface SubscriptionPlan {
@@ -154,6 +160,7 @@ const DoctorDashboard = () => {
     consultation_modes: [],
     availability: "",
     is_available_for_consultation: true,
+    user: undefined,
   });
 
   const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -560,6 +567,7 @@ const DoctorDashboard = () => {
           description: profile.description || "",
           professional_summary: profile.professional_summary || "",
           years_of_experience: profile.years_of_experience || "",
+          hospital: profile.hospital || "",
           location: profile.location || "",
           license_number: profile.license_number || "",
           qualifications: profile.qualifications || "",
@@ -585,6 +593,8 @@ const DoctorDashboard = () => {
             profile.is_available_for_consultation || true,
         };
 
+        // Include user data in the mapped profile
+        mappedProfile.user = profile.user;
         setDoctorProfile(mappedProfile);
 
         // Map to form format
@@ -694,7 +704,7 @@ const DoctorDashboard = () => {
           response?: {
             data?: {
               errors?: Record<string, unknown>;
-              debug_request_data?: any;
+              debug_request_data?: unknown;
             };
           };
         };
@@ -988,14 +998,26 @@ const DoctorDashboard = () => {
           <div className="mt-4 md:mt-0 flex items-center space-x-3">
             <div className="flex items-center bg-white rounded-full px-3 py-1.5 border border-gray-200 shadow-sm">
               <span className="text-sm font-medium mr-2">
-                Dr. Medical Center
+                {"Dr." + doctorProfile.user?.name }
               </span>
               <Avatar className="h-8 w-8 border border-secondary-green/20">
                 <AvatarImage
-                  src="https://randomuser.me/api/portraits/men/45.jpg"
-                  alt="Doctor"
+                  src={
+                    doctorProfile.profile_image ||
+                    "https://randomuser.me/api/portraits/men/45.jpg"
+                  }
+                  alt="Doctor Profile"
                 />
-                <AvatarFallback>DR</AvatarFallback>
+                <AvatarFallback>
+                  {doctorProfile.user?.name
+                    ? doctorProfile.user.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .substring(0, 2)
+                        .toUpperCase()
+                    : "DR"}
+                </AvatarFallback>
               </Avatar>
             </div>
             <Button variant="outline" size="icon">
