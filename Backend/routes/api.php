@@ -76,6 +76,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Nursing Provider routes
     Route::apiResource('nursing-providers', NursingProviderController::class);
+    Route::get('/nursing-provider/profile', [NursingProviderController::class, 'profile']);
+    Route::put('/nursing-provider/profile', [NursingProviderController::class, 'updateProfile']);
+    Route::patch('/nursing-provider/profile', [NursingProviderController::class, 'updateProfile']);
+    Route::post('/nursing-provider/upload-image', [NursingProviderController::class, 'uploadProfileImage']);
 
     // Nursing Service routes
     Route::apiResource('nursing-services', NursingServiceController::class);
