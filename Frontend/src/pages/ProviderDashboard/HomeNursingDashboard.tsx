@@ -100,7 +100,6 @@ interface NursingServiceForm {
   availability: string;
   experience: string;
   price: string;
-  image: File | null;
 }
 
 // Mock data for nursing appointments
@@ -297,7 +296,6 @@ const HomeNursingDashboard = () => {
       availability: "",
       experience: "",
       price: "",
-      image: null,
     },
   });
 
@@ -309,7 +307,6 @@ const HomeNursingDashboard = () => {
       availability: "",
       experience: "",
       price: "",
-      image: null,
     });
     setIsEditing(false);
     setCurrentService(null);
@@ -326,7 +323,6 @@ const HomeNursingDashboard = () => {
       availability: "",
       experience: "",
       price: "",
-      image: null,
     });
     setShowAddForm(!showAddForm);
   };
@@ -342,7 +338,6 @@ const HomeNursingDashboard = () => {
       availability: service.availability,
       experience: service.experience,
       price: service.price,
-      image: null,
     });
     setShowAddForm(true);
   };
@@ -1094,45 +1089,6 @@ const HomeNursingDashboard = () => {
                                 )}
                               />
                             </div>
-
-                            <FormField
-                              control={form.control}
-                              name="image"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Service Image</FormLabel>
-                                  <FormControl>
-                                    <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary-blue transition-colors cursor-pointer">
-                                      <Input
-                                        type="file"
-                                        className="hidden"
-                                        accept="image/*"
-                                        onChange={(e) =>
-                                          field.onChange(e.target.files?.[0])
-                                        }
-                                        id="service-image"
-                                      />
-                                      <label
-                                        htmlFor="service-image"
-                                        className="cursor-pointer"
-                                      >
-                                        <div className="flex flex-col items-center gap-2">
-                                          <Image className="h-6 w-6 text-gray-400" />
-                                          <span className="text-sm text-gray-500">
-                                            Click to upload image
-                                          </span>
-                                          {isEditing && (
-                                            <span className="text-xs text-blue-500">
-                                              Leave empty to keep current image
-                                            </span>
-                                          )}
-                                        </div>
-                                      </label>
-                                    </div>
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
 
                             <div className="flex justify-end gap-4 pt-2">
                               <Button
