@@ -17,7 +17,7 @@ class DoctorController extends Controller
      */
     public function index()
     {
-        $doctors = Doctor::all();
+        $doctors = Doctor::with('user')->get();
 
         return response()->json([
             'status' => 'success',
@@ -70,7 +70,7 @@ class DoctorController extends Controller
      */
     public function show($id)
     {
-        $doctor = Doctor::find($id);
+        $doctor = Doctor::with('user')->find($id);
 
         if (!$doctor) {
             return response()->json([
