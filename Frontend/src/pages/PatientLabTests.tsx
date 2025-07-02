@@ -5,7 +5,24 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Bell, MessageSquare, Calendar, Package, LogOut, Star, MapPin, CheckCircle, ArrowRight, FileText, Microscope, TestTube, Activity, Thermometer } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Search,
+  Bell,
+  MessageSquare,
+  Calendar,
+  Package,
+  LogOut,
+  Star,
+  MapPin,
+  CheckCircle,
+  ArrowRight,
+  FileText,
+  Microscope,
+  TestTube,
+  Activity,
+  Thermometer,
+} from "lucide-react";
 import AIChat from "@/components/AIChat";
 
 interface LabTestType {
@@ -33,34 +50,38 @@ const labTests: LabTestType[] = [
   {
     id: 1,
     name: "Blood Check Up",
-    description: "Measures different components of blood including red blood cells, white blood cells, and platelets.",
+    description:
+      "Measures different components of blood including red blood cells, white blood cells, and platelets.",
     price: 1200,
     popular: true,
-    icon: Activity
+    icon: Activity,
   },
   {
     id: 2,
     name: "BP Checkup",
-    description: "Assesses blood pressure levels to detect hypertension or hypotension.",
+    description:
+      "Assesses blood pressure levels to detect hypertension or hypotension.",
     price: 800,
     popular: false,
-    icon: Thermometer
+    icon: Thermometer,
   },
   {
     id: 3,
     name: "Full Body Checkup",
-    description: "Comprehensive set of tests to evaluate overall health status.",
+    description:
+      "Comprehensive set of tests to evaluate overall health status.",
     price: 12000,
     popular: true,
-    icon: Microscope
+    icon: Microscope,
   },
   {
     id: 4,
     name: "Urine Test",
-    description: "Examines urine to detect various disorders such as diabetes and kidney disease.",
+    description:
+      "Examines urine to detect various disorders such as diabetes and kidney disease.",
     price: 1000,
     popular: false,
-    icon: TestTube
+    icon: TestTube,
   },
   {
     id: 5,
@@ -68,7 +89,7 @@ const labTests: LabTestType[] = [
     description: "Book lab tests based on your doctor's prescription.",
     price: 0,
     popular: false,
-    icon: FileText
+    icon: FileText,
   },
   {
     id: 6,
@@ -76,22 +97,38 @@ const labTests: LabTestType[] = [
     description: "Detects active coronavirus infection.",
     price: 3500,
     popular: false,
-    icon: TestTube  // Changed from Flask to TestTube
-  }
+    icon: TestTube, // Changed from Flask to TestTube
+  },
 ];
 
 const PatientLabTests = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  
+  const { user } = useAuth();
+
   // Navigation items for the horizontal navbar
   const navItems = [
-    { icon: Calendar, label: "Appointments", path: "/patient-dashboard/appointments" },
+    {
+      icon: Calendar,
+      label: "Appointments",
+      path: "/patient-dashboard/appointments",
+    },
     { icon: Package, label: "Orders", path: "/patient-dashboard/orders" },
   ];
 
-  const filteredTests = labTests.filter(test => 
-    test.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    test.description.toLowerCase().includes(searchTerm.toLowerCase())
+  // Generate user initials
+  const getUserInitials = (name: string) => {
+    if (!name) return "U";
+    const names = name.trim().split(" ");
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    return (
+      names[0].charAt(0) + names[names.length - 1].charAt(0)
+    ).toUpperCase();
+  };
+
+  const filteredTests = labTests.filter(
+    (test) =>
+      test.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      test.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const labProviders: LabProviderType[] = [
@@ -104,7 +141,7 @@ const PatientLabTests = () => {
       patientsServed: 12450,
       location: "Nairobi CBD, Kenya",
       distance: "2.5 km",
-      tests: 45
+      tests: 45,
     },
     {
       id: 2,
@@ -115,7 +152,7 @@ const PatientLabTests = () => {
       patientsServed: 8920,
       location: "Westlands, Nairobi",
       distance: "4.8 km",
-      tests: 38
+      tests: 38,
     },
     {
       id: 3,
@@ -126,7 +163,7 @@ const PatientLabTests = () => {
       patientsServed: 15680,
       location: "Upperhill, Nairobi",
       distance: "3.1 km",
-      tests: 52
+      tests: 52,
     },
     {
       id: 4,
@@ -137,13 +174,14 @@ const PatientLabTests = () => {
       patientsServed: 6890,
       location: "Mombasa Road, Nairobi",
       distance: "6.2 km",
-      tests: 32
-    }
+      tests: 32,
+    },
   ];
 
-  const filteredProviders = labProviders.filter(provider => 
-    provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    provider.location.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProviders = labProviders.filter(
+    (provider) =>
+      provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      provider.location.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -169,9 +207,9 @@ const PatientLabTests = () => {
           {/* Search Bar - Hidden on mobile */}
           <div className="relative hidden md:block max-w-md w-full mx-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input 
-              type="search" 
-              placeholder="Search for lab tests or providers..." 
+            <Input
+              type="search"
+              placeholder="Search for lab tests or providers..."
               className="pl-10 w-full border-gray-200 focus-visible:ring-secondary-green"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -180,24 +218,35 @@ const PatientLabTests = () => {
 
           {/* User Actions */}
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" className="relative rounded-full border-none hover:bg-green-50">
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative rounded-full border-none hover:bg-green-50"
+            >
               <Bell className="h-5 w-5 text-gray-600" />
               <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
             </Button>
-            <Button variant="outline" size="icon" className="relative rounded-full border-none hover:bg-green-50">
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative rounded-full border-none hover:bg-green-50"
+            >
               <MessageSquare className="h-5 w-5 text-gray-600" />
               <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
             </Button>
-            
+
             {/* User Profile */}
             <div className="flex items-center gap-3">
               <div className="hidden md:flex flex-col items-end">
-                <span className="font-medium text-sm">John Doe</span>
+                <span className="font-medium text-sm">
+                  {user?.name || "User"}
+                </span>
                 <span className="text-xs text-gray-500">Patient</span>
               </div>
               <Avatar className="h-9 w-9 border-2 border-secondary-green/20">
-                <AvatarImage src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback className="bg-secondary-green/10 text-secondary-green font-semibold">
+                  {getUserInitials(user?.name || "")}
+                </AvatarFallback>
               </Avatar>
             </div>
           </div>
@@ -208,9 +257,9 @@ const PatientLabTests = () => {
       <div className="md:hidden p-4 bg-white border-t border-gray-100">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input 
-            type="search" 
-            placeholder="Search lab tests or providers..." 
+          <Input
+            type="search"
+            placeholder="Search lab tests or providers..."
             className="pl-10 w-full border-gray-200 focus-visible:ring-secondary-green"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -226,14 +275,16 @@ const PatientLabTests = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <h1 className="text-2xl font-bold font-playfair">Lab Tests</h1>
-                <p className="opacity-90 mt-1">Book diagnostic tests and health check-ups</p>
+                <p className="opacity-90 mt-1">
+                  Book diagnostic tests and health check-ups
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {navItems.map((item, index) => (
                   <Link key={index} to={item.path}>
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       className="bg-white/20 hover:bg-white/30 border-none backdrop-blur-sm text-white"
                     >
                       <item.icon className="h-4 w-4 mr-2" />
@@ -251,16 +302,21 @@ const PatientLabTests = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold font-playfair">Lab Tests</h2>
           </div>
-          
+
           <div className="grid grid-cols-3 gap-6">
             {filteredTests.map((test) => (
-              <Link key={test.id} to={`/patient-dashboard/lab-provider/1?test=${test.id}`}>
+              <Link
+                key={test.id}
+                to={`/patient-dashboard/lab-provider/1?test=${test.id}`}
+              >
                 <Card className="hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-green-100 overflow-hidden group">
                   <div className="flex flex-col items-center justify-center p-6">
                     <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-3 group-hover:bg-green-100 transition-colors">
                       <test.icon className="w-8 h-8 text-green-600" />
                     </div>
-                    <h3 className="font-medium text-center text-sm">{test.name}</h3>
+                    <h3 className="font-medium text-center text-sm">
+                      {test.name}
+                    </h3>
                   </div>
                 </Card>
               </Link>
@@ -271,50 +327,67 @@ const PatientLabTests = () => {
         {/* Lab Partners Section */}
         <section>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold font-playfair">Lab Partners</h2>
-            <Button variant="outline" className="text-primary-blue hover:text-white hover:bg-primary-blue transition-colors">
+            <h2 className="text-xl font-semibold font-playfair">
+              Lab Partners
+            </h2>
+            <Button
+              variant="outline"
+              className="text-primary-blue hover:text-white hover:bg-primary-blue transition-colors"
+            >
               View More
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredProviders.slice(0, 4).map((provider) => (
-              <Link key={provider.id} to={`/patient-dashboard/lab-provider/${provider.id}`}>
+              <Link
+                key={provider.id}
+                to={`/patient-dashboard/lab-provider/${provider.id}`}
+              >
                 <Card className="hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-green-100">
                   <CardContent className="p-5">
                     <div className="flex gap-4">
                       <Avatar className="h-16 w-16">
                         {provider.logo ? (
-                          <AvatarImage src={provider.logo} alt={provider.name} />
+                          <AvatarImage
+                            src={provider.logo}
+                            alt={provider.name}
+                          />
                         ) : null}
                         <AvatarFallback className="bg-primary-blue/10 text-primary-blue">
                           {provider.initials}
                         </AvatarFallback>
                       </Avatar>
-                      
+
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
-                          <h3 className="font-medium text-lg">{provider.name}</h3>
+                          <h3 className="font-medium text-lg">
+                            {provider.name}
+                          </h3>
                           <div className="flex items-center">
                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm ml-1 font-medium">{provider.rating}</span>
+                            <span className="text-sm ml-1 font-medium">
+                              {provider.rating}
+                            </span>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center text-gray-600 text-sm mt-1">
                           <MapPin className="h-3 w-3 mr-1" />
                           {provider.location} • {provider.distance}
                         </div>
-                        
+
                         <div className="grid grid-cols-1 gap-2 mt-3">
                           <div>
                             <div className="text-gray-500">Patients served</div>
-                            <div className="font-medium">{provider.patientsServed.toLocaleString()}</div>
+                            <div className="font-medium">
+                              {provider.patientsServed.toLocaleString()}
+                            </div>
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="mt-2 text-primary-blue border-primary-blue hover:bg-primary-blue hover:text-white"
                           >
                             View More
@@ -339,13 +412,19 @@ const PatientLabTests = () => {
               <h3 className="font-bold text-lg mb-4">Afya Mawinguni</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/features" className="hover:text-gray-300">Features</Link>
+                  <Link to="/features" className="hover:text-gray-300">
+                    Features
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/accounts" className="hover:text-gray-300">Accounts</Link>
+                  <Link to="/accounts" className="hover:text-gray-300">
+                    Accounts
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/login" className="hover:text-gray-300">Login</Link>
+                  <Link to="/login" className="hover:text-gray-300">
+                    Login
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -355,16 +434,24 @@ const PatientLabTests = () => {
               <h3 className="font-bold text-lg mb-4">For Patients</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/find-doctor" className="hover:text-gray-300">Find a Doctor</Link>
+                  <Link to="/find-doctor" className="hover:text-gray-300">
+                    Find a Doctor
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/book-appointment" className="hover:text-gray-300">Book Appointment</Link>
+                  <Link to="/book-appointment" className="hover:text-gray-300">
+                    Book Appointment
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/medical-records" className="hover:text-gray-300">Medical Records</Link>
+                  <Link to="/medical-records" className="hover:text-gray-300">
+                    Medical Records
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/telemedicine" className="hover:text-gray-300">Telemedicine</Link>
+                  <Link to="/telemedicine" className="hover:text-gray-300">
+                    Telemedicine
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -374,16 +461,33 @@ const PatientLabTests = () => {
               <h3 className="font-bold text-lg mb-4">For Providers</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/provider-registration" className="hover:text-gray-300">Provider Registration</Link>
+                  <Link
+                    to="/provider-registration"
+                    className="hover:text-gray-300"
+                  >
+                    Provider Registration
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/practice-management" className="hover:text-gray-300">Practice Management</Link>
+                  <Link
+                    to="/practice-management"
+                    className="hover:text-gray-300"
+                  >
+                    Practice Management
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/patient-coordination" className="hover:text-gray-300">Patient Coordination</Link>
+                  <Link
+                    to="/patient-coordination"
+                    className="hover:text-gray-300"
+                  >
+                    Patient Coordination
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/billing" className="hover:text-gray-300">Billing</Link>
+                  <Link to="/billing" className="hover:text-gray-300">
+                    Billing
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -398,9 +502,11 @@ const PatientLabTests = () => {
               </ul>
             </div>
           </div>
-          
+
           <div className="mt-8 pt-8 border-t border-gray-700 text-center text-sm">
-            <p>© {new Date().getFullYear()} Afya Mawinguni. All rights reserved.</p>
+            <p>
+              © {new Date().getFullYear()} Afya Mawinguni. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
