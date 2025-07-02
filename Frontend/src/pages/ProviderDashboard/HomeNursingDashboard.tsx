@@ -14,7 +14,6 @@ import { useForm } from "react-hook-form";
 import {
   Upload,
   Save,
-  Image,
   MapPin,
   Clock,
   Star,
