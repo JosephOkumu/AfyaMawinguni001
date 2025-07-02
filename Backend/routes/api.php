@@ -10,6 +10,7 @@ use App\Http\Controllers\LabTestController;
 use App\Http\Controllers\LabTestServiceController;
 use App\Http\Controllers\NursingProviderController;
 use App\Http\Controllers\NursingServiceController;
+use App\Http\Controllers\NursingServiceOfferingController;
 use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\MedicineOrderController;
@@ -80,6 +81,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/nursing-provider/profile', [NursingProviderController::class, 'updateProfile']);
     Route::patch('/nursing-provider/profile', [NursingProviderController::class, 'updateProfile']);
     Route::post('/nursing-provider/upload-image', [NursingProviderController::class, 'uploadProfileImage']);
+
+    // Nursing Service Offerings routes (for providers to manage their services)
+    Route::get('/nursing-provider/service-offerings', [NursingServiceOfferingController::class, 'index']);
+    Route::post('/nursing-provider/service-offerings', [NursingServiceOfferingController::class, 'store']);
+    Route::get('/nursing-provider/service-offerings/{id}', [NursingServiceOfferingController::class, 'show']);
+    Route::put('/nursing-provider/service-offerings/{id}', [NursingServiceOfferingController::class, 'update']);
+    Route::delete('/nursing-provider/service-offerings/{id}', [NursingServiceOfferingController::class, 'destroy']);
 
     // Nursing Service routes
     Route::apiResource('nursing-services', NursingServiceController::class);
