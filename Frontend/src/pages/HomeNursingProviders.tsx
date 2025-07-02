@@ -4,8 +4,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Bell, MessageSquare, CalendarClock, Package, LogOut, Star, MapPin } from "lucide-react";
+import {
+  Search,
+  Bell,
+  MessageSquare,
+  CalendarClock,
+  Package,
+  LogOut,
+  Star,
+  MapPin,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import FilterPopover from "@/components/ui/FilterPopover";
 
 // Mock data for home nursing providers
@@ -19,7 +29,7 @@ const nursingProviders = [
     experience: "15+ years",
     address: "123 Care Avenue, Central District",
     availability: "Available 24/7",
-    price: 3200
+    price: 3200,
   },
   {
     id: 2,
@@ -30,7 +40,7 @@ const nursingProviders = [
     experience: "10+ years",
     address: "456 Wellness Lane, East Side",
     availability: "Available weekdays",
-    price: 2800
+    price: 2800,
   },
   {
     id: 3,
@@ -41,7 +51,7 @@ const nursingProviders = [
     experience: "12+ years",
     address: "789 Health Blvd, North District",
     availability: "Available on short notice",
-    price: 3500
+    price: 3500,
   },
   {
     id: 4,
@@ -52,7 +62,7 @@ const nursingProviders = [
     experience: "8+ years",
     address: "101 Serenity Road, Quiet Suburb",
     availability: "Weekends only",
-    price: 2500
+    price: 2500,
   },
   {
     id: 5,
@@ -63,7 +73,7 @@ const nursingProviders = [
     experience: "18+ years",
     address: "222 Senior Street, Peaceful Estate",
     availability: "Flexible hours",
-    price: 3800
+    price: 3800,
   },
   {
     id: 6,
@@ -74,7 +84,7 @@ const nursingProviders = [
     experience: "7+ years",
     address: "333 Baby Avenue, Family Town",
     availability: "Morning shifts",
-    price: 3000
+    price: 3000,
   },
   {
     id: 7,
@@ -85,7 +95,7 @@ const nursingProviders = [
     experience: "14+ years",
     address: "444 Comfort Close, Healing Village",
     availability: "Evening shifts",
-    price: 3300
+    price: 3300,
   },
   {
     id: 8,
@@ -96,12 +106,18 @@ const nursingProviders = [
     experience: "9+ years",
     address: "555 Still Waters, Recovery Center",
     availability: "Full-time",
-    price: 2700
-  }
+    price: 2700,
+  },
 ];
 
 // List of locations for filtering
-const locations = [...new Set(nursingProviders.map(provider => provider.address.split(',')[1]?.trim() || 'Unknown'))];
+const locations = [
+  ...new Set(
+    nursingProviders.map(
+      (provider) => provider.address.split(",")[1]?.trim() || "Unknown",
+    ),
+  ),
+];
 
 const NursingProviderCard = ({ provider, onClick }) => {
   // Function to render star ratings
@@ -109,11 +125,16 @@ const NursingProviderCard = ({ provider, onClick }) => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
-    
+
     for (let i = 0; i < fullStars; i++) {
-      stars.push(<Star key={`full-${i}`} className="h-4 w-4 fill-yellow-400 text-yellow-400" />);
+      stars.push(
+        <Star
+          key={`full-${i}`}
+          className="h-4 w-4 fill-yellow-400 text-yellow-400"
+        />,
+      );
     }
-    
+
     if (hasHalfStar) {
       stars.push(
         <div key="half" className="relative">
@@ -121,23 +142,23 @@ const NursingProviderCard = ({ provider, onClick }) => {
           <div className="absolute inset-0 overflow-hidden w-1/2">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
           </div>
-        </div>
+        </div>,
       );
     }
-    
+
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(<Star key={`empty-${i}`} className="h-4 w-4 text-gray-300" />);
     }
-    
+
     return stars;
   };
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-all duration-300 h-full">
       <div className="relative">
-        <img 
-          src={provider.image} 
+        <img
+          src={provider.image}
           alt={provider.name}
           className="w-full h-48 object-cover object-center"
         />
@@ -146,22 +167,22 @@ const NursingProviderCard = ({ provider, onClick }) => {
         </Badge>
       </div>
       <CardContent className="p-4">
-        <h3 className="font-semibold text-lg text-primary-blue">{provider.name}</h3>
+        <h3 className="font-semibold text-lg text-primary-blue">
+          {provider.name}
+        </h3>
         <div className="flex items-center mb-2">
-          <div className="flex mr-1">
-            {renderStars(provider.rating)}
-          </div>
+          <div className="flex mr-1">{renderStars(provider.rating)}</div>
           <span className="text-sm text-gray-600">({provider.rating})</span>
         </div>
         <p className="text-sm text-gray-600 mb-2">{provider.experience}</p>
-        
+
         <div className="flex items-center text-xs text-gray-500 mb-2">
           <MapPin className="h-3.5 w-3.5 mr-1 text-gray-400" />
           {provider.address}
         </div>
-        
-        <Button 
-          onClick={() => onClick(provider)} 
+
+        <Button
+          onClick={() => onClick(provider)}
           className="w-full bg-primary-blue hover:bg-secondary-green"
         >
           View Details
@@ -173,27 +194,45 @@ const NursingProviderCard = ({ provider, onClick }) => {
 
 const HomeNursingProviders = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedLocation, setSelectedLocation] = useState("");
-  const [priceRange, setPriceRange] = useState([0, 4000]);
+  const [priceRange, setPriceRange] = useState([0, 5000]);
   const [ratingFilter, setRatingFilter] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Generate user initials
+  const getUserInitials = (name: string) => {
+    if (!name) return "U";
+    const names = name.trim().split(" ");
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    return (
+      names[0].charAt(0) + names[names.length - 1].charAt(0)
+    ).toUpperCase();
+  };
+
   // Navigation items for the horizontal navbar
   const navItems = [
-    { icon: CalendarClock, label: "Appointments", path: "/patient-dashboard/appointments" },
+    {
+      icon: CalendarClock,
+      label: "Appointments",
+      path: "/patient-dashboard/appointments",
+    },
     { icon: Package, label: "Orders", path: "/patient-dashboard/orders" },
   ];
 
   // Apply filters to nursing providers list
-  const filteredProviders = nursingProviders.filter(provider => {
-    const providerLocation = provider.address.split(',')[1]?.trim() || '';
+  const filteredProviders = nursingProviders.filter((provider) => {
+    const providerLocation = provider.address.split(",")[1]?.trim() || "";
     return (
       (selectedLocation === "" || providerLocation === selectedLocation) &&
-      (provider.price >= priceRange[0] && provider.price <= priceRange[1]) &&
-      (provider.rating >= ratingFilter) &&
-      (searchTerm === "" || 
+      provider.price >= priceRange[0] &&
+      provider.price <= priceRange[1] &&
+      provider.rating >= ratingFilter &&
+      (searchTerm === "" ||
         provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        provider.specialties.some(specialty => specialty.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        provider.specialties.some((specialty) =>
+          specialty.toLowerCase().includes(searchTerm.toLowerCase()),
+        ) ||
         providerLocation.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   });
@@ -225,9 +264,9 @@ const HomeNursingProviders = () => {
           {/* Search Bar */}
           <div className="relative hidden md:block max-w-md w-full mx-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input 
-              type="search" 
-              placeholder="Search for nursing providers..." 
+            <Input
+              type="search"
+              placeholder="Search for nursing providers..."
               className="pl-10 w-full border-gray-200 focus-visible:ring-secondary-green"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -236,24 +275,35 @@ const HomeNursingProviders = () => {
 
           {/* User Actions */}
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" className="relative rounded-full border-none hover:bg-green-50">
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative rounded-full border-none hover:bg-green-50"
+            >
               <Bell className="h-5 w-5 text-gray-600" />
               <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
             </Button>
-            <Button variant="outline" size="icon" className="relative rounded-full border-none hover:bg-green-50">
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative rounded-full border-none hover:bg-green-50"
+            >
               <MessageSquare className="h-5 w-5 text-gray-600" />
               <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
             </Button>
-            
+
             {/* User Profile */}
             <div className="flex items-center gap-3">
               <div className="hidden md:flex flex-col items-end">
-                <span className="font-medium text-sm">John Doe</span>
+                <span className="font-medium text-sm">
+                  {user?.name || "User"}
+                </span>
                 <span className="text-xs text-gray-500">Patient</span>
               </div>
               <Avatar className="h-9 w-9 border-2 border-secondary-green/20">
-                <AvatarImage src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback className="bg-secondary-green/10 text-secondary-green font-semibold">
+                  {getUserInitials(user?.name || "")}
+                </AvatarFallback>
               </Avatar>
             </div>
           </div>
@@ -268,18 +318,28 @@ const HomeNursingProviders = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <h1 className="text-2xl font-bold">Home Nursing Providers</h1>
-                <p className="opacity-90 mt-1">Find and book qualified home nursing providers</p>
+                <p className="opacity-90 mt-1">
+                  Find and book qualified home nursing providers
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {navItems.map((item, index) => (
                   <Link key={index} to={item.path}>
-                    <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 border-none backdrop-blur-sm text-white">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="bg-white/20 hover:bg-white/30 border-none backdrop-blur-sm text-white"
+                    >
                       <item.icon className="h-4 w-4 mr-2" />
                       {item.label}
                     </Button>
                   </Link>
                 ))}
-                <Button variant="destructive" size="sm" className="bg-red-500/80 hover:bg-red-600/80 border-none">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="bg-red-500/80 hover:bg-red-600/80 border-none"
+                >
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </Button>
@@ -287,7 +347,7 @@ const HomeNursingProviders = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         {/* Filter Section */}
         <div className="mb-6 flex justify-between items-center">
           <FilterPopover
@@ -299,33 +359,37 @@ const HomeNursingProviders = () => {
             ratingFilter={ratingFilter}
             locations={locations}
           />
-          
+
           <div className="relative max-w-xs">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input 
-              type="search" 
-              placeholder="Search providers..." 
+            <Input
+              type="search"
+              placeholder="Search providers..."
               className="pl-10 w-full border-gray-200 focus-visible:ring-secondary-green"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
-        
+
         {/* Nursing Providers Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProviders.map(provider => (
-            <NursingProviderCard 
-              key={provider.id} 
-              provider={provider} 
+          {filteredProviders.map((provider) => (
+            <NursingProviderCard
+              key={provider.id}
+              provider={provider}
               onClick={handleProviderSelect}
             />
           ))}
-          
+
           {filteredProviders.length === 0 && (
             <div className="col-span-full text-center py-12 text-gray-500">
-              <p className="text-lg">No nursing providers match your search criteria.</p>
-              <p className="text-sm mt-2">Try adjusting your filters or search term.</p>
+              <p className="text-lg">
+                No nursing providers match your search criteria.
+              </p>
+              <p className="text-sm mt-2">
+                Try adjusting your filters or search term.
+              </p>
             </div>
           )}
         </div>
