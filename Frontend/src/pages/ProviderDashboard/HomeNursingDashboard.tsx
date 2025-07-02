@@ -288,7 +288,7 @@ const HomeNursingDashboard = () => {
       professionalSummary:
         "Experienced home nursing care provider with over 5 years of experience in patient care.",
       availability: "24/7",
-      startingPrice: "1500",
+      startingPrice: "0",
     },
   });
 
@@ -477,7 +477,7 @@ const HomeNursingDashboard = () => {
         location: "Nairobi, Kenya",
         professionalSummary: profile.description || "",
         availability: "24/7",
-        startingPrice: profile.base_rate_per_hour?.toString() || "",
+        startingPrice: profile.base_rate_per_hour?.toString() || "0",
       });
     } catch (error: unknown) {
       console.log("Profile loading error:", error);
@@ -1019,7 +1019,7 @@ const HomeNursingDashboard = () => {
                       <Button
                         variant="secondary"
                         size="sm"
-                        className="bg-white text-primary-blue hover:bg-gray-100 flex items-center gap-1"
+                        className="bg-white text-primary-blue hover:bg-green-100 hover:text-green-700 flex items-center gap-1"
                         onClick={handleAddNewClick}
                       >
                         <Plus className="h-4 w-4" />
