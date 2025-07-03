@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -13,113 +13,35 @@ import {
   LogOut,
   Star,
   MapPin,
+  Loader2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import FilterPopover from "@/components/ui/FilterPopover";
+import nursingService, { NursingProvider } from "@/services/nursingService";
 
-// Mock data for home nursing providers
-const nursingProviders = [
-  {
-    id: 1,
-    name: "Elite Home Care",
-    image: "https://randomuser.me/api/portraits/women/44.jpg",
-    rating: 4.9,
-    specialties: ["Elderly Care", "Post-Surgery"],
-    experience: "15+ years",
-    address: "123 Care Avenue, Central District",
-    availability: "Available 24/7",
-    price: 3200,
-  },
-  {
-    id: 2,
-    name: "Comfort Nursing Services",
-    image: "https://randomuser.me/api/portraits/men/22.jpg",
-    rating: 4.7,
-    specialties: ["Pediatric Care", "Chronic Disease"],
-    experience: "10+ years",
-    address: "456 Wellness Lane, East Side",
-    availability: "Available weekdays",
-    price: 2800,
-  },
-  {
-    id: 3,
-    name: "Healing Hands Nursing",
-    image: "https://randomuser.me/api/portraits/women/55.jpg",
-    rating: 4.8,
-    specialties: ["Rehabilitation", "Palliative Care"],
-    experience: "12+ years",
-    address: "789 Health Blvd, North District",
-    availability: "Available on short notice",
-    price: 3500,
-  },
-  {
-    id: 4,
-    name: "Caring Hearts Home Nurses",
-    image: "https://randomuser.me/api/portraits/men/35.jpg",
-    rating: 4.6,
-    specialties: ["Disability Support", "Wound Care"],
-    experience: "8+ years",
-    address: "101 Serenity Road, Quiet Suburb",
-    availability: "Weekends only",
-    price: 2500,
-  },
-  {
-    id: 5,
-    name: "Golden Years Nursing",
-    image: "https://randomuser.me/api/portraits/women/29.jpg",
-    rating: 4.9,
-    specialties: ["Dementia Care", "Respite Care"],
-    experience: "18+ years",
-    address: "222 Senior Street, Peaceful Estate",
-    availability: "Flexible hours",
-    price: 3800,
-  },
-  {
-    id: 6,
-    name: "New Life Nursing Agency",
-    image: "https://randomuser.me/api/portraits/men/42.jpg",
-    rating: 4.7,
-    specialties: ["Postnatal Care", "Infant Health"],
-    experience: "7+ years",
-    address: "333 Baby Avenue, Family Town",
-    availability: "Morning shifts",
-    price: 3000,
-  },
-  {
-    id: 7,
-    name: "Hopewell Nursing Solutions",
-    image: "https://randomuser.me/api/portraits/women/18.jpg",
-    rating: 4.8,
-    specialties: ["Cancer Support", "Hospice Care"],
-    experience: "14+ years",
-    address: "444 Comfort Close, Healing Village",
-    availability: "Evening shifts",
-    price: 3300,
-  },
-  {
-    id: 8,
-    name: "Tranquil Home Nursing",
-    image: "https://randomuser.me/api/portraits/men/28.jpg",
-    rating: 4.6,
-    specialties: ["Stroke Recovery", "Physical Therapy"],
-    experience: "9+ years",
-    address: "555 Still Waters, Recovery Center",
-    availability: "Full-time",
-    price: 2700,
-  },
-];
+interface NursingProviderWithServices extends NursingProvider {
+  services: Array<{
+    id: number;
+    name: string;
+    description: string;
+    location: string;
+    availability: string;
+    experience: string;
+    price: number;
+    is_active: boolean;
+  }>;
+  servicesCount: number;
+  startingPrice: number;
+}
 
-// List of locations for filtering
-const locations = [
-  ...new Set(
-    nursingProviders.map(
-      (provider) => provider.address.split(",")[1]?.trim() || "Unknown",
-    ),
-  ),
-];
-
-const NursingProviderCard = ({ provider, onClick }) => {
+const NursingProviderCard = ({
+  provider,
+  onClick,
+}: {
+  provider: NursingProviderWithServices;
+  onClick: (provider: NursingProviderWithServices) => void;
+}) => {
   // Function to render star ratings
   const renderStars = (rating) => {
     const stars = [];
@@ -158,27 +80,34 @@ const NursingProviderCard = ({ provider, onClick }) => {
     <Card className="overflow-hidden hover:shadow-md transition-all duration-300 h-full">
       <div className="relative">
         <img
-          src={provider.image}
-          alt={provider.name}
+          src={
+            provider.logo || "https://randomuser.me/api/portraits/men/32.jpg"
+          }
+          alt={provider.provider_name || provider.user.name}
           className="w-full h-48 object-cover object-center"
         />
         <Badge className="absolute top-2 right-2 bg-green-500 hover:bg-green-600">
-          KES {provider.price}
+          KES {provider.startingPrice}
         </Badge>
       </div>
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg text-primary-blue">
-          {provider.name}
+          {provider.provider_name || provider.user.name}
         </h3>
         <div className="flex items-center mb-2">
-          <div className="flex mr-1">{renderStars(provider.rating)}</div>
-          <span className="text-sm text-gray-600">({provider.rating})</span>
+          <div className="flex mr-1">
+            {renderStars(provider.average_rating)}
+          </div>
+          <span className="text-sm text-gray-600">
+            ({provider.average_rating})
+          </span>
         </div>
-        <p className="text-sm text-gray-600 mb-2">{provider.experience}</p>
+
+        <p className="text-sm text-gray-600 mb-2">{provider.qualifications}</p>
 
         <div className="flex items-center text-xs text-gray-500 mb-2">
           <MapPin className="h-3.5 w-3.5 mr-1 text-gray-400" />
-          {provider.address}
+          {provider.services[0]?.location || "Location not specified"}
         </div>
 
         <Button
@@ -196,9 +125,13 @@ const HomeNursingProviders = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedLocation, setSelectedLocation] = useState("");
-  const [priceRange, setPriceRange] = useState([0, 5000]);
   const [ratingFilter, setRatingFilter] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [nursingProviders, setNursingProviders] = useState<
+    NursingProviderWithServices[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [locations, setLocations] = useState<string[]>([]);
 
   // Generate user initials
   const getUserInitials = (name: string) => {
@@ -220,26 +153,129 @@ const HomeNursingProviders = () => {
     { icon: Package, label: "Orders", path: "/patient-dashboard/orders" },
   ];
 
+  // Fetch nursing providers on component mount
+  useEffect(() => {
+    const fetchNursingProviders = async () => {
+      try {
+        setLoading(true);
+        console.log("Fetching nursing providers...");
+        const providers = await nursingService.getAllNursingProviders();
+        console.log("Fetched providers:", providers);
+        console.log(
+          "Provider IDs and names:",
+          providers.map((p) => ({
+            id: p.id,
+            name: p.provider_name || p.user?.name,
+            serviceCount: p.nursingServiceOfferings?.length || 0,
+          })),
+        );
+
+        // Use real service offerings data from API - no dummy data
+        const providersWithServices = await Promise.all(
+          providers.map(async (provider) => {
+            let services = provider.nursingServiceOfferings || [];
+
+            // If no services in the relationship, fetch them directly
+            if (services.length === 0) {
+              try {
+                services = await nursingService.getProviderServiceOfferings(
+                  provider.id,
+                );
+                console.log(
+                  `Fetched ${services.length} services for provider ${provider.id}`,
+                );
+              } catch (error) {
+                console.error(
+                  `Error fetching services for provider ${provider.id}:`,
+                  error,
+                );
+                services = [];
+              }
+            }
+
+            return {
+              ...provider,
+              services: services,
+              servicesCount: services.length,
+              startingPrice:
+                services.length > 0
+                  ? Math.min(...services.map((s) => s.price))
+                  : provider.base_rate_per_hour || 2500,
+            };
+          }),
+        );
+
+        setNursingProviders(providersWithServices);
+        console.log("Providers with services:", providersWithServices);
+
+        // Extract unique locations from service offerings and provider service areas
+        const serviceLocations = providersWithServices
+          .flatMap((provider) =>
+            provider.services.map((service) => service.location),
+          )
+          .filter((location) => location && location.trim() !== "");
+
+        const providerLocations = providers
+          .flatMap((provider) => provider.service_areas || [])
+          .filter((location) => location && location.trim() !== "");
+
+        const uniqueLocations = [
+          ...new Set([...serviceLocations, ...providerLocations]),
+        ];
+
+        // Add default locations if none exist
+        if (uniqueLocations.length === 0) {
+          uniqueLocations.push("Nairobi", "Mombasa", "Kisumu", "Nakuru");
+        }
+        setLocations(uniqueLocations);
+        console.log("Available locations:", uniqueLocations);
+      } catch (error) {
+        console.error("Error fetching nursing providers:", error);
+        // Set empty state on error
+        setNursingProviders([]);
+        setLocations(["Nairobi", "Mombasa", "Kisumu", "Nakuru"]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNursingProviders();
+  }, []);
+
   // Apply filters to nursing providers list
   const filteredProviders = nursingProviders.filter((provider) => {
-    const providerLocation = provider.address.split(",")[1]?.trim() || "";
+    const providerLocation = provider.services[0]?.location || "";
     return (
       (selectedLocation === "" || providerLocation === selectedLocation) &&
-      provider.price >= priceRange[0] &&
-      provider.price <= priceRange[1] &&
-      provider.rating >= ratingFilter &&
+      provider.average_rating >= ratingFilter &&
       (searchTerm === "" ||
-        provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        provider.specialties.some((specialty) =>
-          specialty.toLowerCase().includes(searchTerm.toLowerCase()),
-        ) ||
+        (provider.provider_name || provider.user.name)
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        provider.description
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        provider.qualifications
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         providerLocation.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   });
 
-  const handleProviderSelect = (provider) => {
+  const handleProviderSelect = (provider: NursingProviderWithServices) => {
     navigate(`/patient-dashboard/nursing/${provider.id}`);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-secondary-green" />
+          <p className="text-gray-600">Loading nursing providers...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
@@ -352,10 +388,8 @@ const HomeNursingProviders = () => {
         <div className="mb-6 flex justify-between items-center">
           <FilterPopover
             onLocationChange={setSelectedLocation}
-            onPriceRangeChange={setPriceRange}
             onRatingChange={setRatingFilter}
             selectedLocation={selectedLocation}
-            priceRange={priceRange}
             ratingFilter={ratingFilter}
             locations={locations}
           />
