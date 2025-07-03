@@ -56,4 +56,12 @@ class NursingProvider extends Model
     {
         return $this->hasMany(NursingService::class);
     }
+
+    /**
+     * Get the service offerings for the nursing provider.
+     */
+    public function nursingServiceOfferings()
+    {
+        return $this->hasMany(NursingServiceOffering::class);
+    }
 }
