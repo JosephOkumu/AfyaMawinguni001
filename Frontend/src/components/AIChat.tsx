@@ -197,9 +197,6 @@ const AIChat: React.FC = () => {
                   <DialogTitle className="text-white font-semibold">
                     AI Health Assistant
                   </DialogTitle>
-                  <p className="text-green-100 text-xs">
-                    🤖 AI-Powered • Always Available • Medical Knowledge Base
-                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
