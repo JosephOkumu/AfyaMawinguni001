@@ -19,6 +19,7 @@ export interface NursingProvider {
     email: string;
     phone_number: string;
   };
+  nursingServiceOfferings?: NursingServiceOffering[];
 }
 
 export interface NursingService {
@@ -253,6 +254,23 @@ const nursingService = {
 
   deleteServiceOffering: async (id: number): Promise<void> => {
     await api.delete(`/nursing-provider/service-offerings/${id}`);
+  },
+
+  // Public service offerings methods (for patients to view)
+  getAllServiceOfferings: async (): Promise<NursingServiceOffering[]> => {
+    const response = await api.get<{ data: NursingServiceOffering[] }>(
+      "/service-offerings",
+    );
+    return response.data.data;
+  },
+
+  getProviderServiceOfferings: async (
+    providerId: number,
+  ): Promise<NursingServiceOffering[]> => {
+    const response = await api.get<{ data: NursingServiceOffering[] }>(
+      `/nursing-providers/${providerId}/service-offerings`,
+    );
+    return response.data.data;
   },
 };
 
