@@ -61,6 +61,17 @@ import nursingService, {
 } from "@/services/nursingService";
 import { format } from "date-fns";
 
+// Helper function to safely get user data from localStorage
+const getCurrentUser = () => {
+  try {
+    const userStr = localStorage.getItem("user");
+    return userStr ? JSON.parse(userStr) : {};
+  } catch (error) {
+    console.error("Error parsing user data from localStorage:", error);
+    return {};
+  }
+};
+
 interface ProviderProfileForm {
   name: string;
   phoneNumber: string;
@@ -281,12 +292,11 @@ const HomeNursingDashboard = () => {
 
   const profileForm = useForm<ProviderProfileForm>({
     defaultValues: {
-      name: "Nairobi Care",
-      phoneNumber: "+254712345678",
-      email: "nairobi.care@example.com",
+      name: getCurrentUser().name || "",
+      phoneNumber: getCurrentUser().phone_number || "",
+      email: getCurrentUser().email || "",
       location: "Nairobi, Kenya",
-      professionalSummary:
-        "Experienced home nursing care provider with over 5 years of experience in patient care.",
+      professionalSummary: "Professional nursing care services",
       availability: "24/7",
       startingPrice: "0",
     },
@@ -471,7 +481,7 @@ const HomeNursingDashboard = () => {
 
       // Update form with profile data
       profileForm.reset({
-        name: profile.user?.name || "",
+        name: profile.user?.name || profile.provider_name || "",
         phoneNumber: profile.user?.phone_number || "",
         email: profile.user?.email || "",
         location: "Nairobi, Kenya",
@@ -493,14 +503,96 @@ const HomeNursingDashboard = () => {
         return err !== null && typeof err === "object" && "response" in err;
       };
 
-      // If no profile exists (404 error), this is expected for new users
+      // If no profile exists (404 error), automatically create one for new users
       if (isAxiosError(error) && error.response?.status === 404) {
         console.log(
-          "No nursing provider profile found - user may need to create one",
+          "No nursing provider profile found - creating default profile for new user",
         );
-        // Keep the default form values, don't show error to user
-        setNursingProfile(null);
-        setProfileImage("");
+
+        try {
+          // Get current user info safely
+          const currentUser = getCurrentUser();
+          const userName = currentUser.name || "Nursing Provider";
+
+          // Create a default profile for the new user
+          const defaultProfileData = {
+            name: userName,
+            provider_name: userName,
+            description: "Professional nursing care services",
+            qualifications: "Professional nursing qualifications",
+            services_offered: "Home nursing services",
+            base_rate_per_hour: 0,
+            license_number: currentUser.license_number || `NP_${Date.now()}`,
+          };
+
+          console.log("Creating profile with data:", defaultProfileData);
+          const newProfile =
+            await nursingService.updateProfile(defaultProfileData);
+          setNursingProfile(newProfile);
+          setProfileImage(newProfile.logo || "");
+
+          // Update form with new profile data
+          profileForm.reset({
+            name: newProfile.user?.name || userName,
+            phoneNumber:
+              newProfile.user?.phone_number || currentUser.phone_number || "",
+            email: newProfile.user?.email || currentUser.email || "",
+            location: "Nairobi, Kenya",
+            professionalSummary:
+              newProfile.description || "Professional nursing care services",
+            availability: "24/7",
+            startingPrice: newProfile.base_rate_per_hour?.toString() || "0",
+          });
+
+          console.log("Default nursing provider profile created successfully");
+
+          // Show welcome notification
+          toast({
+            title: "Welcome to Afya Mawinguni!",
+            description:
+              "Your nursing provider profile has been created. You can update it in settings.",
+          });
+
+          // Also try to load services now that profile exists
+          try {
+            await loadServices();
+          } catch (servicesError) {
+            console.log(
+              "Services will be loaded when user creates their first service",
+            );
+          }
+        } catch (createError) {
+          console.error("Failed to create default profile:", createError);
+          console.error(
+            "Profile creation error details:",
+            createError.response?.data,
+          );
+
+          // Set fallback profile data so user can still use the dashboard
+          const currentUser = getCurrentUser();
+          const userName = currentUser.name || "Nursing Provider";
+
+          setNursingProfile(null);
+          setProfileImage("");
+
+          // Pre-populate form with user registration data
+          profileForm.reset({
+            name: userName,
+            phoneNumber: currentUser.phone_number || "",
+            email: currentUser.email || "",
+            location: "Nairobi, Kenya",
+            professionalSummary: "Professional nursing care services",
+            availability: "24/7",
+            startingPrice: "0",
+          });
+
+          toast({
+            title: "Profile Setup Required",
+            description:
+              "Please complete your provider profile by clicking the settings icon.",
+            variant: "default",
+          });
+        }
       } else {
         // For other errors, show the error message
         console.error("Failed to load profile:", error);
@@ -511,7 +603,7 @@ const HomeNursingDashboard = () => {
         });
       }
     }
-  }, [profileForm]);
+  }, [profileForm, loadServices]);
 
   // Load profile and services data on component mount
   useEffect(() => {
@@ -708,6 +800,7 @@ const HomeNursingDashboard = () => {
               <span className="text-sm font-medium mr-2">
                 {nursingProfile?.provider_name ||
                   nursingProfile?.user?.name ||
+                  getCurrentUser().name ||
                   "Nursing Provider"}
               </span>
               <Avatar className="h-8 w-8 border border-secondary-green/20">
@@ -719,6 +812,7 @@ const HomeNursingDashboard = () => {
                   {(
                     nursingProfile?.provider_name ||
                     nursingProfile?.user?.name ||
+                    getCurrentUser().name ||
                     "Nursing Provider"
                   )
                     .charAt(0)
@@ -1235,6 +1329,7 @@ const HomeNursingDashboard = () => {
                                           {(
                                             nursingProfile?.provider_name ||
                                             nursingProfile?.user?.name ||
+                                            getCurrentUser().name ||
                                             "N"
                                           )
                                             .charAt(0)
