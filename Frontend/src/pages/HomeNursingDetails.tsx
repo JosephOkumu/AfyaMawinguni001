@@ -12,6 +12,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import nursingService, {
+  NursingProvider,
+  NursingServiceOffering,
+} from "@/services/nursingService";
 import {
   Search,
   Bell,
@@ -33,10 +37,42 @@ import {
   CheckCircle,
   X,
   FileText,
+  Loader2,
 } from "lucide-react";
 
 // Mock data for nursing providers
-const nursingProviders = [
+interface NursingProviderWithServices extends NursingProvider {
+  services: NursingServiceOffering[];
+  servicesCount: number;
+  startingPrice: number;
+}
+
+// Mock reviews data (keeping as requested)
+const mockReviews = [
+  {
+    id: 1,
+    patientName: "Sarah M.",
+    rating: 5,
+    comment: "Excellent care and very professional. Highly recommended!",
+    date: "2024-01-15",
+  },
+  {
+    id: 2,
+    patientName: "John D.",
+    rating: 4,
+    comment: "Good service, punctual and caring nurses.",
+    date: "2024-01-10",
+  },
+  {
+    id: 3,
+    patientName: "Mary K.",
+    rating: 5,
+    comment: "Outstanding service! My mother received excellent care.",
+    date: "2024-01-05",
+  },
+];
+
+const oldNursingProviders = [
   {
     id: 1,
     name: "Nairobi Home Care",
@@ -365,7 +401,9 @@ const HomeNursingDetails = () => {
     ).toUpperCase();
   };
 
-  const [provider, setProvider] = useState(null);
+  const [provider, setProvider] = useState<NursingProviderWithServices | null>(
+    null,
+  );
   const [selectedServices, setSelectedServices] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [date, setDate] = useState(null);
@@ -374,15 +412,72 @@ const HomeNursingDetails = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Find provider by ID when component mounts
+  // Fetch provider data when component mounts
   useEffect(() => {
-    const foundProvider = nursingProviders.find((p) => p.id === parseInt(id));
-    if (foundProvider) {
-      setProvider(foundProvider);
-    } else {
-      // Redirect if provider not found
-      navigate("/patient-dashboard/nursing");
+    const fetchProviderData = async () => {
+      try {
+        setLoading(true);
+        const providerId = parseInt(id);
+        console.log("Fetching provider details for ID:", providerId);
+
+        // Fetch provider details
+        const providerData =
+          await nursingService.getNursingProvider(providerId);
+        console.log("Fetched provider data:", providerData);
+
+        // Try to get services from relationship first, then fallback to direct API call
+        let services = providerData.nursingServiceOfferings || [];
+        console.log("Raw services from API relationship:", services);
+        console.log("Services length from relationship:", services.length);
+
+        // If no services in the relationship, fetch them directly using provider ID
+        if (services.length === 0) {
+          try {
+            console.log(
+              "No services in relationship, fetching directly for provider:",
+              providerId,
+            );
+            services =
+              await nursingService.getProviderServiceOfferings(providerId);
+            console.log("Services fetched directly for provider:", services);
+          } catch (serviceError) {
+            console.error(
+              "Error fetching service offerings directly:",
+              serviceError,
+            );
+            services = [];
+          }
+        }
+
+        console.log("Provider service areas:", providerData.service_areas);
+        console.log("Provider base rate:", providerData.base_rate_per_hour);
+
+        const providerWithServices: NursingProviderWithServices = {
+          ...providerData,
+          services: services,
+          servicesCount: services.length,
+          startingPrice:
+            services.length > 0
+              ? Math.min(...services.map((s) => s.price))
+              : providerData.base_rate_per_hour || 2500,
+        };
+
+        setProvider(providerWithServices);
+        console.log("Provider with services:", providerWithServices);
+        console.log("Final services array:", providerWithServices.services);
+      } catch (error) {
+        console.error("Error fetching provider details:", error);
+        // Set error state instead of immediate redirect
+        setProvider(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProviderData();
     }
   }, [id, navigate]);
 
@@ -394,6 +489,33 @@ const HomeNursingDetails = () => {
         service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         service.description.toLowerCase().includes(searchTerm.toLowerCase()),
     ) || [];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-secondary-green" />
+          <p className="text-gray-600">Loading provider details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!provider) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Provider not found</p>
+          <Button
+            onClick={() => navigate("/patient-dashboard/nursing")}
+            className="mt-4"
+          >
+            Back to Providers
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Function to render star ratings
   const renderStars = (rating) => {
@@ -499,8 +621,33 @@ const HomeNursingDetails = () => {
   // Calculate total price
   const totalPrice = selectedServices.reduce((sum, serviceId) => {
     const service = provider?.services.find((s) => s.id === serviceId);
-    return sum + (service?.price || 0);
+    const price = service?.price;
+    console.log(
+      "Debug - Service price raw:",
+      price,
+      "Type:",
+      typeof price,
+      "Service:",
+      service?.name,
+    );
+    // Convert decimal string to number and remove any extra decimals
+    const numericPrice = parseFloat(String(price)) || 0;
+    console.log(
+      "Debug - Parsed price:",
+      numericPrice,
+      "Current sum:",
+      sum,
+      "New sum:",
+      sum + numericPrice,
+    );
+    return sum + numericPrice;
   }, 0);
+  console.log(
+    "Debug - Final total price:",
+    totalPrice,
+    "Type:",
+    typeof totalPrice,
+  );
 
   if (!provider) {
     return (
@@ -598,30 +745,40 @@ const HomeNursingDetails = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-shrink-0">
                 <Avatar className="h-28 w-28 border-4 border-white/30 shadow-lg">
-                  <AvatarImage src={provider.logo} alt={provider.name} />
-                  <AvatarFallback>{provider.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage
+                    src={provider.logo}
+                    alt={provider.provider_name || provider.user.name}
+                  />
+                  <AvatarFallback>
+                    {(provider.provider_name || provider.user.name).charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
               </div>
 
               <div className="flex-1">
                 <div className="flex flex-col md:flex-row justify-between md:items-start">
                   <div>
-                    <h1 className="text-3xl font-bold mb-2">{provider.name}</h1>
+                    <h1 className="text-3xl font-bold mb-2">
+                      {provider.provider_name || provider.user.name}
+                    </h1>
                     <div className="flex items-center mb-2">
                       <MapPin className="h-4 w-4 opacity-80 mr-1" />
-                      <span className="opacity-90">{provider.location}</span>
+                      <span className="opacity-90">
+                        {provider.services[0]?.location ||
+                          "Location not specified"}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex items-center mt-3 md:mt-0">
                     <div className="flex mr-2">
-                      {renderStars(provider.rating)}
+                      {renderStars(provider.average_rating)}
                     </div>
                     <Badge
                       variant="outline"
                       className="bg-white/20 border-white/30 text-white p-1"
                     >
-                      {provider.rating} / 5
+                      {provider.average_rating} / 5
                     </Badge>
                   </div>
                 </div>
@@ -638,7 +795,7 @@ const HomeNursingDetails = () => {
                     <div>
                       <div className="text-sm opacity-80">Availability</div>
                       <div className="font-bold text-lg">
-                        {provider.availability}
+                        {provider.is_available ? "Available" : "Unavailable"}
                       </div>
                     </div>
                   </div>
@@ -732,7 +889,15 @@ const HomeNursingDetails = () => {
                           </p>
                           <div className="flex items-center mt-2 text-xs text-gray-500">
                             <Clock className="h-3 w-3 mr-1" />
-                            Duration: {service.duration}
+                            Availability: {service.availability}
+                          </div>
+                          <div className="flex items-center mt-1 text-xs text-gray-500">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            Location: {service.location}
+                          </div>
+                          <div className="flex items-center mt-1 text-xs text-gray-500">
+                            <Users className="h-3 w-3 mr-1" />
+                            Experience: {service.experience}
                           </div>
                         </div>
                       </div>
@@ -741,7 +906,12 @@ const HomeNursingDetails = () => {
 
                   {filteredServices.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      <p>No services match your search criteria.</p>
+                      <p>No services available for this provider.</p>
+                      <p className="text-xs mt-2">
+                        Provider ID: {provider?.id}, Total services in DB:{" "}
+                        {provider?.services?.length || 0}
+                      </p>
+                      <p className="text-xs">Search term: "{searchTerm}"</p>
                     </div>
                   )}
                 </div>
@@ -750,9 +920,11 @@ const HomeNursingDetails = () => {
               <TabsContent value="about" className="space-y-4">
                 <div>
                   <h3 className="text-lg font-medium text-green-700 mb-2">
-                    About {provider.name}
+                    About {provider.provider_name || provider.user.name}
                   </h3>
-                  <p className="text-gray-700">{provider.description}</p>
+                  <p className="text-gray-700">
+                    {provider.description || "No description available."}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -763,7 +935,8 @@ const HomeNursingDetails = () => {
                         Address
                       </h4>
                       <p className="text-sm text-gray-700">
-                        {provider.address}
+                        {provider.services[0]?.location ||
+                          "Address not specified"}
                       </p>
                     </CardContent>
                   </Card>
@@ -775,7 +948,8 @@ const HomeNursingDetails = () => {
                         Operating Hours
                       </h4>
                       <p className="text-sm text-gray-700">
-                        {provider.operatingHours}
+                        {provider.services[0]?.availability ||
+                          "Hours not specified"}
                       </p>
                     </CardContent>
                   </Card>
@@ -786,7 +960,9 @@ const HomeNursingDetails = () => {
                         <Phone className="h-4 w-4 mr-2 text-gray-500" />
                         Contact Number
                       </h4>
-                      <p className="text-sm text-gray-700">{provider.phone}</p>
+                      <p className="text-sm text-gray-700">
+                        {provider.user.phone_number || "Phone not available"}
+                      </p>
                     </CardContent>
                   </Card>
 
@@ -796,7 +972,9 @@ const HomeNursingDetails = () => {
                         <Mail className="h-4 w-4 mr-2 text-gray-500" />
                         Email Address
                       </h4>
-                      <p className="text-sm text-gray-700">{provider.email}</p>
+                      <p className="text-sm text-gray-700">
+                        {provider.user.email}
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
@@ -838,29 +1016,29 @@ const HomeNursingDetails = () => {
                 <div className="space-y-4">
                   <div className="flex items-center mb-4">
                     <div className="flex mr-2">
-                      {renderStars(provider.rating)}
+                      {renderStars(provider.average_rating)}
                     </div>
                     <span className="text-lg font-bold">
-                      {provider.rating}/5
+                      {provider.average_rating}/5
                     </span>
                     <span className="text-gray-500 ml-2">
-                      ({provider.testimonials?.length || 0} reviews)
+                      ({mockReviews.length} reviews)
                     </span>
                   </div>
 
-                  {provider.testimonials?.map((testimonial) => (
-                    <Card key={testimonial.id} className="border-0 shadow-sm">
+                  {mockReviews.map((review) => (
+                    <Card key={review.id} className="border-0 shadow-sm">
                       <CardContent className="p-4">
                         <div className="flex justify-between mb-2">
-                          <h4 className="font-medium">{testimonial.name}</h4>
+                          <h4 className="font-medium">{review.patientName}</h4>
                           <span className="text-gray-500 text-sm">
-                            {testimonial.date}
+                            {review.date}
                           </span>
                         </div>
                         <div className="flex mb-2">
-                          {renderStars(testimonial.rating)}
+                          {renderStars(review.rating)}
                         </div>
-                        <p className="text-gray-700">{testimonial.comment}</p>
+                        <p className="text-gray-700">{review.comment}</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -896,7 +1074,7 @@ const HomeNursingDetails = () => {
                       >
                         <span className="text-gray-700">{service?.name}</span>
                         <span className="text-gray-900">
-                          KES {service?.price}
+                          KES {parseFloat(String(service?.price)) || 0}
                         </span>
                       </div>
                     );
@@ -904,7 +1082,7 @@ const HomeNursingDetails = () => {
                   <div className="flex justify-between font-medium pt-2 border-t mt-2">
                     <span>Total Amount:</span>
                     <span className="text-green-600 font-bold">
-                      KES {totalPrice}
+                      KES {Math.round(totalPrice)}
                     </span>
                   </div>
                 </div>
@@ -985,7 +1163,9 @@ const HomeNursingDetails = () => {
               <div className="mb-6 border-b pb-4">
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Provider:</span>
-                  <span className="font-medium">{provider.name}</span>
+                  <span className="font-medium">
+                    {provider.provider_name || provider.user.name}
+                  </span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Services:</span>
@@ -1001,7 +1181,9 @@ const HomeNursingDetails = () => {
                 </div>
                 <div className="flex justify-between font-bold text-lg mt-4">
                   <span>Total Amount:</span>
-                  <span className="text-green-600">KES {totalPrice}</span>
+                  <span className="text-green-600">
+                    KES {Math.round(totalPrice)}
+                  </span>
                 </div>
               </div>
 
