@@ -17,7 +17,7 @@ class NursingProviderController extends Controller
      */
     public function index()
     {
-        $nursingProviders = NursingProvider::all();
+        $nursingProviders = NursingProvider::with(['user', 'nursingServiceOfferings'])->get();
 
         return response()->json([
             'status' => 'success',
@@ -71,7 +71,7 @@ class NursingProviderController extends Controller
      */
     public function show($id)
     {
-        $nursingProvider = NursingProvider::find($id);
+        $nursingProvider = NursingProvider::with(['user', 'nursingServiceOfferings'])->find($id);
 
         if (!$nursingProvider) {
             return response()->json([
