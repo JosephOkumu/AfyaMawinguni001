@@ -249,4 +249,45 @@ class NursingServiceOfferingController extends Controller
             'message' => 'Service offering deleted successfully'
         ]);
     }
+
+    /**
+     * Display a listing of all active nursing service offerings (public access).
+     */
+    public function publicIndex()
+    {
+        $serviceOfferings = NursingServiceOffering::with('nursingProvider.user')
+            ->where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $serviceOfferings
+        ]);
+    }
+
+    /**
+     * Get service offerings for a specific provider (public access).
+     */
+    public function getByProvider($providerId)
+    {
+        $nursingProvider = NursingProvider::find($providerId);
+
+        if (!$nursingProvider) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing provider not found'
+            ], 404);
+        }
+
+        $serviceOfferings = NursingServiceOffering::where('nursing_provider_id', $providerId)
+            ->where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $serviceOfferings
+        ]);
+    }
 }
