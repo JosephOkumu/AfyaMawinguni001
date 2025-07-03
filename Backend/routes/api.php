@@ -89,6 +89,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/nursing-provider/service-offerings/{id}', [NursingServiceOfferingController::class, 'update']);
     Route::delete('/nursing-provider/service-offerings/{id}', [NursingServiceOfferingController::class, 'destroy']);
 
+    // Public routes for service offerings (for patients to view)
+    Route::get('/service-offerings', [NursingServiceOfferingController::class, 'publicIndex']);
+    Route::get('/nursing-providers/{providerId}/service-offerings', [NursingServiceOfferingController::class, 'getByProvider']);
+
     // Nursing Service routes
     Route::apiResource('nursing-services', NursingServiceController::class);
     Route::get('/patient/nursing-services', [NursingServiceController::class, 'index'])->name('patient.nursing-services');
