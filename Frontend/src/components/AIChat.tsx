@@ -1,156 +1,339 @@
-import React, { useState, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Bot } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Bot,
+  Send,
+  Minimize2,
+  X,
+  MessageCircle,
+  User,
+  Sparkles,
+} from "lucide-react";
+import aiService from "@/services/aiService";
+import { useLocation } from "react-router-dom";
 
-const BOT_ICON_BG = "bg-gradient-to-br from-teal-600 to-green-400 shadow-lg";
-
-function BotIcon({ className = "" }: { className?: string }) {
-  return (
-    <div
-      className={`${BOT_ICON_BG} rounded-full flex items-center justify-center`}
-      style={{
-        width: 56,
-        height: 56,
-        // Remove any default background or box shadows that create square edges
-        backgroundClip: "padding-box",
-        borderRadius: "9999px",
-        overflow: "hidden",
-      }}
-    >
-      {/* Bot icon with transparent background only */}
-      {React.createElement(Bot, {
-        className: `text-white w-8 h-8 ${className}`,
-        // Make sure SVG fill is none except the paths (handled by lucide)
-      })}
-    </div>
-  );
+interface Message {
+  id: string;
+  content: string;
+  isUser: boolean;
+  timestamp: Date;
 }
 
-const EXAMPLES = [
-  "I have chest pain and shortness of breath.",
-  "I'm feeling persistent headaches and dizziness.",
-  "My knee hurts after an injury.",
+const BotIcon = () => (
+  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+    <Bot className="w-7 h-7 text-white" />
+  </div>
+);
+
+const QUICK_ACTIONS = [
+  "I have fever and headache",
+  "Chest pain and breathing issues",
+  "Stomach pain and nausea",
+  "Back pain after exercise",
+  "Skin rash and itching",
+  "How do I book an appointment?",
+  "How to find nursing services?",
+  "Emergency - need help now",
 ];
 
 const AIChat: React.FC = () => {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
-  const [answer, setAnswer] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "1",
+      content:
+        "👋 Hello! I'm your AI health assistant powered by advanced medical knowledge. I can help you:\n\n🩺 **Health Guidance:**\n• Find the right specialist for your symptoms\n• Get personalized doctor recommendations\n• Understand urgency levels of health concerns\n\n💻 **Platform Navigation:**\n• Book appointments and services\n• Navigate our healthcare platform\n• Answer questions about our services\n\n🔍 **Smart Assistance:**\n• Contextual health advice based on your current page\n• Emergency guidance when needed\n• Step-by-step platform tutorials\n\nWhat can I help you with today?",
+      isUser: false,
+      timestamp: new Date(),
+    },
+  ]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  async function fetchDoctorRecommendation(symptoms: string) {
-    setLoading(true);
-    setError(null);
-    setAnswer(null);
-    try {
-      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // IMPORTANT: Replace with your own Supabase serving key or secret if you want.
-          // This demo expects an OPENAI_API_KEY in project for safe environments.
-          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_KEY || "sk-REPLACE_ME"}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a compassionate AI health assistant. Based on user symptoms, suggest the best type of doctor or specialist to see (like Cardiologist, Orthopedic, Dermatologist, Neurologist, etc). Explain your reasoning in one short paragraph. Reply in clear, plain language.",
-            },
-            { role: "user", content: symptoms },
-          ],
-          max_tokens: 150,
-          temperature: 0.4,
-        }),
-      });
-      if (!resp.ok) {
-        throw new Error("API error. Please try again.");
-      }
-      const data = await resp.json();
-      setAnswer(data.choices?.[0]?.message?.content ?? "Sorry, I couldn't generate an answer.");
-    } catch (err: any) {
-      setError(err.message ?? "An error occurred. Please try again.");
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const getContextualInfo = (): string => {
+    const path = location.pathname;
+    if (path.includes("/nursing")) {
+      return "The user is currently on the Home Nursing Services page.";
     }
-    setLoading(false);
-  }
+    if (path.includes("/doctor") || path.includes("/consultation")) {
+      return "The user is currently on the Doctor Consultation page.";
+    }
+    if (path.includes("/lab")) {
+      return "The user is currently on the Laboratory Services page.";
+    }
+    if (path.includes("/pharmacy")) {
+      return "The user is currently on the Pharmacy page.";
+    }
+    if (path.includes("/patient-dashboard")) {
+      return "The user is currently on their Patient Dashboard.";
+    }
+    return "The user is browsing the healthcare platform.";
+  };
 
-  function handleAskAI(e: React.FormEvent) {
+  const generateResponse = (userInput: string): string => {
+    // Add context awareness
+    const context = getContextualInfo();
+    const enhancedInput = `${context} User asks: ${userInput}`;
+
+    // Use the intelligent AI service for generating responses
+    return aiService.generateResponse(enhancedInput);
+  };
+
+  const handleSendMessage = (messageText?: string) => {
+    const text = messageText || question.trim();
+    if (!text) return;
+
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: text,
+      isUser: true,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setQuestion("");
+    setLoading(true);
+
+    // Simulate thinking time and generate intelligent response
+    setTimeout(
+      () => {
+        const response = generateResponse(text);
+        const suggestions = aiService.getSuggestions(text);
+
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response,
+          isUser: false,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+        setLoading(false);
+      },
+      800 + Math.random() * 800,
+    ); // 0.8-1.6 seconds delay for more responsive feel
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!question.trim()) return;
-    fetchDoctorRecommendation(question.trim());
+    handleSendMessage();
+  };
+
+  const formatMessage = (content: string) => {
+    return content.split("\n").map((line, index) => (
+      <div key={index} className={index > 0 ? "mt-1" : ""}>
+        {line.startsWith("**") && line.endsWith("**") ? (
+          <strong className="text-green-700">{line.slice(2, -2)}</strong>
+        ) : line.startsWith("• ") ? (
+          <div className="ml-2 text-gray-600">{line}</div>
+        ) : (
+          line
+        )}
+      </div>
+    ));
+  };
+
+  if (minimized) {
+    return (
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => setMinimized(false)}
+          className="bg-green-500 hover:bg-green-600 text-white rounded-full p-3 shadow-lg transition-all duration-300 hover:scale-105"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </button>
+      </div>
+    );
   }
 
   return (
     <>
       {/* Floating Action Button */}
-      <button
-        aria-label="AI Doctor Recommendation"
-        className="fixed z-50 right-6 bottom-6 transition-transform hover:scale-105 focus:outline-none"
-        style={{ boxShadow: "0 8px 24px 0 rgba(56,200,140,0.23)" }}
-        onClick={() => setOpen(true)}
-      >
-        <BotIcon />
-      </button>
-
-      {/* AI Chat Modal */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md w-full rounded-2xl shadow-2xl px-0 py-0 animate-fade-in">
-          <DialogHeader className="px-6 pt-6 pb-0">
-            <div className="flex items-center gap-2">
-              <BotIcon className="w-7 h-7" />
-              <DialogTitle className="text-lg">Doctor AI Assistant</DialogTitle>
+      {!open && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <button
+            onClick={() => setOpen(true)}
+            className="group relative"
+            aria-label="AI Health Assistant"
+          >
+            <BotIcon />
+            <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+              <Sparkles className="w-2 h-2 text-white" />
             </div>
-            <div className="text-xs text-gray-400 mt-1 px-1">
-              Describe your symptoms and I'll suggest the right specialist!
+          </button>
+        </div>
+      )}
+
+      {/* Chat Window */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md w-full h-[600px] p-0 flex flex-col">
+          <DialogHeader className="px-4 py-3 border-b bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <DialogTitle className="text-white font-semibold">
+                    AI Health Assistant
+                  </DialogTitle>
+                  <p className="text-green-100 text-xs">
+                    🤖 AI-Powered • Always Available • Medical Knowledge Base
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setMinimized(true)}
+                  className="p-1 hover:bg-white/20 rounded"
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="p-1 hover:bg-white/20 rounded"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </DialogHeader>
-          <form onSubmit={handleAskAI} className="p-6 pt-3 space-y-4">
-            <Input
-              ref={inputRef}
-              placeholder="Describe your symptoms..."
-              value={question}
-              onChange={e => setQuestion(e.target.value)}
-              autoFocus
-              maxLength={180}
-              className="text-base"
-            />
-            <div className="flex flex-wrap gap-2">
-              {EXAMPLES.map((ex) => (
-                <Button
-                  key={ex}
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="rounded-2xl"
-                  onClick={() => setQuestion(ex)}
+
+          {/* Messages Area */}
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-4">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
                 >
-                  {ex}
-                </Button>
+                  <div
+                    className={`flex items-start gap-2 max-w-[80%] ${message.isUser ? "flex-row-reverse" : ""}`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        message.isUser
+                          ? "bg-green-500"
+                          : "bg-gradient-to-br from-green-500 to-teal-600"
+                      }`}
+                    >
+                      {message.isUser ? (
+                        <User className="w-4 h-4 text-white" />
+                      ) : (
+                        <Bot className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                    <div
+                      className={`rounded-2xl px-4 py-2 ${
+                        message.isUser
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      <div className="text-sm">
+                        {message.isUser
+                          ? message.content
+                          : formatMessage(message.content)}
+                      </div>
+                      <div
+                        className={`text-xs mt-1 ${
+                          message.isUser ? "text-green-100" : "text-gray-500"
+                        }`}
+                      >
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="flex items-start gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="bg-gray-100 rounded-2xl px-4 py-2">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+
+          {/* Quick Actions */}
+          <div className="px-4 py-2 border-t bg-gray-50">
+            <div className="flex flex-wrap gap-1">
+              {QUICK_ACTIONS.map((action) => (
+                <button
+                  key={action}
+                  onClick={() => handleSendMessage(action)}
+                  className="text-xs bg-white border border-gray-200 rounded-full px-3 py-1 hover:bg-green-50 hover:border-green-300 transition-colors"
+                  disabled={loading}
+                >
+                  {action}
+                </button>
               ))}
             </div>
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-teal-600 to-green-500 text-white font-semibold rounded-xl mt-2"
-              disabled={loading || !question.trim()}
-            >
-              {loading ? "Thinking..." : "Ask the AI"}
-            </Button>
-          </form>
-          {answer && (
-            <div className="p-6 pt-0 border-t text-base text-gray-700 max-h-48 overflow-auto">
-              <span className="font-semibold text-primary-blue">AI Suggestion:</span>
-              <div>{answer}</div>
-            </div>
-          )}
-          {error && (
-            <div className="p-6 text-red-500">{error}</div>
-          )}
+          </div>
+
+          {/* Input Area */}
+          <div className="p-4 border-t">
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <Input
+                ref={inputRef}
+                placeholder="Describe symptoms or ask platform questions..."
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                className="flex-1"
+                disabled={loading}
+                maxLength={500}
+              />
+              <Button
+                type="submit"
+                size="icon"
+                className="bg-green-500 hover:bg-green-600"
+                disabled={loading || !question.trim()}
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </form>
+          </div>
         </DialogContent>
       </Dialog>
     </>
