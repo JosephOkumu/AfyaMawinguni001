@@ -373,12 +373,6 @@ const DoctorDetails = () => {
                     <p className="text-lg opacity-90 mb-2">
                       {doctor.specialty}
                     </p>
-                    <div className="flex items-center mb-2">
-                      <MapPin className="h-4 w-4 opacity-80 mr-1" />
-                      <span className="opacity-90">
-                        {doctor.location || "Location not specified"}
-                      </span>
-                    </div>
                   </div>
 
                   <div className="flex items-center mt-3 md:mt-0">
@@ -403,6 +397,18 @@ const DoctorDetails = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                   <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm p-3 rounded-lg">
                     <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                      <MapPin className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-sm opacity-80">Location</div>
+                      <div className="font-bold text-lg">
+                        {doctor.location || "Location not specified"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm p-3 rounded-lg">
+                    <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
                       <Stethoscope className="h-5 w-5 text-white" />
                     </div>
                     <div>
@@ -410,20 +416,6 @@ const DoctorDetails = () => {
                       <div className="font-bold text-lg">
                         {doctor.years_of_experience ||
                           doctor.experience ||
-                          "Not specified"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm p-3 rounded-lg">
-                    <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                      <GraduationCap className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <div className="text-sm opacity-80">Education</div>
-                      <div className="font-bold text-sm">
-                        {doctor.education ||
-                          doctor.qualifications ||
                           "Not specified"}
                       </div>
                     </div>
@@ -466,17 +458,6 @@ const DoctorDetails = () => {
                       doctor.bio ||
                       doctor.description ||
                       "Professional summary not available"}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-medium text-green-700 mb-2">
-                    Education
-                  </h3>
-                  <p className="text-gray-700">
-                    {doctor.education ||
-                      doctor.qualifications ||
-                      "Education information not available"}
                   </p>
                 </div>
 
