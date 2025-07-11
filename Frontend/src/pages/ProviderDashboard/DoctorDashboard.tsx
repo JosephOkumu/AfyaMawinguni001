@@ -76,7 +76,7 @@ interface DoctorProfileForm {
   physicalPrice: string;
   onlinePrice: string;
   image: File | null;
-  qualifications: string;
+
   languages: string;
   acceptsInsurance: boolean;
   consultationModes: string[];
@@ -90,8 +90,7 @@ interface DoctorProfile {
   hospital: string;
   location: string;
   license_number: string;
-  qualifications: string;
-  education: string;
+
   experience: string;
   default_consultation_fee: number;
   physical_consultation_fee: number;
@@ -148,8 +147,6 @@ const DoctorDashboard = () => {
     hospital: "",
     location: "",
     license_number: "",
-    qualifications: "",
-    education: "",
     experience: "",
     default_consultation_fee: 0,
     physical_consultation_fee: 0,
@@ -524,8 +521,7 @@ const DoctorDashboard = () => {
       physicalPrice: "2500",
       onlinePrice: "2000",
       image: null,
-      qualifications:
-        "MD, Cardiology - University of Nairobi\nFellowship in Interventional Cardiology - Kenyatta National Hospital\nMember of African Cardiology Association",
+
       languages: "English, Swahili",
       acceptsInsurance: true,
       consultationModes: ["In-person", "Video", "Chat"],
@@ -571,8 +567,7 @@ const DoctorDashboard = () => {
           hospital: profile.hospital || "",
           location: profile.location || "",
           license_number: profile.license_number || "",
-          qualifications: profile.qualifications || "",
-          education: profile.education || "",
+
           experience: profile.experience || "",
           default_consultation_fee: profile.default_consultation_fee || 0,
           physical_consultation_fee: profile.physical_consultation_fee || 0,
@@ -611,7 +606,7 @@ const DoctorDashboard = () => {
           physicalPrice: profile.physical_consultation_fee?.toString() || "0",
           onlinePrice: profile.online_consultation_fee?.toString() || "0",
           image: null,
-          qualifications: profile.qualifications || profile.education || "",
+
           languages: profile.languages || "",
           acceptsInsurance: profile.accepts_insurance || false,
           consultationModes: Array.isArray(profile.consultation_modes)
@@ -650,7 +645,7 @@ const DoctorDashboard = () => {
         experience: typeof data.experience,
         physicalPrice: typeof data.physicalPrice,
         onlinePrice: typeof data.onlinePrice,
-        qualifications: typeof data.qualifications,
+
         languages: typeof data.languages,
         acceptsInsurance: typeof data.acceptsInsurance,
         consultationModes: typeof data.consultationModes,
@@ -671,7 +666,6 @@ const DoctorDashboard = () => {
         onlinePrice: data.onlinePrice
           ? parseFloat(data.onlinePrice.toString())
           : 0,
-        qualifications: data.qualifications || "",
         languages: data.languages || "",
         acceptsInsurance: Boolean(data.acceptsInsurance),
         consultationModes: Array.isArray(data.consultationModes)
@@ -1207,22 +1201,6 @@ const DoctorDashboard = () => {
                         )}
                       />
 
-                      <FormField
-                        control={profileForm.control}
-                        name="qualifications"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Education</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="List your medical qualifications and certifications..."
-                                className="min-h-[100px]"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={profileForm.control}
