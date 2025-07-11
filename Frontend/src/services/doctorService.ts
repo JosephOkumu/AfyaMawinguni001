@@ -10,8 +10,6 @@ export interface Doctor {
   hospital?: string;
   location?: string;
   license_number: string;
-  qualifications: string;
-  education?: string;
   experience?: string;
   default_consultation_fee: number;
   physical_consultation_fee?: number;
@@ -42,7 +40,6 @@ export interface DoctorProfileUpdateData {
   experience?: string;
   physicalPrice?: number;
   onlinePrice?: number;
-  qualifications?: string;
   languages?: string;
   acceptsInsurance?: boolean;
   consultationModes?: string[];
