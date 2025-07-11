@@ -88,12 +88,14 @@ const LabProviderDetails = () => {
 
     const hours = safeJsonParse(hoursData);
     if (Array.isArray(hours)) {
-      return hours.map((hour: any, index: number) => (
-        <div key={index} className="flex justify-between text-sm">
-          <span>{hour.day}</span>
-          <span>{hour.hours}</span>
-        </div>
-      ));
+      return hours.map(
+        (hour: { day: string; hours: string }, index: number) => (
+          <div key={index} className="flex justify-between text-sm">
+            <span>{hour.day}</span>
+            <span>{hour.hours}</span>
+          </div>
+        ),
+      );
     } else if (typeof hours === "object" && hours !== null) {
       // Handle object format like {"monday":"7:00 AM - 7:00 PM", "tuesday":"7:00 AM - 7:00 PM"}
       return Object.entries(hours).map(([day, time], index) => (
@@ -108,9 +110,19 @@ const LabProviderDetails = () => {
   };
 
   // Helper function to render certifications
-  const renderCertifications = (certsData: string | null | undefined) => {
+  const renderCertifications = (
+    certsData: string[] | string | null | undefined,
+  ) => {
     if (!certsData) {
       return <p className="text-gray-500 text-sm">No certifications listed</p>;
+    }
+
+    if (Array.isArray(certsData)) {
+      return certsData.map((cert: string, index: number) => (
+        <Badge key={index} variant="outline" className="mr-2 mb-2">
+          {cert}
+        </Badge>
+      ));
     }
 
     const certs = safeJsonParse(certsData);
@@ -390,14 +402,22 @@ const LabProviderDetails = () => {
                   <h1 className="text-3xl font-bold font-playfair">
                     {provider.lab_name}
                   </h1>
-                  <div className="flex items-center mt-2">
-                    <MapPin className="h-5 w-5 mr-1" />
-                    <span className="opacity-90">{provider.address}</span>
-                  </div>
+
                   <p className="mt-3 opacity-90 text-sm leading-relaxed">
                     {provider.description || "No description available."}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                    <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm p-3 rounded-lg">
+                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <MapPin className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-sm opacity-80">Location</div>
+                        <div className="font-bold text-lg">
+                          {provider.address || "Location not specified"}
+                        </div>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm p-3 rounded-lg">
                       <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
                         <Microscope className="h-5 w-5 text-white" />
@@ -408,23 +428,6 @@ const LabProviderDetails = () => {
                         </div>
                         <div className="font-bold text-lg">
                           {testServices.length}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm p-3 rounded-lg">
-                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <Clock className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <div className="text-sm opacity-80">Availability</div>
-                        <div className="font-bold text-lg">
-                          {provider.operating_hours
-                            ? typeof provider.operating_hours === "string"
-                              ? provider.operating_hours.includes("{")
-                                ? "Mon-Sat: 8AM-6PM"
-                                : provider.operating_hours
-                              : "Mon-Sat: 8AM-6PM"
-                            : "24/7 Available"}
                         </div>
                       </div>
                     </div>
