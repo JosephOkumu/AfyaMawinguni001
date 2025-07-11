@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,6 +24,7 @@ import {
   Thermometer,
 } from "lucide-react";
 import AIChat from "@/components/AIChat";
+import labService, { LabProvider } from "@/services/labService";
 
 interface LabTestType {
   id: number;
@@ -103,6 +104,8 @@ const labTests: LabTestType[] = [
 
 const PatientLabTests = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [labProviders, setLabProviders] = useState<LabProvider[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   // Navigation items for the horizontal navbar
@@ -131,57 +134,27 @@ const PatientLabTests = () => {
       test.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const labProviders: LabProviderType[] = [
-    {
-      id: 1,
-      name: "Nairobi Medical Labs",
-      logo: "https://randomuser.me/api/portraits/men/41.jpg",
-      initials: "NML",
-      rating: 4.9,
-      patientsServed: 12450,
-      location: "Nairobi CBD, Kenya",
-      distance: "2.5 km",
-      tests: 45,
-    },
-    {
-      id: 2,
-      name: "PathCare Laboratories",
-      logo: "",
-      initials: "PC",
-      rating: 4.7,
-      patientsServed: 8920,
-      location: "Westlands, Nairobi",
-      distance: "4.8 km",
-      tests: 38,
-    },
-    {
-      id: 3,
-      name: "Lancet Kenya",
-      logo: "",
-      initials: "LK",
-      rating: 4.8,
-      patientsServed: 15680,
-      location: "Upperhill, Nairobi",
-      distance: "3.1 km",
-      tests: 52,
-    },
-    {
-      id: 4,
-      name: "Meditest Labs",
-      logo: "https://randomuser.me/api/portraits/women/59.jpg",
-      initials: "ML",
-      rating: 4.6,
-      patientsServed: 6890,
-      location: "Mombasa Road, Nairobi",
-      distance: "6.2 km",
-      tests: 32,
-    },
-  ];
+  // Fetch lab providers from backend
+  useEffect(() => {
+    const fetchLabProviders = async () => {
+      try {
+        setLoading(true);
+        const providers = await labService.getAllLabProviders();
+        setLabProviders(providers);
+      } catch (error) {
+        console.error("Error fetching lab providers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLabProviders();
+  }, []);
 
   const filteredProviders = labProviders.filter(
     (provider) =>
-      provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      provider.location.toLowerCase().includes(searchTerm.toLowerCase()),
+      provider.lab_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      provider.address.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -324,11 +297,11 @@ const PatientLabTests = () => {
           </div>
         </section>
 
-        {/* Lab Partners Section */}
+        {/* Lab Providers Section */}
         <section>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold font-playfair">
-              Lab Partners
+              Lab Providers
             </h2>
             <Button
               variant="outline"
@@ -339,67 +312,77 @@ const PatientLabTests = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredProviders.slice(0, 4).map((provider) => (
-              <Link
-                key={provider.id}
-                to={`/patient-dashboard/lab-provider/${provider.id}`}
-              >
-                <Card className="hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-green-100">
-                  <CardContent className="p-5">
-                    <div className="flex gap-4">
-                      <Avatar className="h-16 w-16">
-                        {provider.logo ? (
-                          <AvatarImage
-                            src={provider.logo}
-                            alt={provider.name}
-                          />
-                        ) : null}
-                        <AvatarFallback className="bg-primary-blue/10 text-primary-blue">
-                          {provider.initials}
-                        </AvatarFallback>
-                      </Avatar>
+          {loading ? (
+            <div className="text-center py-8">Loading lab providers...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredProviders.slice(0, 4).map((provider) => (
+                <Link
+                  key={provider.id}
+                  to={`/patient-dashboard/lab-provider/${provider.id}`}
+                >
+                  <Card className="hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-green-100">
+                    <CardContent className="p-5">
+                      <div className="flex gap-4">
+                        <Avatar className="h-16 w-16">
+                          {provider.profile_image ? (
+                            <AvatarImage
+                              src={provider.profile_image}
+                              alt={provider.lab_name}
+                            />
+                          ) : null}
+                          <AvatarFallback className="bg-primary-blue/10 text-primary-blue">
+                            {provider.lab_name
+                              .split(" ")
+                              .map((word) => word[0])
+                              .join("")
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
 
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-medium text-lg">
-                            {provider.name}
-                          </h3>
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm ml-1 font-medium">
-                              {provider.rating}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center text-gray-600 text-sm mt-1">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          {provider.location} • {provider.distance}
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-2 mt-3">
-                          <div>
-                            <div className="text-gray-500">Patients served</div>
-                            <div className="font-medium">
-                              {provider.patientsServed.toLocaleString()}
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <h3 className="font-medium text-lg">
+                              {provider.lab_name}
+                            </h3>
+                            <div className="flex items-center">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="text-sm ml-1 font-medium">
+                                {provider.average_rating || 0}
+                              </span>
                             </div>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-2 text-primary-blue border-primary-blue hover:bg-primary-blue hover:text-white"
-                          >
-                            View More
-                          </Button>
+
+                          <div className="flex items-center text-gray-600 text-sm mt-1">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {provider.address}
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-2 mt-3">
+                            <div>
+                              <div className="text-gray-500">
+                                Patients served
+                              </div>
+                              <div className="font-medium">
+                                {Math.floor(Math.random() * 10000) + 1000}
+                              </div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mt-2 text-primary-blue border-primary-blue hover:bg-primary-blue hover:text-white"
+                            >
+                              View More
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       </main>
 
