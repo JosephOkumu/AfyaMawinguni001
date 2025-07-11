@@ -733,6 +733,121 @@ const LabProviderDetails = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Book Tests Section in Lab Information Tab */}
+            <Card className="bg-white shadow-md border-none overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-teal-500 text-white p-4">
+                <h2 className="text-xl font-bold font-playfair">
+                  Book Your Tests
+                </h2>
+                <p className="text-sm opacity-90">
+                  Select date and time to schedule your appointment
+                </p>
+              </div>
+              <CardContent className="p-6">
+                {/* Selected Tests Summary */}
+                <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg">
+                  <h3 className="font-medium mb-2">
+                    Selected Tests ({selectedTests.length})
+                  </h3>
+                  {selectedTests.length > 0 ? (
+                    <div className="space-y-2">
+                      {selectedTests.map((testId) => {
+                        const test = testServices.find((t) => t.id === testId);
+                        return test ? (
+                          <div
+                            key={testId}
+                            className="flex justify-between text-sm"
+                          >
+                            <span>{test.test_name}</span>
+                            <span>KES {test.price.toLocaleString()}</span>
+                          </div>
+                        ) : null;
+                      })}
+                      <div className="border-t pt-2 font-medium">
+                        <div className="flex justify-between">
+                          <span>Total:</span>
+                          <span className="text-green-600">
+                            KES {totalPrice.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No tests selected</p>
+                  )}
+                </div>
+
+                {/* Calendar and Time Selection - Horizontal Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Calendar Section */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-3 flex items-center">
+                      <div className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">
+                        1
+                      </div>
+                      Select Date
+                    </h3>
+                    <div className="border rounded-md p-1 shadow-sm bg-white">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        disabled={(date) => {
+                          // Disable dates in the past and Sundays
+                          return (
+                            date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                            date.getDay() === 0
+                          );
+                        }}
+                        className="rounded-md border-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Time Selection */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-3 flex items-center">
+                      <div className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">
+                        2
+                      </div>
+                      Select Time
+                    </h3>
+                    <div className="border rounded-md p-3 shadow-sm bg-white overflow-y-auto max-h-[350px]">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {timeSlots.map((slot) => (
+                          <div
+                            key={slot}
+                            className={`py-2 px-3 text-center text-sm rounded-md cursor-pointer border transition-all duration-200 ${
+                              timeSlot === slot
+                                ? "bg-green-500 text-white border-green-500 shadow-sm"
+                                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            }`}
+                            onClick={() => setTimeSlot(slot)}
+                          >
+                            {slot}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Book Button */}
+                <div className="mt-6">
+                  <Button
+                    className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white shadow-md"
+                    onClick={handleBookAppointment}
+                    disabled={selectedTests.length === 0 || !date || !timeSlot}
+                  >
+                    Book Appointment
+                  </Button>
+                  <p className="text-xs text-gray-500 text-center mt-3">
+                    By booking, you agree to our terms and conditions
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>
