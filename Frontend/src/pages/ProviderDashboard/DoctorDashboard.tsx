@@ -33,6 +33,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { LocationAutocomplete } from "@/components/LocationInput";
 import AppointmentCalendar from "@/components/calendar/AppointmentCalendar";
 import appointmentService, { Appointment } from "@/services/appointmentService";
 import doctorService, {
@@ -998,7 +999,7 @@ const DoctorDashboard = () => {
           <div className="mt-4 md:mt-0 flex items-center space-x-3">
             <div className="flex items-center bg-white rounded-full px-3 py-1.5 border border-gray-200 shadow-sm">
               <span className="text-sm font-medium mr-2">
-                {"Dr." + doctorProfile.user?.name }
+                {"Dr." + doctorProfile.user?.name}
               </span>
               <Avatar className="h-8 w-8 border border-secondary-green/20">
                 <AvatarImage
@@ -1112,14 +1113,11 @@ const DoctorDashboard = () => {
                             <FormItem>
                               <FormLabel>Location</FormLabel>
                               <FormControl>
-                                <div className="relative">
-                                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                  <Input
-                                    className="pl-10"
-                                    placeholder="e.g., Nairobi Medical Center"
-                                    {...field}
-                                  />
-                                </div>
+                                <LocationAutocomplete
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  placeholder="Enter your practice location"
+                                />
                               </FormControl>
                             </FormItem>
                           )}

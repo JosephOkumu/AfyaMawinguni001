@@ -45,6 +45,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { LocationAutocomplete } from "@/components/LocationInput";
 import labService, {
   LabProvider,
   LabProfileUpdateData,
@@ -819,9 +820,10 @@ const LabDashboard = () => {
                               <FormItem className="mt-4">
                                 <FormLabel>Address</FormLabel>
                                 <FormControl>
-                                  <Input
-                                    placeholder="Physical address"
-                                    {...field}
+                                  <LocationAutocomplete
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    placeholder="Enter your laboratory address"
                                   />
                                 </FormControl>
                               </FormItem>

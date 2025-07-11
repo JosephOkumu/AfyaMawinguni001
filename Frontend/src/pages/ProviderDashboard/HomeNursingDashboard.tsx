@@ -54,6 +54,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LocationAutocomplete } from "@/components/LocationInput";
 import nursingService, {
   NursingProvider,
   NursingServiceOffering,
@@ -898,9 +899,10 @@ const HomeNursingDashboard = () => {
                             <FormItem>
                               <FormLabel>Location</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder="Enter your location"
-                                  {...field}
+                                <LocationAutocomplete
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  placeholder="Enter your service location"
                                 />
                               </FormControl>
                             </FormItem>
