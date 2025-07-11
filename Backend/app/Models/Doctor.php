@@ -23,8 +23,6 @@ class Doctor extends Model
         'location',
         'hospital',
         'license_number',
-        'qualifications',
-        'education',
         'experience',
         'default_consultation_fee',
         'physical_consultation_fee',

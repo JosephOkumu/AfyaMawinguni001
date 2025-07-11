@@ -37,8 +37,6 @@ class DoctorController extends Controller
             'user_id' => 'required|exists:users,id',
             'specialty' => 'required|string|max:255',
             'license_number' => 'required|string|unique:doctors,license_number',
-            'qualifications' => 'required|string',
-            'education' => 'nullable|string',
             'experience' => 'nullable|string',
             'consultation_fee' => 'required|numeric|min:0',
             'availability' => 'nullable|json',
@@ -98,8 +96,6 @@ class DoctorController extends Controller
             'user_id' => 'exists:users,id',
             'specialty' => 'string|max:255',
             'license_number' => 'string|unique:doctors,license_number,'.$id,
-            'qualifications' => 'string',
-            'education' => 'nullable|string',
             'experience' => 'nullable|string',
             'consultation_fee' => 'numeric|min:0',
             'availability' => 'nullable|json',
@@ -173,7 +169,6 @@ class DoctorController extends Controller
                 'user_id' => $user->id,
                 'specialty' => 'General Practitioner',
                 'license_number' => 'DOC-' . $user->id . '-' . date('Y'),
-                'qualifications' => 'Medical qualifications not set',
                 'default_consultation_fee' => 2500.00,
                 'is_available_for_consultation' => true,
                 'average_rating' => 0
@@ -231,7 +226,6 @@ class DoctorController extends Controller
             'experience' => 'nullable', // Accept both string and numeric
             'physicalPrice' => 'nullable|numeric|min:0|max:999999',
             'onlinePrice' => 'nullable|numeric|min:0|max:999999',
-            'qualifications' => 'nullable|string|max:5000',
             'languages' => 'nullable|string|max:500',
             'acceptsInsurance' => 'nullable|boolean',
             'consultationModes' => 'nullable|array|max:20',
@@ -285,10 +279,6 @@ class DoctorController extends Controller
         }
         if ($request->has('onlinePrice')) {
             $updateData['online_consultation_fee'] = $request->onlinePrice;
-        }
-        if ($request->has('qualifications')) {
-            $updateData['qualifications'] = $request->qualifications;
-            $updateData['education'] = $request->qualifications;
         }
         if ($request->has('languages')) {
             $updateData['languages'] = $request->languages;
