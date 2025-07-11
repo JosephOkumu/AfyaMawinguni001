@@ -46,7 +46,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
   // Debounced search function
   const searchLocations = async (query: string) => {
-    if (query.length < 3) {
+    if (query.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -93,7 +93,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     // Set new timeout for debounced search
     debounceRef.current = setTimeout(() => {
       searchLocations(newValue);
-    }, 300);
+    }, 150);
   };
 
   // Handle suggestion selection
