@@ -1076,12 +1076,62 @@ const DoctorDashboard = () => {
                               <FormLabel>Specialty</FormLabel>
                               <FormControl>
                                 <div className="relative">
-                                  <Stethoscope className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                  <Input
-                                    className="pl-10"
-                                    placeholder="e.g., Cardiologist"
-                                    {...field}
-                                  />
+                                  <Stethoscope className="absolute left-3 top-3 h-4 w-4 text-gray-500 z-10" />
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                  >
+                                    <SelectTrigger className="pl-10">
+                                      <SelectValue placeholder="Select your specialty" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="family-medicine">
+                                        Family Medicine
+                                      </SelectItem>
+                                      <SelectItem value="pediatrics">
+                                        Pediatrics
+                                      </SelectItem>
+                                      <SelectItem value="orthopedics">
+                                        Orthopedics
+                                      </SelectItem>
+                                      <SelectItem value="cardiology">
+                                        Cardiology
+                                      </SelectItem>
+                                      <SelectItem value="gastroenterology">
+                                        Gastroenterology
+                                      </SelectItem>
+                                      <SelectItem value="oncology">
+                                        Oncology
+                                      </SelectItem>
+                                      <SelectItem value="counselling">
+                                        Counselling
+                                      </SelectItem>
+                                      <SelectItem value="nutrition-dietetics">
+                                        Nutrition & Dietetics
+                                      </SelectItem>
+                                      <SelectItem value="internal-medicine">
+                                        Internal Medicine
+                                      </SelectItem>
+                                      <SelectItem value="general-practitioner">
+                                        General Practitioner
+                                      </SelectItem>
+                                      <SelectItem value="otolaryngology">
+                                        Otolaryngology
+                                      </SelectItem>
+                                      <SelectItem value="endocrinology">
+                                        Endocrinology
+                                      </SelectItem>
+                                      <SelectItem value="urology">
+                                        Urology
+                                      </SelectItem>
+                                      <SelectItem value="obstetrics-gynecology">
+                                        Obstetrics & Gynecology
+                                      </SelectItem>
+                                      <SelectItem value="speech-therapy">
+                                        Speech Therapy
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                               </FormControl>
                             </FormItem>
