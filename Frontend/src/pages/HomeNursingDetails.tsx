@@ -761,13 +761,6 @@ const HomeNursingDetails = () => {
                     <h1 className="text-3xl font-bold mb-2">
                       {provider.provider_name || provider.user.name}
                     </h1>
-                    <div className="flex items-center mb-2">
-                      <MapPin className="h-4 w-4 opacity-80 mr-1" />
-                      <span className="opacity-90">
-                        {provider.services[0]?.location ||
-                          "Location not specified"}
-                      </span>
-                    </div>
                   </div>
 
                   <div className="flex items-center mt-3 md:mt-0">
@@ -790,12 +783,13 @@ const HomeNursingDetails = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                   <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm p-3 rounded-lg">
                     <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                      <Clock className="h-5 w-5 text-white" />
+                      <MapPin className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <div className="text-sm opacity-80">Availability</div>
+                      <div className="text-sm opacity-80">Location</div>
                       <div className="font-bold text-lg">
-                        {provider.is_available ? "Available" : "Unavailable"}
+                        {provider.services[0]?.location ||
+                          "Location not specified"}
                       </div>
                     </div>
                   </div>
