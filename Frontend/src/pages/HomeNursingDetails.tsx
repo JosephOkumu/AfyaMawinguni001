@@ -16,6 +16,7 @@ import nursingService, {
   NursingProvider,
   NursingServiceOffering,
 } from "@/services/nursingService";
+import { useCalendarBookings } from "@/hooks/useCalendarBookings";
 import {
   Search,
   Bell,
@@ -413,6 +414,19 @@ const HomeNursingDetails = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Calendar booking hook
+  const {
+    occupiedDates,
+    occupiedTimes,
+    isLoading: bookingsLoading,
+    getOccupiedTimesForDate,
+    isDateOccupied,
+    isTimeOccupied,
+  } = useCalendarBookings({
+    providerId: provider?.id || 0,
+    providerType: "nursing",
+  });
 
   // Fetch provider data when component mounts
   useEffect(() => {
@@ -1095,36 +1109,173 @@ const HomeNursingDetails = () => {
                   <Calendar
                     mode="single"
                     selected={date}
-                    onSelect={setDate}
+                    onSelect={(selectedDate) => {
+                      setDate(selectedDate);
+                      setTimeSlot(null); // Reset time slot when date changes
+                      if (selectedDate) {
+                        getOccupiedTimesForDate(selectedDate);
+                      }
+                    }}
                     disabled={(date) => {
                       // Disable dates in the past
                       return date < new Date(new Date().setHours(0, 0, 0, 0));
                     }}
+                    modifiers={{
+                      booked: (date) => isDateOccupied(date),
+                    }}
+                    modifiersStyles={{
+                      booked: {
+                        backgroundColor: "#ef4444",
+                        color: "white",
+                        fontWeight: "bold",
+                      },
+                    }}
                     className="rounded-md border-none"
                   />
                 </div>
+                {/* Legend */}
+                <div className="flex items-center gap-4 mt-2 text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-red-500 rounded"></div>
+                    <span>Fully Booked</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <span>Available</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-orange-500 rounded"></div>
+                    <span>Limited Slots</span>
+                  </div>
+                </div>
+                {bookingsLoading && (
+                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                    <div className="animate-spin h-3 w-3 border border-gray-300 border-t-transparent rounded-full"></div>
+                    <span>Loading availability...</span>
+                  </div>
+                )}
               </div>
 
               {/* Select Time */}
               <div>
                 <Label className="mb-2 block font-medium">Select Time</Label>
-                <div className="border rounded-md p-3 shadow-sm bg-white overflow-y-auto h-[250px]">
-                  <div className="grid grid-cols-3 gap-2">
-                    {timeSlots.map((slot) => (
-                      <div
-                        key={slot}
-                        className={`py-2 px-1 text-center text-sm rounded-md cursor-pointer border ${
-                          timeSlot === slot
-                            ? "bg-green-500 text-white border-green-500"
-                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                        }`}
-                        onClick={() => handleTimeSlotSelection(slot)}
-                      >
-                        {slot}
-                      </div>
-                    ))}
+                {!date ? (
+                  <div className="border rounded-md p-3 shadow-sm bg-gray-50 h-[250px] flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Please select a date first</p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="border rounded-md p-3 shadow-sm bg-white overflow-y-auto h-[250px]">
+                    {bookingsLoading ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                          <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-green-500 rounded-full mx-auto mb-2"></div>
+                          <p className="text-sm text-gray-500">
+                            Loading time slots...
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-3 gap-2">
+                          {timeSlots.map((slot) => {
+                            const isOccupied = isTimeOccupied(slot);
+                            const isSelected = timeSlot === slot;
+                            return (
+                              <div
+                                key={slot}
+                                className={`py-2 px-1 text-center text-sm rounded-md border transition-all duration-200 ${
+                                  isOccupied
+                                    ? "bg-red-100 text-red-700 border-red-300 cursor-not-allowed opacity-75"
+                                    : isSelected
+                                      ? "bg-green-500 text-white border-green-500 cursor-pointer shadow-md transform scale-105"
+                                      : "border-gray-200 hover:border-green-300 hover:bg-green-50 cursor-pointer hover:shadow-sm"
+                                }`}
+                                onClick={() =>
+                                  !isOccupied && handleTimeSlotSelection(slot)
+                                }
+                                title={
+                                  isOccupied
+                                    ? "This time slot is already booked for nursing services"
+                                    : isSelected
+                                      ? "Selected time slot"
+                                      : "Click to select this time slot"
+                                }
+                              >
+                                <div className="font-medium">{slot}</div>
+                                {isOccupied && (
+                                  <div className="text-xs mt-0.5 flex items-center justify-center gap-1">
+                                    <X className="h-3 w-3" />
+                                    Booked
+                                  </div>
+                                )}
+                                {!isOccupied && !isSelected && (
+                                  <div className="text-xs mt-0.5 text-green-600">
+                                    Available
+                                  </div>
+                                )}
+                                {isSelected && (
+                                  <div className="text-xs mt-0.5 flex items-center justify-center gap-1">
+                                    <CheckCircle className="h-3 w-3" />
+                                    Selected
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Time slots summary */}
+                        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex justify-between items-center text-xs text-gray-600">
+                            <span>
+                              Available slots:{" "}
+                              {
+                                timeSlots.filter(
+                                  (slot) => !isTimeOccupied(slot),
+                                ).length
+                              }
+                            </span>
+                            <span>
+                              Booked slots:{" "}
+                              {
+                                timeSlots.filter((slot) => isTimeOccupied(slot))
+                                  .length
+                              }
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div
+                              className="bg-red-500 h-2 rounded-full transition-all duration-300"
+                              style={{
+                                width: `${(timeSlots.filter((slot) => isTimeOccupied(slot)).length / timeSlots.length) * 100}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Popular times notice for nursing services */}
+                {date && (
+                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="flex items-start gap-2">
+                      <Clock className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <div className="text-xs text-blue-700">
+                        <div className="font-medium">Nursing Service Hours</div>
+                        <div>
+                          Morning slots (8-11 AM) are popular for elderly care.
+                          Evening slots (4-6 PM) are in high demand for
+                          post-work visits.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

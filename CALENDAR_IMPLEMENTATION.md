@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the complete implementation of an interactive appointment calendar for doctors in the AfyaMawinguni medical platform. The calendar provides a comprehensive view of scheduled appointments with filtering capabilities, detailed appointment information, and support for both virtual and in-person consultations.
+This document outlines the complete implementation of an interactive appointment calendar for medical service providers (doctors, nurses, labs) in the AfyaMawinguni medical platform. The calendar provides a comprehensive view of scheduled appointments with filtering capabilities, detailed appointment information, and support for both virtual and in-person consultations. The implementation includes occupied time slots visualization to prevent double-booking.
 
 ## Features Implemented
 
@@ -48,11 +48,16 @@ AfyaMawinguni001/Frontend/src/
 │       ├── CalendarDemo.tsx           # Demo component with sample data
 │       ├── index.ts                   # Export declarations
 │       └── README.md                  # Component documentation
+├── hooks/
+│   └── useNursingCalendar.ts          # Custom hook for nursing calendar
 ├── services/
-│   └── appointmentService.ts          # Updated API service
+│   ├── appointmentService.ts          # Updated API service
+│   └── nursingService.ts              # Nursing service with accept/reject
 └── pages/
     └── ProviderDashboard/
-        └── DoctorDashboard.tsx        # Updated dashboard with calendar
+        ├── DoctorDashboard.tsx        # Updated dashboard with calendar
+        ├── HomeNursingDashboard.tsx   # Nursing dashboard with calendar
+        └── LabDashboard.tsx           # Lab dashboard ready for calendar
 ```
 
 ## Database Schema
@@ -115,11 +120,27 @@ interface Appointment {
 
 ### API Endpoints
 
+#### Doctor Appointments
 - `GET /doctor/appointments` - Fetch doctor's appointments
 - `GET /appointments/{id}` - Get specific appointment details
 - `POST /appointments` - Create new appointment
 - `PUT /appointments/{id}` - Update appointment
 - `PUT /appointments/{id}/cancel` - Cancel appointment
+- `GET /doctors/{id}/occupied-dates` - Get occupied dates for doctor
+- `GET /doctors/{id}/occupied-times` - Get occupied times for doctor on specific date
+
+#### Nursing Services
+- `GET /nursing-provider/nursing-services` - Fetch nursing provider's services
+- `PUT /nursing-services/{id}/accept` - Accept nursing service request
+- `PUT /nursing-services/{id}/confirm` - Confirm nursing service request
+- `PUT /nursing-services/{id}/reject` - Reject nursing service request
+- `GET /nursing-providers/{id}/occupied-dates` - Get occupied dates for nursing provider
+- `GET /nursing-providers/{id}/occupied-times` - Get occupied times for nursing provider
+
+#### Lab Tests
+- `GET /lab-provider/lab-tests` - Fetch lab provider's tests
+- `GET /lab-providers/{id}/occupied-dates` - Get occupied dates for lab provider
+- `GET /lab-providers/{id}/occupied-times` - Get occupied times for lab provider
 
 ## Integration Steps
 
@@ -131,6 +152,11 @@ Ensure your Laravel backend has the updated appointment migration and model:
 php artisan migrate
 ```
 
+The backend now includes:
+- Accept/reject endpoints for nursing services
+- Occupied dates/times endpoints for all provider types
+- Calendar functionality for doctors, nursing providers, and lab providers
+
 ### 2. Frontend Dependencies
 
 All required dependencies are already installed:
@@ -140,6 +166,7 @@ All required dependencies are already installed:
 
 ### 3. Import and Use
 
+#### For Doctor Dashboard
 ```tsx
 import { AppointmentCalendar } from '@/components/calendar';
 
@@ -156,7 +183,6 @@ function DoctorSchedule() {
     <AppointmentCalendar
       appointments={appointments}
       onAppointmentClick={(appointment) => {
-        // Handle appointment click
         console.log('Selected:', appointment);
       }}
     />
@@ -164,14 +190,54 @@ function DoctorSchedule() {
 }
 ```
 
-## Usage in Doctor Dashboard
+#### For Nursing Provider Dashboard
+```tsx
+import { AppointmentCalendar } from '@/components/calendar';
+import useNursingCalendar from '@/hooks/useNursingCalendar';
 
-The calendar is integrated into the doctor dashboard at the route `http://localhost:8080/provider/doctor` in the "My Schedule" tab. The implementation includes:
+function NursingSchedule() {
+  const {
+    appointments,
+    isLoading,
+    acceptRequest,
+    rejectRequest,
+  } = useNursingCalendar();
 
+  return (
+    <AppointmentCalendar
+      appointments={appointments}
+      onAppointmentConfirm={acceptRequest}
+      onAppointmentReject={rejectRequest}
+    />
+  );
+}
+```
+
+## Usage in Provider Dashboards
+
+The calendar is integrated into multiple provider dashboards:
+
+### Doctor Dashboard
+- Route: `http://localhost:8080/provider/doctor`
+- Tab: "My Schedule"
+- Features: View appointments, appointment details modal, virtual meeting links
+
+### Nursing Provider Dashboard
+- Route: `http://localhost:8080/provider/nursing`
+- Tab: "My Schedule"
+- Features: Accept/reject requests, view occupied slots, prevent double-booking
+
+### Lab Provider Dashboard
+- Route: `http://localhost:8080/provider/lab`
+- Ready for calendar integration with occupied slots functionality
+
+### Common Implementation Features
 1. **Loading State**: Shows spinner while fetching appointments
-2. **Error Handling**: Graceful handling of API failures with fallback sample data
+2. **Error Handling**: Graceful handling of API failures
 3. **Click Handlers**: Toast notifications and custom appointment handling
 4. **Responsive Layout**: Adapts to different screen sizes
+5. **Occupied Slots**: Visual indication of unavailable time slots
+6. **Double-booking Prevention**: Prevents scheduling conflicts
 
 ## Customization Options
 
@@ -191,7 +257,26 @@ const getAppointmentModeColor = (appointment: Appointment) => {
 Add custom filters by extending the `FilterType` union:
 
 ```typescript
-type FilterType = "all" | "today" | "tomorrow" | "week" | "month" | "unpaid";
+type FilterType = "all" | "today" | "tomorrow" | "week" | "month" | "unpaid" | "pending" | "confirmed";
+```
+
+### Provider-Specific Customization
+Different providers can customize the calendar for their specific needs:
+
+```typescript
+// Nursing provider specific
+const nursingCalendarProps = {
+  showAcceptReject: true,
+  allowStatusChange: true,
+  preventDoubleBooking: true,
+};
+
+// Lab provider specific
+const labCalendarProps = {
+  showTestDetails: true,
+  allowRescheduling: true,
+  showTurnaroundTime: true,
+};
 ```
 
 ### Calendar View Options
@@ -206,16 +291,22 @@ type FilterType = "all" | "today" | "tomorrow" | "week" | "month" | "unpaid";
 - **Memoized Calculations**: Prevents unnecessary recalculations
 - **Conditional Rendering**: Only renders visible appointments
 - **Lazy Loading**: Modal content loaded on demand
+- **Custom Hooks**: useNursingCalendar hook for nursing-specific functionality
+- **Smart Caching**: Occupied times cached per date to reduce API calls
 
 ### Recommended Practices
 - Implement pagination for large appointment lists
-- Cache appointment data with react-query
+- Cache appointment data with react-query or SWR
 - Use virtual scrolling for very long lists
 - Debounce filter changes
+- Implement real-time updates with WebSockets for instant calendar updates
+- Add offline support with service workers
 
 ## Testing
 
 ### Manual Testing Checklist
+
+#### Core Calendar Functionality
 - [ ] Calendar displays correctly with sample data
 - [ ] Clicking dates shows appointments for that day
 - [ ] Filtering works for all time periods
@@ -224,14 +315,37 @@ type FilterType = "all" | "today" | "tomorrow" | "week" | "month" | "unpaid";
 - [ ] Virtual vs in-person appointments display differently
 - [ ] Mobile responsiveness works correctly
 
-### Demo Component
-Use the `CalendarDemo` component to test all features:
+#### Provider-Specific Testing
+- [ ] Nursing providers can accept/reject requests
+- [ ] Occupied time slots are visually indicated
+- [ ] Double-booking prevention works correctly
+- [ ] Request status updates reflect in real-time
+- [ ] Calendar updates after accepting/rejecting requests
+- [ ] Lab providers can view test schedules
+- [ ] Occupied dates API returns correct data
+
+### Demo Components
+Use demo components to test all features:
 
 ```tsx
+// General calendar demo
 import CalendarDemo from '@/components/calendar/CalendarDemo';
+
+// Nursing-specific testing
+import useNursingCalendar from '@/hooks/useNursingCalendar';
 
 function TestPage() {
   return <CalendarDemo />;
+}
+
+function NursingCalendarTest() {
+  const calendar = useNursingCalendar();
+  return (
+    <div>
+      <h2>Nursing Calendar Test</h2>
+      <AppointmentCalendar {...calendar} />
+    </div>
+  );
 }
 ```
 
@@ -254,7 +368,17 @@ function TestPage() {
    - Verify state management for modal visibility
    - Ensure appointment data is properly passed
 
-4. **Styling Issues**
+4. **Accept/Reject Not Working**
+   - Verify nursing service API endpoints are working
+   - Check authentication and provider permissions
+   - Ensure request IDs are being passed correctly
+
+5. **Occupied Slots Not Showing**
+   - Check occupied dates/times API endpoints
+   - Verify provider ID is correct
+   - Ensure calendar hook is loading occupied data
+
+6. **Styling Issues**
    - Confirm Tailwind CSS is properly configured
    - Check for conflicting CSS classes
    - Verify component hierarchy for proper styling
@@ -262,25 +386,33 @@ function TestPage() {
 ## Future Enhancements
 
 ### Planned Features
-- **Drag & Drop Rescheduling**: Allow doctors to drag appointments to new times
+- **Drag & Drop Rescheduling**: Allow providers to drag appointments to new times
 - **Recurring Appointments**: Support for repeating appointments
-- **Time Slot Management**: Visual time slot availability
+- **Advanced Time Slot Management**: Visual time slot availability with conflicts
 - **Calendar Export**: Export to Google Calendar, Outlook, etc.
 - **Real-time Updates**: WebSocket integration for live updates
 - **Notification System**: Appointment reminders and alerts
+- **Multi-provider View**: View multiple providers' schedules simultaneously
+- **Resource Management**: Room and equipment booking integration
 
 ### Integration Opportunities
 - **Video Call Integration**: Direct integration with Zoom, Teams, etc.
 - **SMS Notifications**: Automated patient reminders
 - **Payment Processing**: Direct payment links in appointment details
 - **Electronic Health Records**: Integration with patient medical records
+- **Lab Information System**: Integration with lab equipment and results
+- **Nursing Care Plans**: Integration with patient care documentation
+- **Mobile Apps**: React Native or PWA for mobile calendar access
 
 ## Security Considerations
 
-- All appointment data is filtered by doctor_id on the backend
-- Patient information is only accessible to assigned doctors
+- All appointment data is filtered by provider_id on the backend
+- Patient information is only accessible to assigned providers
 - Meeting links are protected and expire appropriately
 - HIPAA compliance for patient data handling
+- Accept/reject actions are authenticated and authorized
+- Occupied slots data is provider-specific and secured
+- API rate limiting prevents abuse of calendar endpoints
 
 ## Deployment Notes
 
@@ -300,6 +432,16 @@ For technical issues or questions about the calendar implementation:
 
 ---
 
-**Implementation Status**: ✅ Complete
+**Implementation Status**: ✅ Complete (Doctor, Nursing) / 🚧 Ready (Lab)
 **Last Updated**: January 2025
-**Version**: 1.0.0
+**Version**: 1.1.0
+
+### Recent Updates (v1.1.0)
+- ✅ Added nursing provider calendar functionality
+- ✅ Implemented accept/reject request handlers
+- ✅ Added occupied time slots visualization
+- ✅ Created useNursingCalendar custom hook
+- ✅ Added double-booking prevention
+- ✅ Extended API with nursing service endpoints
+- 🚧 Lab provider calendar integration ready
+- 🚧 Multi-provider dashboard views planned

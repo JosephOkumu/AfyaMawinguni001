@@ -61,6 +61,8 @@ import nursingService, {
   NursingServiceOfferingCreateData,
 } from "@/services/nursingService";
 import { format } from "date-fns";
+import { AppointmentCalendar } from "@/components/calendar";
+import useNursingCalendar from "@/hooks/useNursingCalendar";
 
 // Helper function to safely get user data from localStorage
 const getCurrentUser = () => {
@@ -290,6 +292,15 @@ const HomeNursingDashboard = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Calendar functionality
+  const {
+    appointments: calendarAppointments,
+    isLoading: isLoadingCalendar,
+    acceptRequest,
+    rejectRequest,
+    completeService,
+  } = useNursingCalendar();
 
   const profileForm = useForm<ProviderProfileForm>({
     defaultValues: {
@@ -760,6 +771,62 @@ const HomeNursingDashboard = () => {
     }
   };
 
+  const handleAcceptRequest = async (requestId: number) => {
+    try {
+      // Accept the nursing service request
+      await nursingService.acceptNursingService(requestId);
+
+      // Update the local state to reflect the accepted request
+      setAppointments((prev) =>
+        prev.map((apt) =>
+          apt.id === requestId ? { ...apt, status: "confirmed" as const } : apt,
+        ),
+      );
+
+      toast({
+        title: "Request Accepted",
+        description:
+          "The nursing service request has been accepted successfully.",
+      });
+    } catch (error) {
+      console.error("Failed to accept request:", error);
+      toast({
+        title: "Error",
+        description: "Failed to accept the request. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRejectRequest = async (
+    requestId: number,
+    rejectionReason?: string,
+  ) => {
+    try {
+      // Reject the nursing service request
+      await nursingService.rejectNursingService(requestId, rejectionReason);
+
+      // Update the local state to reflect the rejected request
+      setAppointments((prev) =>
+        prev.map((apt) =>
+          apt.id === requestId ? { ...apt, status: "cancelled" as const } : apt,
+        ),
+      );
+
+      toast({
+        title: "Request Rejected",
+        description: "The nursing service request has been rejected.",
+      });
+    } catch (error) {
+      console.error("Failed to reject request:", error);
+      toast({
+        title: "Error",
+        description: "Failed to reject the request. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getAppointmentDate = (appointment: NursingAppointment) => {
     return new Date(appointment.appointment_datetime);
   };
@@ -1091,6 +1158,10 @@ const HomeNursingDashboard = () => {
                 <TabsTrigger value="services" className="gap-2">
                   <Home className="h-4 w-4" />
                   <span>My Services</span>
+                </TabsTrigger>
+                <TabsTrigger value="calendar" className="gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>My Schedule</span>
                 </TabsTrigger>
                 <TabsTrigger value="requests" className="gap-2">
                   <Bell className="h-4 w-4" />
@@ -1439,6 +1510,7 @@ const HomeNursingDashboard = () => {
                               size="sm"
                               variant="outline"
                               className="text-green-600 border-green-600"
+                              onClick={() => handleAcceptRequest(1)}
                             >
                               Accept
                             </Button>
@@ -1446,6 +1518,7 @@ const HomeNursingDashboard = () => {
                               size="sm"
                               variant="outline"
                               className="text-red-600 border-red-600"
+                              onClick={() => handleRejectRequest(1)}
                             >
                               Decline
                             </Button>
@@ -1475,6 +1548,7 @@ const HomeNursingDashboard = () => {
                               size="sm"
                               variant="outline"
                               className="text-green-600 border-green-600"
+                              onClick={() => handleAcceptRequest(2)}
                             >
                               Accept
                             </Button>
@@ -1482,6 +1556,7 @@ const HomeNursingDashboard = () => {
                               size="sm"
                               variant="outline"
                               className="text-red-600 border-red-600"
+                              onClick={() => handleRejectRequest(2)}
                             >
                               Decline
                             </Button>
@@ -1511,6 +1586,7 @@ const HomeNursingDashboard = () => {
                               size="sm"
                               variant="outline"
                               className="text-green-600 border-green-600"
+                              onClick={() => handleAcceptRequest(3)}
                             >
                               Accept
                             </Button>
@@ -1518,6 +1594,7 @@ const HomeNursingDashboard = () => {
                               size="sm"
                               variant="outline"
                               className="text-red-600 border-red-600"
+                              onClick={() => handleRejectRequest(3)}
                             >
                               Decline
                             </Button>
@@ -1529,6 +1606,63 @@ const HomeNursingDashboard = () => {
                 </Card>
               </TabsContent>
 
+              {/* Calendar Tab */}
+              <TabsContent value="calendar">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-xl font-semibold">My Schedule</h2>
+                        <p className="text-gray-600">
+                          View and manage your nursing appointments
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingCalendar ? (
+                      <div className="flex items-center justify-center h-64">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-blue mx-auto mb-4"></div>
+                          <p className="text-gray-600">
+                            Loading your schedule...
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <AppointmentCalendar
+                        appointments={calendarAppointments}
+                        onAppointmentClick={(appointment) => {
+                          console.log("Appointment clicked:", appointment);
+                          // You can add custom handling here
+                        }}
+                        onAppointmentConfirm={async (appointmentId) => {
+                          try {
+                            await acceptRequest(appointmentId);
+                          } catch (error) {
+                            console.error(
+                              "Failed to confirm appointment:",
+                              error,
+                            );
+                          }
+                        }}
+                        onAppointmentReject={async (appointmentId) => {
+                          try {
+                            await rejectRequest(appointmentId);
+                          } catch (error) {
+                            console.error(
+                              "Failed to reject appointment:",
+                              error,
+                            );
+                          }
+                        }}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Appointments Tab */}
               {/* My Schedule Tab */}
               <TabsContent value="schedule">
                 <Card>

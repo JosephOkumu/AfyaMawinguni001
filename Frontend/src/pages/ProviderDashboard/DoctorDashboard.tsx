@@ -936,19 +936,34 @@ const DoctorDashboard = () => {
   };
 
   // Handler to confirm an appointment
-  const handleAppointmentConfirm = (appointmentId: number) => {
-    setAppointments((prevAppointments) =>
-      prevAppointments.map((appointment) =>
-        appointment.id === appointmentId
-          ? { ...appointment, status: "confirmed" as const }
-          : appointment,
-      ),
-    );
-    toast({
-      title: "Appointment Confirmed",
-      description: "The appointment has been successfully confirmed.",
-      variant: "default",
-    });
+  const handleAppointmentConfirm = async (appointmentId: number) => {
+    try {
+      // Update appointment status in backend
+      await appointmentService.confirmAppointment(appointmentId);
+
+      // Update local state
+      setAppointments((prevAppointments) =>
+        prevAppointments.map((appointment) =>
+          appointment.id === appointmentId
+            ? { ...appointment, status: "confirmed" as const }
+            : appointment,
+        ),
+      );
+
+      toast({
+        title: "Appointment Confirmed",
+        description:
+          "The appointment has been successfully confirmed and will now show as booked on your calendar.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error confirming appointment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to confirm appointment. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handler to reject an appointment

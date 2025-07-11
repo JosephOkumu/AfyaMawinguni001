@@ -272,6 +272,53 @@ const nursingService = {
     );
     return response.data.data;
   },
+
+  // Accept/Reject nursing service requests
+  acceptNursingService: async (id: number): Promise<NursingService> => {
+    const response = await api.put<{ data: NursingService }>(
+      `/nursing-services/${id}/accept`,
+    );
+    return response.data.data;
+  },
+
+  confirmNursingService: async (id: number): Promise<NursingService> => {
+    const response = await api.put<{ data: NursingService }>(
+      `/nursing-services/${id}/confirm`,
+    );
+    return response.data.data;
+  },
+
+  rejectNursingService: async (
+    id: number,
+    rejectionReason?: string,
+  ): Promise<NursingService> => {
+    const response = await api.put<{ data: NursingService }>(
+      `/nursing-services/${id}/reject`,
+      {
+        rejection_reason: rejectionReason,
+      },
+    );
+    return response.data.data;
+  },
+
+  // Get occupied dates for a nursing provider
+  getOccupiedDates: async (providerId: number): Promise<string[]> => {
+    const response = await api.get<{ data: string[] }>(
+      `/nursing-providers/${providerId}/occupied-dates`,
+    );
+    return response.data.data;
+  },
+
+  // Get occupied time slots for a nursing provider on a specific date
+  getOccupiedTimes: async (
+    providerId: number,
+    date: string,
+  ): Promise<string[]> => {
+    const response = await api.get<{ data: string[] }>(
+      `/nursing-providers/${providerId}/occupied-times?date=${date}`,
+    );
+    return response.data.data;
+  },
 };
 
 export default nursingService;

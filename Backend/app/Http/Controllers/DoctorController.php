@@ -397,6 +397,102 @@ class DoctorController extends Controller
     }
 
     /**
+     * Get occupied dates for a specific doctor
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getOccupiedDates($id)
+    {
+        $doctor = Doctor::find($id);
+
+        if (!$doctor) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Doctor not found'
+            ], 404);
+        }
+
+        try {
+            // Get all confirmed appointments for this doctor
+            $occupiedDates = \DB::table('appointments')
+                ->where('doctor_id', $id)
+                ->where('status', 'confirmed')
+                ->whereDate('appointment_datetime', '>=', now()->toDateString())
+                ->select(\DB::raw('DATE(appointment_datetime) as date'))
+                ->distinct()
+                ->pluck('date')
+                ->toArray();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $occupiedDates
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch occupied dates: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get occupied time slots for a specific doctor on a specific date
+     *
+     * @param  int  $id
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getOccupiedTimes($id, Request $request)
+    {
+        $doctor = Doctor::find($id);
+
+        if (!$doctor) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Doctor not found'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date|after_or_equal:today'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $date = $request->get('date');
+
+            // Get all confirmed appointments for this doctor on the specified date
+            $occupiedTimes = \DB::table('appointments')
+                ->where('doctor_id', $id)
+                ->where('status', 'confirmed')
+                ->whereDate('appointment_datetime', $date)
+                ->select(\DB::raw('TIME_FORMAT(appointment_datetime, "%h:%i %p") as time'))
+                ->pluck('time')
+                ->toArray();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $occupiedTimes
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch occupied times: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Remove the specified doctor from storage.
      *
      * @param  int  $id

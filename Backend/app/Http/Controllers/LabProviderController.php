@@ -364,4 +364,100 @@ class LabProviderController extends Controller
             'message' => 'Lab provider deleted successfully'
         ]);
     }
+
+    /**
+     * Get occupied dates for a specific lab provider
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getOccupiedDates($id)
+    {
+        $labProvider = LabProvider::find($id);
+
+        if (!$labProvider) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lab provider not found'
+            ], 404);
+        }
+
+        try {
+            // Get all confirmed lab tests for this provider
+            $occupiedDates = \DB::table('lab_tests')
+                ->where('lab_provider_id', $id)
+                ->where('status', 'confirmed')
+                ->whereDate('test_date', '>=', now()->toDateString())
+                ->select(\DB::raw('DATE(test_date) as date'))
+                ->distinct()
+                ->pluck('date')
+                ->toArray();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $occupiedDates
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch occupied dates: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get occupied time slots for a specific lab provider on a specific date
+     *
+     * @param  int  $id
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getOccupiedTimes($id, Request $request)
+    {
+        $labProvider = LabProvider::find($id);
+
+        if (!$labProvider) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lab provider not found'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date|after_or_equal:today'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $date = $request->get('date');
+
+            // Get all confirmed lab tests for this provider on the specified date
+            $occupiedTimes = \DB::table('lab_tests')
+                ->where('lab_provider_id', $id)
+                ->where('status', 'confirmed')
+                ->whereDate('test_date', $date)
+                ->select(\DB::raw('TIME_FORMAT(test_date, "%h:%i %p") as time'))
+                ->pluck('time')
+                ->toArray();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $occupiedTimes
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch occupied times: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

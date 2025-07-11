@@ -376,4 +376,100 @@ class NursingProviderController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get occupied dates for a specific nursing provider
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getOccupiedDates($id)
+    {
+        $nursingProvider = NursingProvider::find($id);
+
+        if (!$nursingProvider) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing provider not found'
+            ], 404);
+        }
+
+        try {
+            // Get all confirmed nursing services for this provider
+            $occupiedDates = \DB::table('nursing_services')
+                ->where('nursing_provider_id', $id)
+                ->where('status', 'confirmed')
+                ->whereDate('start_date', '>=', now()->toDateString())
+                ->select(\DB::raw('DATE(start_date) as date'))
+                ->distinct()
+                ->pluck('date')
+                ->toArray();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $occupiedDates
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch occupied dates: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get occupied time slots for a specific nursing provider on a specific date
+     *
+     * @param  int  $id
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getOccupiedTimes($id, Request $request)
+    {
+        $nursingProvider = NursingProvider::find($id);
+
+        if (!$nursingProvider) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing provider not found'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date|after_or_equal:today'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $date = $request->get('date');
+
+            // Get all confirmed nursing services for this provider on the specified date
+            $occupiedTimes = \DB::table('nursing_services')
+                ->where('nursing_provider_id', $id)
+                ->where('status', 'confirmed')
+                ->whereDate('start_date', $date)
+                ->select(\DB::raw('TIME_FORMAT(start_date, "%h:%i %p") as time'))
+                ->pluck('time')
+                ->toArray();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $occupiedTimes
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch occupied times: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

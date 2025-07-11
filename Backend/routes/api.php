@@ -46,9 +46,13 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
     Route::get('/doctor/profile', [DoctorController::class, 'profile']);
-    Route::put('/doctor/profile', [DoctorController::class, 'updateProfile']);
+    Route::get('/doctor/profile', [DoctorController::class, 'profile']);
     Route::patch('/doctor/profile', [DoctorController::class, 'updateProfile']);
     Route::post('/doctor/upload-image', [DoctorController::class, 'uploadProfileImage']);
+
+    // Doctor booking routes
+    Route::get('/doctors/{id}/occupied-dates', [DoctorController::class, 'getOccupiedDates']);
+    Route::get('/doctors/{id}/occupied-times', [DoctorController::class, 'getOccupiedTimes']);
 
     // Appointment routes
     Route::apiResource('appointments', AppointmentController::class);
@@ -61,6 +65,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/lab-provider/profile', [LabProviderController::class, 'profile']);
     Route::put('/lab-provider/profile', [LabProviderController::class, 'updateProfile']);
     Route::post('/lab-provider/upload-image', [LabProviderController::class, 'uploadProfileImage']);
+
+    // Lab provider booking routes
+    Route::get('/lab-providers/{id}/occupied-dates', [LabProviderController::class, 'getOccupiedDates']);
+    Route::get('/lab-providers/{id}/occupied-times', [LabProviderController::class, 'getOccupiedTimes']);
 
     // Lab Test Service routes (for lab providers)
     Route::get('/lab-provider/test-services', [LabTestServiceController::class, 'index']);
@@ -82,6 +90,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/nursing-provider/profile', [NursingProviderController::class, 'updateProfile']);
     Route::post('/nursing-provider/upload-image', [NursingProviderController::class, 'uploadProfileImage']);
 
+    // Nursing provider booking routes
+    Route::get('/nursing-providers/{id}/occupied-dates', [NursingProviderController::class, 'getOccupiedDates']);
+    Route::get('/nursing-providers/{id}/occupied-times', [NursingProviderController::class, 'getOccupiedTimes']);
+
     // Nursing Service Offerings routes (for providers to manage their services)
     Route::get('/nursing-provider/service-offerings', [NursingServiceOfferingController::class, 'index']);
     Route::post('/nursing-provider/service-offerings', [NursingServiceOfferingController::class, 'store']);
@@ -97,6 +109,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('nursing-services', NursingServiceController::class);
     Route::get('/patient/nursing-services', [NursingServiceController::class, 'index'])->name('patient.nursing-services');
     Route::get('/nursing-provider/nursing-services', [NursingServiceController::class, 'index'])->name('nursing-provider.nursing-services');
+    Route::put('/nursing-services/{id}/accept', [NursingServiceController::class, 'accept']);
+    Route::put('/nursing-services/{id}/confirm', [NursingServiceController::class, 'confirm']);
+    Route::put('/nursing-services/{id}/reject', [NursingServiceController::class, 'reject']);
 
     // Pharmacy routes
     Route::apiResource('pharmacies', PharmacyController::class);

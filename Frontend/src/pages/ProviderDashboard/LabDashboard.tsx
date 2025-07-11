@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
@@ -60,7 +60,7 @@ interface LabTest {
   description: string;
   price: number;
   turnaroundTime: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   isActive: boolean;
 }
 
@@ -144,6 +144,24 @@ const LabDashboard = () => {
     },
   });
 
+  // Load test services
+  const loadTestServices = useCallback(async () => {
+    try {
+      setIsTestServicesLoading(true);
+      const services = await labService.getTestServices();
+      setTestServices(services);
+    } catch (error) {
+      console.error("Failed to load test services:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load test services.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTestServicesLoading(false);
+    }
+  }, [toast]);
+
   // Load profile data on component mount
   useEffect(() => {
     const loadProfile = async () => {
@@ -181,12 +199,13 @@ const LabDashboard = () => {
 
         setLaboratoryProfile(mappedProfile);
         profileForm.reset(mappedProfile);
-      } catch (error) {
-        console.error("Failed to load profile:", error);
+      } catch (error: unknown) {
+        console.error("Failed to update profile:", error);
+        const errorMessage =
+          "Failed to load laboratory profile. Using default values.";
         toast({
           title: "Error",
-          description:
-            "Failed to load laboratory profile. Using default values.",
+          description: errorMessage,
           variant: "destructive",
         });
       } finally {
@@ -196,25 +215,7 @@ const LabDashboard = () => {
 
     loadProfile();
     loadTestServices();
-  }, []);
-
-  // Load test services
-  const loadTestServices = async () => {
-    try {
-      setIsTestServicesLoading(true);
-      const services = await labService.getTestServices();
-      setTestServices(services);
-    } catch (error) {
-      console.error("Failed to load test services:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load test services.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsTestServicesLoading(false);
-    }
-  };
+  }, [loadTestServices, profileForm, toast]);
 
   const appointments: Appointment[] = [
     {
@@ -309,12 +310,11 @@ const LabDashboard = () => {
       setShowTestForm(false);
       setSelectedTest(null);
       testForm.reset();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to save test service:", error);
       toast({
         title: "Error",
-        description:
-          error.response?.data?.message || "Failed to save test service.",
+        description: "Failed to save test service.",
         variant: "destructive",
       });
     }
@@ -354,7 +354,7 @@ const LabDashboard = () => {
         title: updatedService.is_active ? "Test Activated" : "Test Deactivated",
         description: `${updatedService.test_name} has been ${updatedService.is_active ? "activated" : "deactivated"}.`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to toggle test status:", error);
       toast({
         title: "Error",
@@ -406,23 +406,12 @@ const LabDashboard = () => {
       });
 
       setShowProfileDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to update profile:", error);
-      console.error("Error response:", error.response);
-      console.error("Validation errors:", error.response?.data?.errors);
-
-      // Show specific validation errors if available
-      let errorMessage =
-        "Failed to update laboratory profile. Please try again.";
-      if (error.response?.data?.errors) {
-        const validationErrors = error.response.data.errors;
-        const errorFields = Object.keys(validationErrors);
-        errorMessage = `Validation errors in: ${errorFields.join(", ")}. Check console for details.`;
-      }
 
       toast({
         title: "Error",
-        description: errorMessage,
+        description: "Failed to update laboratory profile. Please try again.",
         variant: "destructive",
       });
     }
@@ -497,7 +486,7 @@ const LabDashboard = () => {
         title: "Image Uploaded",
         description: "Profile image has been updated successfully.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to upload image:", error);
 
       // Revert to previous image on error

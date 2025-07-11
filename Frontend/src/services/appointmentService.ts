@@ -6,7 +6,13 @@ export interface Appointment {
   patient_id: number;
   doctor_id: number;
   appointment_datetime: string;
-  status: "scheduled" | "confirmed" | "completed" | "cancelled" | "rescheduled" | "no_show";
+  status:
+    | "scheduled"
+    | "confirmed"
+    | "completed"
+    | "cancelled"
+    | "rescheduled"
+    | "no_show";
   type: "in_person" | "virtual";
   reason_for_visit?: string;
   symptoms?: string;
@@ -89,6 +95,55 @@ const appointmentService = {
   // Cancel an appointment
   cancelAppointment: async (id: number): Promise<void> => {
     await api.put<void>(`/appointments/${id}`, { status: "cancelled" });
+  },
+
+  // Get occupied dates for a specific doctor
+  getDoctorOccupiedDates: async (doctorId: number): Promise<string[]> => {
+    const response = await api.get<{ data: string[] }>(
+      `/doctors/${doctorId}/occupied-dates`,
+    );
+    return response.data.data;
+  },
+
+  // Get occupied time slots for a specific doctor on a specific date
+  getDoctorOccupiedTimes: async (
+    doctorId: number,
+    date: string,
+  ): Promise<string[]> => {
+    const response = await api.get<{ data: string[] }>(
+      `/doctors/${doctorId}/occupied-times?date=${date}`,
+    );
+    return response.data.data;
+  },
+
+  // Get occupied dates for a specific nursing provider
+  getNursingProviderOccupiedDates: async (
+    providerId: number,
+  ): Promise<string[]> => {
+    const response = await api.get<{ data: string[] }>(
+      `/nursing-providers/${providerId}/occupied-dates`,
+    );
+    return response.data.data;
+  },
+
+  // Get occupied time slots for a specific nursing provider on a specific date
+  getNursingProviderOccupiedTimes: async (
+    providerId: number,
+    date: string,
+  ): Promise<string[]> => {
+    const response = await api.get<{ data: string[] }>(
+      `/nursing-providers/${providerId}/occupied-times?date=${date}`,
+    );
+    return response.data.data;
+  },
+
+  // Confirm an appointment (for providers)
+  confirmAppointment: async (id: number): Promise<Appointment> => {
+    const response = await api.put<{ data: Appointment }>(
+      `/appointments/${id}/confirm`,
+      {},
+    );
+    return response.data.data;
   },
 };
 

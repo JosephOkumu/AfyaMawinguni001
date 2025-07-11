@@ -18,21 +18,21 @@ class NursingServiceController extends Controller
     {
         // Allow filtering by patient_id or nursing_provider_id
         $query = NursingService::query();
-        
+
         if ($request->has('patient_id')) {
             $query->where('patient_id', $request->patient_id);
         }
-        
+
         if ($request->has('nursing_provider_id')) {
             $query->where('nursing_provider_id', $request->nursing_provider_id);
         }
-        
+
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
-        
+
         $nursingServices = $query->with(['patient', 'nursingProvider'])->orderBy('scheduled_datetime', 'asc')->get();
-        
+
         return response()->json([
             'status' => 'success',
             'data' => $nursingServices
@@ -185,5 +185,115 @@ class NursingServiceController extends Controller
             'status' => 'success',
             'message' => 'Nursing service deleted successfully'
         ]);
+    }
+
+    /**
+     * Accept a nursing service request (for nursing providers)
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function accept($id)
+    {
+        $nursingService = NursingService::find($id);
+
+        if (!$nursingService) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing service not found'
+            ], 404);
+        }
+
+        // Check if the service is in a state that can be accepted
+        if ($nursingService->status !== 'scheduled') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing service cannot be accepted in its current status'
+            ], 400);
+        }
+
+        try {
+            // Update status to confirmed
+            $nursingService->update(['status' => 'confirmed']);
+
+            // Reload with relationships
+            $nursingService = $nursingService->fresh(['patient', 'nursingProvider']);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Nursing service accepted successfully',
+                'data' => $nursingService
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to accept nursing service: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Confirm a nursing service request (alias for accept)
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function confirm($id)
+    {
+        return $this->accept($id);
+    }
+
+    /**
+     * Reject a nursing service request
+     *
+     * @param  int  $id
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function reject($id, Request $request)
+    {
+        $nursingService = NursingService::find($id);
+
+        if (!$nursingService) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing service not found'
+            ], 404);
+        }
+
+        // Check if the service is in a state that can be rejected
+        if (!in_array($nursingService->status, ['scheduled', 'confirmed'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing service cannot be rejected in its current status'
+            ], 400);
+        }
+
+        try {
+            $updateData = ['status' => 'cancelled'];
+
+            // Add rejection reason if provided
+            if ($request->has('rejection_reason')) {
+                $updateData['care_notes'] = $request->rejection_reason;
+            }
+
+            $nursingService->update($updateData);
+
+            // Reload with relationships
+            $nursingService = $nursingService->fresh(['patient', 'nursingProvider']);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Nursing service rejected successfully',
+                'data' => $nursingService
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to reject nursing service: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
