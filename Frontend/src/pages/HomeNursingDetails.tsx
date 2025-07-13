@@ -1298,7 +1298,7 @@ const HomeNursingDetails = () => {
       {isPaymentModalOpen && !isSuccess && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-md border-0 shadow-xl">
-            <div className="bg-gradient-to-r from-green-500 to-teal-500 text-white p-5">
+            <div className="bg-gradient-to-r from-blue-500 to-green-500 text-white p-5">
               <h2 className="text-xl font-bold">Complete Your Booking</h2>
               <p className="text-sm opacity-90">
                 Make payment to confirm your appointment
