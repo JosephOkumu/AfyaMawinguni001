@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
@@ -63,6 +64,7 @@ const LabProviderDetails = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [timeSlot, setTimeSlot] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState("mpesa");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -1012,21 +1014,23 @@ const LabProviderDetails = () => {
 
       {/* Payment Modal */}
       {isPaymentModalOpen && !isPaymentSuccess && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md mx-auto border-none shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-green-500 to-teal-500 text-white p-5">
-              <h2 className="text-xl font-bold font-playfair">
-                Complete Your Booking
-              </h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md border-0 shadow-xl">
+            <div className="bg-gradient-to-r from-blue-500 to-green-500 text-white p-5">
+              <h2 className="text-xl font-bold">Complete Your Booking</h2>
               <p className="text-sm opacity-90">
                 Make payment to confirm your appointment
               </p>
             </div>
             <CardContent className="p-6">
-              <div className="border-b pb-4 mb-4">
+              <div className="mb-6 border-b pb-4">
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Lab:</span>
                   <span className="font-medium">{provider?.lab_name}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-gray-600">Selected Tests:</span>
+                  <span className="font-medium">{selectedTests.length}</span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Date & Time:</span>
@@ -1034,87 +1038,113 @@ const LabProviderDetails = () => {
                     {date?.toLocaleDateString("en-GB")} at {timeSlot}
                   </span>
                 </div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Selected Tests:</span>
-                  <span className="font-medium">{selectedTests.length}</span>
-                </div>
-                <div className="flex justify-between font-bold mt-4 text-lg">
+                <div className="flex justify-between font-bold text-lg mt-4">
                   <span>Total Amount:</span>
-                  <span className="text-green-600">KSh {totalPrice}</span>
+                  <span className="text-green-600">KES {totalPrice}</span>
                 </div>
               </div>
 
-              {/* Payment method buttons */}
-              <div className="space-y-3 mb-6">
-                <Button
-                  variant="outline"
-                  className="w-full justify-between py-6 border-green-100 hover:bg-green-50"
-                  onClick={processPayment}
+              <div className="mb-6">
+                <Label className="mb-2 block font-medium">
+                  Select Payment Method
+                </Label>
+                <RadioGroup
+                  value={paymentMethod}
+                  onValueChange={setPaymentMethod}
+                  className="space-y-2"
                 >
-                  <span className="flex items-center">
-                    <div className="bg-green-100 rounded-full p-2 mr-3">
-                      <img
-                        src="/placeholder.svg"
-                        alt="M-Pesa"
-                        className="h-6 w-6"
-                      />
-                    </div>
-                    Pay with M-Pesa
-                  </span>
-                  <ChevronLeft className="h-5 w-5 rotate-180" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-between py-6 border-blue-100 hover:bg-blue-50"
-                  onClick={processPayment}
-                >
-                  <span className="flex items-center">
-                    <div className="bg-blue-100 rounded-full p-2 mr-3">
-                      <img
-                        src="/placeholder.svg"
-                        alt="Card"
-                        className="h-6 w-6"
-                      />
-                    </div>
-                    Pay with Card
-                  </span>
-                  <ChevronLeft className="h-5 w-5 rotate-180" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-between py-6 border-purple-100 hover:bg-purple-50"
-                  onClick={processPayment}
-                >
-                  <span className="flex items-center">
-                    <div className="bg-purple-100 rounded-full p-2 mr-3">
-                      <img
-                        src="/placeholder.svg"
-                        alt="PayPal"
-                        className="h-6 w-6"
-                      />
-                    </div>
-                    Pay with PayPal
-                  </span>
-                  <ChevronLeft className="h-5 w-5 rotate-180" />
-                </Button>
+                  <div className="border rounded-lg p-4 flex items-center space-x-2">
+                    <RadioGroupItem value="mpesa" id="mpesa" />
+                    <Label
+                      htmlFor="mpesa"
+                      className="flex items-center cursor-pointer"
+                    >
+                      <div className="bg-green-100 rounded-full p-1 mr-2">
+                        <span className="text-green-600 font-bold text-xs">
+                          M
+                        </span>
+                      </div>
+                      M-Pesa
+                    </Label>
+                  </div>
+                  <div className="border rounded-lg p-4 flex items-center space-x-2">
+                    <RadioGroupItem value="card" id="card" />
+                    <Label
+                      htmlFor="card"
+                      className="flex items-center cursor-pointer"
+                    >
+                      <div className="bg-blue-100 rounded-full p-1 mr-2">
+                        <span className="text-blue-600 font-bold text-xs">
+                          C
+                        </span>
+                      </div>
+                      Credit/Debit Card
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
 
-              <div className="flex justify-between">
+              {paymentMethod === "mpesa" && (
+                <div className="mb-6">
+                  <Label htmlFor="phone" className="mb-2 block font-medium">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    placeholder="e.g. 0712345678"
+                    className="mb-2"
+                  />
+                  <p className="text-xs text-gray-500">
+                    You will receive an M-Pesa prompt to complete the payment.
+                  </p>
+                </div>
+              )}
+
+              {paymentMethod === "card" && (
+                <div className="mb-6 space-y-4">
+                  <div>
+                    <Label
+                      htmlFor="cardNumber"
+                      className="mb-2 block font-medium"
+                    >
+                      Card Number
+                    </Label>
+                    <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label
+                        htmlFor="expiry"
+                        className="mb-2 block font-medium"
+                      >
+                        Expiry Date
+                      </Label>
+                      <Input id="expiry" placeholder="MM/YY" />
+                    </div>
+                    <div>
+                      <Label htmlFor="cvv" className="mb-2 block font-medium">
+                        CVV
+                      </Label>
+                      <Input id="cvv" placeholder="123" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-4">
                 <Button
                   variant="outline"
+                  className="flex-1"
                   onClick={() => setIsPaymentModalOpen(false)}
-                  className="text-gray-600"
                 >
                   Cancel
                 </Button>
                 <Button
+                  className="flex-1"
                   onClick={processPayment}
                   disabled={isProcessing}
-                  className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white"
                 >
-                  {isProcessing ? "Processing..." : "Confirm Payment"}
+                  {isProcessing ? "Processing..." : "Complete Payment"}
                 </Button>
               </div>
             </CardContent>
@@ -1122,64 +1152,27 @@ const LabProviderDetails = () => {
         </div>
       )}
 
-      {/* Payment Success Modal */}
-      {isPaymentModalOpen && isPaymentSuccess && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md mx-auto border-none shadow-xl overflow-hidden">
+      {/* Success Modal */}
+      {isPaymentSuccess && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md border-0 shadow-xl">
             <CardContent className="p-8 text-center">
-              <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Booking Confirmed!</h2>
+              <div className="bg-green-100 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="h-10 w-10 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-green-700 mb-2">
+                Booking Successful!
+              </h2>
               <p className="text-gray-600 mb-6">
-                Your appointment has been successfully booked.
+                Your lab appointment at {provider?.lab_name} has been scheduled
+                for {date?.toLocaleDateString("en-GB")} at {timeSlot}.
               </p>
-
-              <div className="bg-green-50 p-4 rounded-lg mb-6 text-left">
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Booking Reference:</span>
-                  <span className="font-medium">
-                    #LAB-{Math.floor(Math.random() * 1000000)}
-                  </span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Lab:</span>
-                  <span className="font-medium">{provider?.lab_name}</span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Date & Time:</span>
-                  <span className="font-medium">
-                    {date?.toLocaleDateString("en-GB")} at {timeSlot}
-                  </span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Amount Paid:</span>
-                  <span className="font-medium text-green-600">
-                    KSh {totalPrice}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    setIsPaymentModalOpen(false);
-                    setIsPaymentSuccess(false);
-                  }}
-                >
-                  Close
-                </Button>
-                <Button
-                  className="flex-1 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white"
-                  onClick={() => {
-                    setIsPaymentModalOpen(false);
-                    setIsPaymentSuccess(false);
-                    navigate("/patient-dashboard/appointments");
-                  }}
-                >
-                  View Appointments
-                </Button>
-              </div>
+              <Button
+                className="w-full"
+                onClick={() => navigate("/patient-dashboard/appointments")}
+              >
+                View My Appointments
+              </Button>
             </CardContent>
           </Card>
         </div>
