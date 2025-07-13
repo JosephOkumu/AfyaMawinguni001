@@ -17,6 +17,7 @@ import nursingService, {
   NursingServiceOffering,
 } from "@/services/nursingService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
+import { useMpesaPayment } from "@/hooks/useMpesaPayment";
 import {
   Search,
   Bell,
@@ -410,6 +411,7 @@ const HomeNursingDetails = () => {
   const [date, setDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("mpesa");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -426,6 +428,24 @@ const HomeNursingDetails = () => {
   } = useCalendarBookings({
     providerId: provider?.id || 0,
     providerType: "nursing",
+  });
+
+  // M-Pesa payment hook
+  const {
+    initiatePayment,
+    isProcessing: mpesaProcessing,
+    paymentStatus,
+    resetPayment,
+  } = useMpesaPayment({
+    onSuccess: (result) => {
+      setIsProcessing(false);
+      setIsSuccess(true);
+      setIsPaymentModalOpen(false);
+    },
+    onError: (error) => {
+      setIsProcessing(false);
+      console.error("Payment error:", error);
+    },
   });
 
   // Fetch provider data when component mounts
@@ -611,25 +631,51 @@ const HomeNursingDetails = () => {
     setIsPaymentModalOpen(true);
   };
 
-  const processPayment = () => {
-    setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsSuccess(true);
+  const processPayment = async () => {
+    if (paymentMethod === "mpesa") {
+      // Validate phone number
+      if (!phoneNumber.trim()) {
+        toast({
+          title: "Phone Number Required",
+          description: "Please enter your phone number for M-Pesa payment.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      toast({
-        title: "Appointment Booked!",
-        description:
-          "Your home nursing appointment has been successfully scheduled.",
-        variant: "default",
-      });
+      setIsProcessing(true);
 
-      // Redirect after a short delay
+      try {
+        await initiatePayment({
+          amount: Math.round(Number(totalPrice) || 0),
+          phoneNumber: phoneNumber,
+          accountReference: `NURSE-${provider?.id}-${Date.now()}`,
+          transactionDesc: `Home nursing services from ${provider?.provider_name || provider?.user.name}`,
+        });
+      } catch (error) {
+        setIsProcessing(false);
+        console.error("Payment initiation failed:", error);
+      }
+    } else {
+      // Handle card payments (simulate for now)
+      setIsProcessing(true);
       setTimeout(() => {
-        navigate("/patient-dashboard/appointments");
+        setIsProcessing(false);
+        setIsSuccess(true);
+
+        toast({
+          title: "Appointment Booked!",
+          description:
+            "Your home nursing appointment has been successfully scheduled.",
+          variant: "default",
+        });
+
+        // Redirect after a short delay
+        setTimeout(() => {
+          navigate("/patient-dashboard/appointments");
+        }, 2000);
       }, 2000);
-    }, 2000);
+    }
   };
 
   // Calculate total price
@@ -1379,12 +1425,19 @@ const HomeNursingDetails = () => {
                   </Label>
                   <Input
                     id="phone"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="e.g. 0712345678"
                     className="mb-2"
                   />
                   <p className="text-xs text-gray-500">
                     You will receive an M-Pesa prompt to complete the payment.
                   </p>
+                  {paymentStatus && (
+                    <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
+                      {paymentStatus}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1430,9 +1483,11 @@ const HomeNursingDetails = () => {
                 <Button
                   className="flex-1"
                   onClick={processPayment}
-                  disabled={isProcessing}
+                  disabled={isProcessing || mpesaProcessing}
                 >
-                  {isProcessing ? "Processing..." : "Complete Payment"}
+                  {isProcessing || mpesaProcessing
+                    ? "Processing..."
+                    : "Complete Payment"}
                 </Button>
               </div>
             </CardContent>

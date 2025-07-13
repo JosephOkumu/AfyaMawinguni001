@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import doctorService, { Doctor } from "@/services/doctorService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
+import { useMpesaPayment } from "@/hooks/useMpesaPayment";
 
 const defaultDoctorImage =
   "/lovable-uploads/a05b3053-380f-4711-b032-bc48d1c082f0.png";
@@ -128,6 +129,7 @@ const DoctorDetails = () => {
   const [date, setDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("mpesa");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -145,6 +147,24 @@ const DoctorDetails = () => {
   } = useCalendarBookings({
     providerId: doctor?.id || 0,
     providerType: "doctor",
+  });
+
+  // M-Pesa payment hook
+  const {
+    initiatePayment,
+    isProcessing: mpesaProcessing,
+    paymentStatus,
+    resetPayment,
+  } = useMpesaPayment({
+    onSuccess: (result) => {
+      setIsProcessing(false);
+      setIsSuccess(true);
+      setIsPaymentModalOpen(false);
+    },
+    onError: (error) => {
+      setIsProcessing(false);
+      console.error("Payment error:", error);
+    },
   });
 
   // Fetch doctor by ID when component mounts
@@ -229,24 +249,62 @@ const DoctorDetails = () => {
     setIsPaymentModalOpen(true);
   };
 
-  const processPayment = () => {
-    setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsSuccess(true);
+  const processPayment = async () => {
+    if (paymentMethod === "mpesa") {
+      // Validate phone number
+      if (!phoneNumber.trim()) {
+        toast({
+          title: "Phone Number Required",
+          description: "Please enter your phone number for M-Pesa payment.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      toast({
-        title: "Appointment Booked!",
-        description: "Your appointment has been successfully scheduled.",
-        variant: "default",
-      });
+      // Validate phone number format
+      const phoneRegex = /^(0|254)[17]\d{8}$/;
+      if (!phoneRegex.test(phoneNumber.replace(/\s/g, ""))) {
+        toast({
+          title: "Invalid Phone Number",
+          description:
+            "Please enter a valid Safaricom number (e.g., 0712345678).",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      // Redirect after a short delay
+      setIsProcessing(true);
+
+      try {
+        await initiatePayment({
+          amount: Number(consultationFee) || 0,
+          phoneNumber: phoneNumber,
+          accountReference: `DOC-${doctor.id}-${Date.now()}`,
+          transactionDesc: `Consultation with ${doctor.user.name}`,
+        });
+      } catch (error) {
+        setIsProcessing(false);
+        console.error("Payment initiation failed:", error);
+      }
+    } else {
+      // Handle card payments (simulate for now)
+      setIsProcessing(true);
       setTimeout(() => {
-        navigate("/patient-dashboard/appointments");
+        setIsProcessing(false);
+        setIsSuccess(true);
+
+        toast({
+          title: "Appointment Booked!",
+          description: "Your appointment has been successfully scheduled.",
+          variant: "default",
+        });
+
+        // Redirect after a short delay
+        setTimeout(() => {
+          navigate("/patient-dashboard/appointments");
+        }, 2000);
       }, 2000);
-    }, 2000);
+    }
   };
 
   if (loading) {
@@ -274,9 +332,11 @@ const DoctorDetails = () => {
 
   // Calculate consultation fee based on selected type
   const consultationFee =
-    consultationType === "physical"
-      ? doctor.physical_consultation_fee || doctor.default_consultation_fee
-      : doctor.online_consultation_fee || doctor.default_consultation_fee;
+    Number(
+      consultationType === "physical"
+        ? doctor.physical_consultation_fee || doctor.default_consultation_fee
+        : doctor.online_consultation_fee || doctor.default_consultation_fee,
+    ) || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
@@ -948,12 +1008,24 @@ const DoctorDetails = () => {
                   </Label>
                   <Input
                     id="phone"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="e.g. 0712345678"
                     className="mb-2"
                   />
                   <p className="text-xs text-gray-500">
                     You will receive an M-Pesa prompt to complete the payment.
                   </p>
+                  {paymentStatus && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+                      <div className="flex items-center space-x-2">
+                        {isProcessing || mpesaProcessing ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        ) : null}
+                        <span>{paymentStatus}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -999,9 +1071,18 @@ const DoctorDetails = () => {
                 <Button
                   className="flex-1"
                   onClick={processPayment}
-                  disabled={isProcessing}
+                  disabled={
+                    isProcessing || mpesaProcessing || !phoneNumber.trim()
+                  }
                 >
-                  {isProcessing ? "Processing..." : "Complete Payment"}
+                  {isProcessing || mpesaProcessing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    "Complete Payment"
+                  )}
                 </Button>
               </div>
             </CardContent>

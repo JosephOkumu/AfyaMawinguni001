@@ -47,6 +47,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import labService, { LabProvider, LabTestService } from "@/services/labService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
+import { useMpesaPayment } from "@/hooks/useMpesaPayment";
 
 const LabProviderDetails = () => {
   const { id } = useParams();
@@ -65,6 +66,7 @@ const LabProviderDetails = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [timeSlot, setTimeSlot] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("mpesa");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -81,6 +83,24 @@ const LabProviderDetails = () => {
   } = useCalendarBookings({
     providerId: provider?.id || 0,
     providerType: "lab",
+  });
+
+  // M-Pesa payment hook
+  const {
+    initiatePayment,
+    isProcessing: mpesaProcessing,
+    paymentStatus,
+    resetPayment,
+  } = useMpesaPayment({
+    onSuccess: (result) => {
+      setIsProcessing(false);
+      setIsPaymentSuccess(true);
+      setIsPaymentModalOpen(false);
+    },
+    onError: (error) => {
+      setIsProcessing(false);
+      console.error("Payment error:", error);
+    },
   });
 
   // Helper function to safely parse JSON
@@ -234,7 +254,7 @@ const LabProviderDetails = () => {
   // Calculate total price
   const totalPrice = selectedTests.reduce((sum, testId) => {
     const test = testServices.find((t) => t.id === testId);
-    return sum + (test?.price || 0);
+    return sum + (Number(test?.price) || 0);
   }, 0);
 
   // Available time slots for lab tests
@@ -292,13 +312,39 @@ const LabProviderDetails = () => {
     setIsPaymentModalOpen(true);
   };
 
-  const processPayment = () => {
-    setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsPaymentSuccess(true);
-    }, 2000);
+  const processPayment = async () => {
+    if (paymentMethod === "mpesa") {
+      // Validate phone number
+      if (!phoneNumber.trim()) {
+        toast({
+          title: "Phone Number Required",
+          description: "Please enter your phone number for M-Pesa payment.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsProcessing(true);
+
+      try {
+        await initiatePayment({
+          amount: Number(totalPrice) || 0,
+          phoneNumber: phoneNumber,
+          accountReference: `LAB-${provider?.id}-${Date.now()}`,
+          transactionDesc: `Lab tests at ${provider?.lab_name}`,
+        });
+      } catch (error) {
+        setIsProcessing(false);
+        console.error("Payment initiation failed:", error);
+      }
+    } else {
+      // Handle card payments (simulate for now)
+      setIsProcessing(true);
+      setTimeout(() => {
+        setIsProcessing(false);
+        setIsPaymentSuccess(true);
+      }, 2000);
+    }
   };
 
   if (loading) {
@@ -1091,12 +1137,19 @@ const LabProviderDetails = () => {
                   </Label>
                   <Input
                     id="phone"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="e.g. 0712345678"
                     className="mb-2"
                   />
                   <p className="text-xs text-gray-500">
                     You will receive an M-Pesa prompt to complete the payment.
                   </p>
+                  {paymentStatus && (
+                    <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
+                      {paymentStatus}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1142,9 +1195,11 @@ const LabProviderDetails = () => {
                 <Button
                   className="flex-1"
                   onClick={processPayment}
-                  disabled={isProcessing}
+                  disabled={isProcessing || mpesaProcessing}
                 >
-                  {isProcessing ? "Processing..." : "Complete Payment"}
+                  {isProcessing || mpesaProcessing
+                    ? "Processing..."
+                    : "Complete Payment"}
                 </Button>
               </div>
             </CardContent>
