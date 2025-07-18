@@ -113,8 +113,6 @@ interface NursingServiceForm {
   id?: string;
   name: string;
   description: string;
-  location: string;
-  availability: string;
   experience: string;
   price: string;
 }
@@ -318,8 +316,6 @@ const HomeNursingDashboard = () => {
     defaultValues: {
       name: "",
       description: "",
-      location: "",
-      availability: "",
       experience: "",
       price: "",
     },
@@ -329,8 +325,6 @@ const HomeNursingDashboard = () => {
     form.reset({
       name: "",
       description: "",
-      location: "",
-      availability: "",
       experience: "",
       price: "",
     });
@@ -345,8 +339,6 @@ const HomeNursingDashboard = () => {
     form.reset({
       name: "",
       description: "",
-      location: "",
-      availability: "",
       experience: "",
       price: "",
     });
@@ -359,8 +351,6 @@ const HomeNursingDashboard = () => {
       id: service.id.toString(),
       name: service.name,
       description: service.description,
-      location: service.location,
-      availability: service.availability,
       experience: service.experience,
       price: service.price.toString(),
     });
@@ -368,8 +358,6 @@ const HomeNursingDashboard = () => {
       id: service.id.toString(),
       name: service.name,
       description: service.description,
-      location: service.location,
-      availability: service.availability,
       experience: service.experience,
       price: service.price.toString(),
     });
@@ -437,8 +425,8 @@ const HomeNursingDashboard = () => {
       const serviceData: NursingServiceOfferingCreateData = {
         name: data.name,
         description: data.description,
-        location: data.location,
-        availability: data.availability,
+        location: "Nairobi, Kenya", // Default location
+        availability: "Available", // Default availability
         experience: data.experience,
         price: parseFloat(data.price),
       };
@@ -1242,26 +1230,6 @@ const HomeNursingDashboard = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <FormField
                                 control={form.control}
-                                name="location"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Service Area</FormLabel>
-                                    <FormControl>
-                                      <div className="relative">
-                                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                        <Input
-                                          className="pl-10"
-                                          placeholder="e.g., Nairobi Central"
-                                          {...field}
-                                        />
-                                      </div>
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
                                 name="price"
                                 render={({ field }) => (
                                   <FormItem>
@@ -1272,28 +1240,6 @@ const HomeNursingDashboard = () => {
                                         placeholder="e.g., 2500"
                                         {...field}
                                       />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <FormField
-                                control={form.control}
-                                name="availability"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Availability</FormLabel>
-                                    <FormControl>
-                                      <div className="relative">
-                                        <Clock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                        <Input
-                                          className="pl-10"
-                                          placeholder="e.g., Monday-Friday, 9AM-5PM"
-                                          {...field}
-                                        />
-                                      </div>
                                     </FormControl>
                                   </FormItem>
                                 )}
