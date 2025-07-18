@@ -191,6 +191,12 @@ const AIChat: React.FC = () => {
       {/* Floating Action Button */}
       {!open && (
         <div className="fixed bottom-6 right-6 z-50">
+          {/* Highlight text above the bot icon */}
+          <div className="absolute -top-12 -right-2 bg-green-500 text-white px-3 py-1 rounded-lg shadow-lg text-sm whitespace-nowrap animate-pulse">
+            Hi, need any help?
+            {/* Speech bubble arrow */}
+            <div className="absolute top-full right-6 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-green-500"></div>
+          </div>
           <button
             onClick={() => setOpen(true)}
             className="group relative"
@@ -215,7 +221,7 @@ const AIChat: React.FC = () => {
                 </div>
                 <div>
                   <DialogTitle className="text-white font-semibold">
-                    Alex - AI Health Assistant
+                    Alex
                   </DialogTitle>
                 </div>
               </div>
