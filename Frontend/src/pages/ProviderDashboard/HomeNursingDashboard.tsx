@@ -1137,10 +1137,7 @@ const HomeNursingDashboard = () => {
                   <Bell className="h-4 w-4" />
                   <span>Pending Requests</span>
                 </TabsTrigger>
-                <TabsTrigger value="schedule" className="gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>My Schedule</span>
-                </TabsTrigger>
+
                 <TabsTrigger value="history" className="gap-2">
                   <Activity className="h-4 w-4" />
                   <span>Appointment History</span>
@@ -1586,91 +1583,6 @@ const HomeNursingDashboard = () => {
                         }}
                       />
                     )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Appointments Tab */}
-              {/* My Schedule Tab */}
-              <TabsContent value="schedule">
-                <Card>
-                  <CardHeader>
-                    <h2 className="text-xl font-semibold">My Schedule</h2>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {getFilteredAppointments().length === 0 ? (
-                        <div className="p-8 text-center">
-                          <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                          <h3 className="text-lg font-medium text-gray-900 mb-2">
-                            No appointments found
-                          </h3>
-                          <p className="text-gray-500">
-                            No appointments scheduled.
-                          </p>
-                        </div>
-                      ) : (
-                        getFilteredAppointments().map((appointment) => (
-                          <Card
-                            key={appointment.id}
-                            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
-                          >
-                            <CardContent
-                              className="p-4"
-                              onClick={() =>
-                                handleAppointmentClick(appointment)
-                              }
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                  <div className="flex flex-col">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <Clock className="h-4 w-4 text-gray-500" />
-                                      <span className="font-medium text-blue-600">
-                                        {format(
-                                          new Date(
-                                            appointment.appointment_datetime,
-                                          ),
-                                          "MMM dd, yyyy",
-                                        )}{" "}
-                                        at {getAppointmentTime(appointment)}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <User className="h-4 w-4 text-gray-500" />
-                                      <span className="text-gray-700">
-                                        {appointment.patient?.user?.name ||
-                                          "Unknown Patient"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center space-x-2">
-                                  <Badge
-                                    variant="outline"
-                                    className="bg-yellow-50 text-yellow-700 border-yellow-200"
-                                  >
-                                    <div className="flex items-center gap-1">
-                                      <MapPin className="h-3 w-3" />
-                                      <span>{appointment.location}</span>
-                                    </div>
-                                  </Badge>
-
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-green-100 hover:border-green-300 hover:text-green-700 font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-                                  >
-                                    View
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))
-                      )}
-                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
