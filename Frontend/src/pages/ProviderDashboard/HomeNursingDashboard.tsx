@@ -82,7 +82,7 @@ interface ProviderProfileForm {
   location: string;
   professionalSummary: string;
   availability: string;
-  startingPrice: string;
+  licenseNumber: string;
 }
 
 interface NursingAppointment {
@@ -310,7 +310,7 @@ const HomeNursingDashboard = () => {
       location: "Nairobi, Kenya",
       professionalSummary: "Professional nursing care services",
       availability: "24/7",
-      startingPrice: "0",
+      licenseNumber: getCurrentUser().license_number || "",
     },
   });
 
@@ -499,7 +499,7 @@ const HomeNursingDashboard = () => {
         location: "Nairobi, Kenya",
         professionalSummary: profile.description || "",
         availability: "24/7",
-        startingPrice: profile.base_rate_per_hour?.toString() || "0",
+        licenseNumber: profile.license_number || "",
       });
     } catch (error: unknown) {
       console.log("Profile loading error:", error);
@@ -553,7 +553,7 @@ const HomeNursingDashboard = () => {
             professionalSummary:
               newProfile.description || "Professional nursing care services",
             availability: "24/7",
-            startingPrice: newProfile.base_rate_per_hour?.toString() || "0",
+            licenseNumber: newProfile.license_number || "",
           });
 
           console.log("Default nursing provider profile created successfully");
@@ -595,7 +595,7 @@ const HomeNursingDashboard = () => {
             location: "Nairobi, Kenya",
             professionalSummary: "Professional nursing care services",
             availability: "24/7",
-            startingPrice: "0",
+            licenseNumber: currentUser.license_number || "",
           });
 
           toast({
@@ -678,9 +678,8 @@ const HomeNursingDashboard = () => {
         description: data.professionalSummary || "",
         qualifications: "Professional nursing qualifications",
         services_offered: "Home nursing services",
-        base_rate_per_hour: data.startingPrice
-          ? parseFloat(data.startingPrice.toString())
-          : 0,
+        base_rate_per_hour: nursingProfile?.base_rate_per_hour || 0,
+        license_number: data.licenseNumber || "",
       };
 
       console.log("API data being sent:", apiData);
@@ -992,14 +991,16 @@ const HomeNursingDashboard = () => {
                         />
                         <FormField
                           control={profileForm.control}
-                          name="startingPrice"
+                          name="licenseNumber"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Starting Price (KES)</FormLabel>
+                              <FormLabel>License Number</FormLabel>
                               <FormControl>
                                 <Input
-                                  type="number"
-                                  placeholder="Enter starting price"
+                                  type="text"
+                                  placeholder="License number"
+                                  readOnly
+                                  className="bg-gray-50"
                                   {...field}
                                 />
                               </FormControl>
