@@ -871,9 +871,9 @@ const HomeNursingDetails = () => {
                       <Shield className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <div className="text-sm opacity-80">Starting Price</div>
+                      <div className="text-sm opacity-80">Rating</div>
                       <div className="font-bold text-lg">
-                        KES {provider.startingPrice}
+                        {provider.average_rating || 0}
                       </div>
                     </div>
                   </div>
