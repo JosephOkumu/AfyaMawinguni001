@@ -26,54 +26,13 @@ class AIService {
         "heart palpitations",
         "irregular heartbeat",
         "cardiac",
+        "heart",
       ],
-      recommendedSpecialist: "Cardiologist",
+      recommendedSpecialist: "Cardiology",
       urgencyLevel: "high",
       description: "Heart and cardiovascular system specialist",
       additionalInfo:
         "⚠️ If experiencing severe chest pain, seek emergency care immediately!",
-    },
-    {
-      symptoms: [
-        "brain",
-        "headache",
-        "migraine",
-        "seizure",
-        "stroke",
-        "memory loss",
-        "neurological",
-      ],
-      recommendedSpecialist: "Neurologist",
-      urgencyLevel: "medium",
-      description: "Brain and nervous system specialist",
-    },
-    {
-      symptoms: [
-        "bone",
-        "joint",
-        "fracture",
-        "back pain",
-        "knee pain",
-        "arthritis",
-        "sports injury",
-      ],
-      recommendedSpecialist: "Orthopedic Specialist",
-      urgencyLevel: "medium",
-      description: "Bone, joint, and musculoskeletal specialist",
-    },
-    {
-      symptoms: [
-        "skin",
-        "rash",
-        "acne",
-        "mole",
-        "eczema",
-        "dermatitis",
-        "psoriasis",
-      ],
-      recommendedSpecialist: "Dermatologist",
-      urgencyLevel: "low",
-      description: "Skin, hair, and nail specialist",
     },
     {
       symptoms: [
@@ -84,29 +43,46 @@ class AIService {
         "diarrhea",
         "constipation",
         "gastro",
+        "abdominal pain",
       ],
-      recommendedSpecialist: "Gastroenterologist",
+      recommendedSpecialist: "Gastroenterology",
       urgencyLevel: "medium",
       description: "Digestive system specialist",
     },
     {
       symptoms: [
-        "eye",
-        "vision",
-        "blurry vision",
-        "eye pain",
-        "glaucoma",
-        "cataract",
+        "bone",
+        "joint",
+        "fracture",
+        "back pain",
+        "knee pain",
+        "arthritis",
+        "sports injury",
+        "muscle pain",
       ],
-      recommendedSpecialist: "Ophthalmologist",
+      recommendedSpecialist: "Orthopedics",
       urgencyLevel: "medium",
-      description: "Eye and vision specialist",
+      description: "Bone, joint, and musculoskeletal specialist",
     },
     {
-      symptoms: ["ear", "hearing", "throat", "nose", "sinus", "tonsils", "ent"],
-      recommendedSpecialist: "ENT Specialist",
+      symptoms: [
+        "child",
+        "pediatric",
+        "baby",
+        "infant",
+        "vaccination",
+        "growth",
+        "kids",
+      ],
+      recommendedSpecialist: "Pediatrics",
       urgencyLevel: "medium",
-      description: "Ear, Nose, and Throat specialist",
+      description: "Children's health specialist",
+    },
+    {
+      symptoms: ["cancer", "tumor", "oncology", "chemotherapy", "radiation"],
+      recommendedSpecialist: "Oncology",
+      urgencyLevel: "high",
+      description: "Cancer treatment specialist",
     },
     {
       symptoms: [
@@ -116,23 +92,62 @@ class AIService {
         "stress",
         "psychological",
         "mood",
+        "counseling",
       ],
-      recommendedSpecialist: "Psychiatrist/Psychologist",
+      recommendedSpecialist: "Counselling",
       urgencyLevel: "medium",
       description: "Mental health and psychological disorders specialist",
     },
     {
       symptoms: [
-        "lung",
-        "breathing",
-        "asthma",
-        "cough",
-        "respiratory",
-        "pneumonia",
+        "nutrition",
+        "diet",
+        "weight loss",
+        "eating disorder",
+        "obesity",
+        "malnutrition",
       ],
-      recommendedSpecialist: "Pulmonologist",
+      recommendedSpecialist: "Nutrition & Dietetics",
+      urgencyLevel: "low",
+      description: "Nutrition and dietary specialist",
+    },
+    {
+      symptoms: [
+        "internal medicine",
+        "diabetes",
+        "hypertension",
+        "chronic disease",
+        "adult medicine",
+      ],
+      recommendedSpecialist: "Internal Medicine",
       urgencyLevel: "medium",
-      description: "Lung and respiratory system specialist",
+      description: "Internal medicine specialist for adult health",
+    },
+    {
+      symptoms: [
+        "fever",
+        "cold",
+        "flu",
+        "general illness",
+        "checkup",
+        "routine",
+        "primary care",
+      ],
+      recommendedSpecialist: "General Practitioner",
+      urgencyLevel: "low",
+      description: "Primary care physician for general health concerns",
+    },
+    {
+      symptoms: ["ear", "hearing", "throat", "nose", "sinus", "tonsils", "ent"],
+      recommendedSpecialist: "Otolaryngology",
+      urgencyLevel: "medium",
+      description: "Ear, Nose, and Throat specialist",
+    },
+    {
+      symptoms: ["diabetes", "thyroid", "hormone", "endocrine", "metabolism"],
+      recommendedSpecialist: "Endocrinology",
+      urgencyLevel: "medium",
+      description: "Hormone and metabolic disorders specialist",
     },
     {
       symptoms: [
@@ -143,7 +158,7 @@ class AIService {
         "prostate",
         "reproductive",
       ],
-      recommendedSpecialist: "Urologist",
+      recommendedSpecialist: "Urology",
       urgencyLevel: "medium",
       description: "Urinary system and male reproductive system specialist",
     },
@@ -154,48 +169,36 @@ class AIService {
         "women health",
         "menstrual",
         "reproductive health",
+        "obstetrics",
       ],
-      recommendedSpecialist: "Gynecologist/Obstetrician",
+      recommendedSpecialist: "Obstetrics & Gynecology",
       urgencyLevel: "medium",
       description: "Women's reproductive health specialist",
     },
     {
       symptoms: [
-        "child",
-        "pediatric",
-        "baby",
-        "infant",
-        "vaccination",
-        "growth",
+        "speech",
+        "speech therapy",
+        "communication disorder",
+        "language delay",
+        "stuttering",
+        "voice problems",
       ],
-      recommendedSpecialist: "Pediatrician",
-      urgencyLevel: "medium",
-      description: "Children's health specialist",
-    },
-    {
-      symptoms: ["diabetes", "thyroid", "hormone", "endocrine", "metabolism"],
-      recommendedSpecialist: "Endocrinologist",
-      urgencyLevel: "medium",
-      description: "Hormone and metabolic disorders specialist",
-    },
-    {
-      symptoms: ["cancer", "tumor", "oncology", "chemotherapy", "radiation"],
-      recommendedSpecialist: "Oncologist",
-      urgencyLevel: "high",
-      description: "Cancer treatment specialist",
+      recommendedSpecialist: "Speech Therapy",
+      urgencyLevel: "low",
+      description: "Speech and communication disorders specialist",
     },
     {
       symptoms: [
-        "fever",
-        "cold",
-        "flu",
-        "general illness",
-        "checkup",
-        "routine",
+        "family medicine",
+        "primary care",
+        "preventive care",
+        "health maintenance",
+        "routine check",
       ],
-      recommendedSpecialist: "General Practitioner",
+      recommendedSpecialist: "Family Medicine",
       urgencyLevel: "low",
-      description: "Primary care physician for general health concerns",
+      description: "Comprehensive primary care for all ages",
     },
   ];
 
@@ -629,14 +632,13 @@ class AIService {
       emergency: "🚨",
     };
 
-    let response = `${urgencyEmoji[condition.urgencyLevel]} **${condition.recommendedSpecialist}**\n\n`;
-    response += `${condition.description}\n\n`;
+    let response = `${condition.description}\n\n`;
 
     if (
       condition.urgencyLevel === "emergency" ||
       condition.urgencyLevel === "high"
     ) {
-      response += `⚠️ <strong>Important</strong>: This seems to require prompt medical attention. `;
+      response += `⚠️ Important: This seems to require prompt medical attention. `;
     }
 
     response += `I recommend consulting with a **${condition.recommendedSpecialist}** who specializes in these types of conditions.\n\n`;
@@ -674,9 +676,9 @@ class AIService {
 
   private getGreetingResponse(): string {
     const greetings = [
-      "👋 **Hello! I'm your AI health assistant.**\n\nI can help you with:\n\n🩺 **Health Guidance:**\n• Find the right specialist for your symptoms\n• Get personalized doctor recommendations\n• Understand urgency levels of health concerns\n\n💻 **Platform Navigation:**\n• Book appointments and services\n• Navigate our healthcare platform\n• Answer questions about our services\n\n**What can I help you with today?**",
-      "Hi there! **I'm here to help you with health questions and platform navigation.**\n\n**Quick actions:**\n• Tell me your symptoms for doctor recommendations\n• Ask how to book appointments\n• Get help navigating our services\n\n**What would you like to know?**",
-      "Hello! **I can help you find the right doctor, book appointments, or answer questions about our services.**\n\n**I'm equipped with:**\n• Medical knowledge base\n• Platform navigation assistance\n• Emergency guidance\n\n**How may I assist you?**",
+      "👋 **Hello! I'm Alex, your AI health assistant.**\n\nI can help you with:\n\n🩺 **Health Guidance:**\n• Find the right specialist for your symptoms\n• Get personalized doctor recommendations\n• Understand urgency levels of health concerns\n\n💻 **Platform Navigation:**\n• Book appointments and services\n• Navigate our healthcare platform\n• Answer questions about our services\n\n**What can I help you with today?**",
+      "Hi there! **I'm Alex, here to help you with health questions and platform navigation.**\n\n**Quick actions:**\n• Tell me your symptoms for doctor recommendations\n• Ask how to book appointments\n• Get help navigating our services\n\n**What would you like to know?**",
+      "Hello! **I'm Alex, and I can help you find the right doctor, book appointments, or answer questions about our services.**\n\n**I'm equipped with:**\n• Medical knowledge base\n• Platform navigation assistance\n• Emergency guidance\n\n**How may I assist you?**",
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   }

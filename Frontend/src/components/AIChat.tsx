@@ -54,7 +54,7 @@ const AIChat: React.FC = () => {
     {
       id: "1",
       content:
-        "👋 Hello! I'm your AI health assistant powered by advanced medical knowledge. I can help you:\n\n🩺 **Health Guidance:**\n• Find the right specialist for your symptoms\n• Get personalized doctor recommendations\n• Understand urgency levels of health concerns\n\n💻 **Platform Navigation:**\n• Book appointments and services\n• Navigate our healthcare platform\n• Answer questions about our services\n\n🔍 **Smart Assistance:**\n• Contextual health advice based on your current page\n• Emergency guidance when needed\n• Step-by-step platform tutorials\n\nWhat can I help you with today?",
+        "👋 Hello! I'm Alex, your AI health assistant powered by advanced medical knowledge. I can help you:\n\n🩺 **Health Guidance:**\n• Find the right specialist for your symptoms\n• Get personalized doctor recommendations\n• Understand urgency levels of health concerns\n\n💻 **Platform Navigation:**\n• Book appointments and services\n• Navigate our healthcare platform\n• Answer questions about our services\n\n🔍 **Smart Assistance:**\n• Contextual health advice based on your current page\n• Emergency guidance when needed\n• Step-by-step platform tutorials\n\nWhat can I help you with today?",
       isUser: false,
       timestamp: new Date(),
     },
@@ -142,12 +142,32 @@ const AIChat: React.FC = () => {
   const formatMessage = (content: string) => {
     return content.split("\n").map((line, index) => (
       <div key={index} className={index > 0 ? "mt-1" : ""}>
-        {line.startsWith("**") && line.endsWith("**") ? (
-          <strong className="text-green-700">{line.slice(2, -2)}</strong>
-        ) : line.startsWith("• ") ? (
-          <div className="ml-2 text-gray-600">{line}</div>
+        {line.startsWith("• ") ? (
+          <div className="ml-2 text-gray-600">
+            {line.split(/(\*\*.*?\*\*)/).map((part, partIndex) => {
+              if (part.startsWith("**") && part.endsWith("**")) {
+                return (
+                  <strong key={partIndex} className="text-green-700">
+                    {part.slice(2, -2)}
+                  </strong>
+                );
+              }
+              return part;
+            })}
+          </div>
         ) : (
-          line
+          <div>
+            {line.split(/(\*\*.*?\*\*)/).map((part, partIndex) => {
+              if (part.startsWith("**") && part.endsWith("**")) {
+                return (
+                  <strong key={partIndex} className="text-green-700">
+                    {part.slice(2, -2)}
+                  </strong>
+                );
+              }
+              return part;
+            })}
+          </div>
         )}
       </div>
     ));
@@ -174,7 +194,7 @@ const AIChat: React.FC = () => {
           <button
             onClick={() => setOpen(true)}
             className="group relative"
-            aria-label="AI Health Assistant"
+            aria-label="Alex - AI Health Assistant"
           >
             <BotIcon />
             <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -195,7 +215,7 @@ const AIChat: React.FC = () => {
                 </div>
                 <div>
                   <DialogTitle className="text-white font-semibold">
-                    AI Health Assistant
+                    Alex - AI Health Assistant
                   </DialogTitle>
                 </div>
               </div>
