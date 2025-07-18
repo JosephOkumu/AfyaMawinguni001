@@ -81,7 +81,6 @@ interface ProviderProfileForm {
   email: string;
   location: string;
   professionalSummary: string;
-  availability: string;
   licenseNumber: string;
 }
 
@@ -307,7 +306,6 @@ const HomeNursingDashboard = () => {
       email: getCurrentUser().email || "",
       location: "Nairobi, Kenya",
       professionalSummary: "Professional nursing care services",
-      availability: "24/7",
       licenseNumber: getCurrentUser().license_number || "",
     },
   });
@@ -486,7 +484,6 @@ const HomeNursingDashboard = () => {
         email: profile.user?.email || "",
         location: "Nairobi, Kenya",
         professionalSummary: profile.description || "",
-        availability: "24/7",
         licenseNumber: profile.license_number || "",
       });
     } catch (error: unknown) {
@@ -540,7 +537,6 @@ const HomeNursingDashboard = () => {
             location: "Nairobi, Kenya",
             professionalSummary:
               newProfile.description || "Professional nursing care services",
-            availability: "24/7",
             licenseNumber: newProfile.license_number || "",
           });
 
@@ -582,7 +578,6 @@ const HomeNursingDashboard = () => {
             email: currentUser.email || "",
             location: "Nairobi, Kenya",
             professionalSummary: "Professional nursing care services",
-            availability: "24/7",
             licenseNumber: currentUser.license_number || "",
           });
 
@@ -962,21 +957,7 @@ const HomeNursingDashboard = () => {
                             </FormItem>
                           )}
                         />
-                        <FormField
-                          control={profileForm.control}
-                          name="availability"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Availability</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="e.g., 24/7, Weekdays 8AM-6PM"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
+
                         <FormField
                           control={profileForm.control}
                           name="licenseNumber"
