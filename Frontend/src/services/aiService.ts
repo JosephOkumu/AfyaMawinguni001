@@ -420,6 +420,20 @@ class AIService {
       return this.getEmergencyResponse();
     }
 
+    // Emergency number queries
+    if (
+      actualQuery.includes("emergency number") ||
+      actualQuery.includes("ambulance number") ||
+      actualQuery.includes("what number") ||
+      actualQuery.includes("which number") ||
+      actualQuery.includes("emergency contact") ||
+      actualQuery.includes("call in emergency") ||
+      actualQuery.includes("999") ||
+      actualQuery.includes("emergency services")
+    ) {
+      return this.getEmergencyNumberResponse();
+    }
+
     // Enhanced quick action responses - exact match for button text
     if (actualQuery === "i have fever and headache") {
       return `🌡️ **General Practitioner (Family Doctor)**\n\nFor fever and headaches, I recommend seeing a General Practitioner first. These symptoms could indicate:\n\n• Common viral infections (flu, cold)\n• Bacterial infections\n• Stress or tension headaches\n• Dehydration\n\n**Immediate care:**\n• Rest and stay hydrated\n• Monitor your temperature\n• Take over-the-counter pain relievers if needed\n\n📅 **Book appointment:**\n• Go to "Doctor Consultation"\n• Filter by "General Practice"\n• Choose available time slot\n\n⚠️ If fever exceeds 103°F (39.4°C) or symptoms worsen, seek immediate medical attention!`;
@@ -671,7 +685,11 @@ class AIService {
   }
 
   private getEmergencyResponse(): string {
-    return `🚨 **EMERGENCY ALERT**\n\nIf this is a medical emergency, please:\n\n• **Call 911 or your local emergency number immediately**\n• Go to the nearest emergency room\n• Contact emergency medical services\n\n⚠️ Do not wait for online consultations in emergency situations!\n\nFor urgent but non-emergency care, you can:\n• Book a same-day appointment\n• Contact our 24/7 support line\n• Visit an urgent care provider`;
+    return `🚨 **EMERGENCY ALERT**\n\nIf this is a medical emergency, please:\n\n• **Call 999 for ambulance services immediately**\n• Go to the nearest emergency room\n• Contact emergency medical services\n\n⚠️ Do not wait for online consultations in emergency situations!\n\nFor urgent but non-emergency care, you can:\n• Book a same-day appointment\n• Contact our 24/7 support line\n• Visit an urgent care provider`;
+  }
+
+  private getEmergencyNumberResponse(): string {
+    return `🚨 **Emergency Contact Numbers**\n\n**In case of medical emergency:**\n• **Ambulance: 999**\n• **Police: 999**\n• **Fire: 999**\n\n**How to use:**\n• Dial 999 from any phone\n• Tell them you need an ambulance\n• Provide your location clearly\n• Stay on the line until help arrives\n\n**When to call 999:**\n• Severe chest pain\n• Difficulty breathing\n• Severe bleeding\n• Unconsciousness\n• Suspected stroke or heart attack\n• Severe allergic reactions\n\n⚠️ **Remember:** 999 is for life-threatening emergencies only!`;
   }
 
   private getGreetingResponse(): string {
