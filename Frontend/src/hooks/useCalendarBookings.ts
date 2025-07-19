@@ -18,19 +18,47 @@ interface UseCalendarBookingsReturn {
   isTimeOccupied: (time: string) => boolean;
 }
 
+// All available time slots for providers
+const ALL_TIME_SLOTS = [
+  "7:00 AM",
+  "7:30 AM",
+  "8:00 AM",
+  "8:30 AM",
+  "9:00 AM",
+  "9:30 AM",
+  "10:00 AM",
+  "10:30 AM",
+  "11:00 AM",
+  "11:30 AM",
+  "12:00 PM",
+  "12:30 PM",
+  "1:00 PM",
+  "1:30 PM",
+  "2:00 PM",
+  "2:30 PM",
+  "3:00 PM",
+  "3:30 PM",
+  "4:00 PM",
+  "4:30 PM",
+];
+
 // Dummy occupied dates for demonstration (will be removed when payment features are implemented)
 const getDummyOccupiedDates = (): string[] => {
   const dates = [];
   const today = new Date();
 
-  // Add some dates in the next 30 days as occupied
+  // Check each date in the next 30 days to see if it should be fully booked
   for (let i = 0; i < 30; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
+    const dateString = date.toISOString().split("T")[0];
 
-    // Make certain days fully booked (e.g., every 3rd day)
-    if (i % 3 === 0 || i % 7 === 0) {
-      dates.push(date.toISOString().split("T")[0]);
+    // Get occupied times for this date
+    const occupiedTimes = getDummyOccupiedTimes(dateString);
+
+    // Only mark as fully booked if ALL time slots are occupied
+    if (occupiedTimes.length >= ALL_TIME_SLOTS.length) {
+      dates.push(dateString);
     }
   }
 
@@ -64,7 +92,7 @@ const getDummyOccupiedTimes = (dateString: string): string[] => {
       "5:30 PM",
     );
   } else if (dayOfWeek === 5) {
-    // Friday - all day busy
+    // Friday - very busy but not fully booked
     occupiedTimes.push(
       "8:00 AM",
       "9:00 AM",
@@ -80,6 +108,14 @@ const getDummyOccupiedTimes = (dateString: string): string[] => {
     occupiedTimes.push("8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM");
   }
   // Sunday - mostly available
+
+  // Only make one specific date fully booked for demonstration
+  // Let's make the 15th of each month fully booked
+  const dayOfMonth = date.getDate();
+  if (dayOfMonth === 15) {
+    // Fully booked - all time slots occupied
+    return [...ALL_TIME_SLOTS];
+  }
 
   return occupiedTimes;
 };
@@ -103,28 +139,29 @@ export const useCalendarBookings = ({
       setError(null);
 
       try {
-        let dates: string[] = [];
+        let fullyBookedDates: string[] = [];
 
         // For demonstration purposes, use dummy data
         // This will be replaced with real API calls when payment features are implemented
-        dates = getDummyOccupiedDates();
+        fullyBookedDates = getDummyOccupiedDates();
 
         /* Real API calls (commented out for demo):
         if (providerType === "doctor") {
-          dates = await appointmentService.getDoctorOccupiedDates(providerId);
+          // Get dates where all time slots are booked
+          fullyBookedDates = await appointmentService.getDoctorFullyBookedDates(providerId);
         } else if (providerType === "nursing") {
-          dates = await appointmentService.getNursingProviderOccupiedDates(providerId);
+          fullyBookedDates = await appointmentService.getNursingProviderFullyBookedDates(providerId);
         } else if (providerType === "lab") {
-          // Lab provider occupied dates - API endpoint exists
-          const response = await api.get(`/lab-providers/${providerId}/occupied-dates`);
-          dates = response.data.data;
+          // Lab provider fully booked dates - check when all time slots are occupied
+          const response = await api.get(`/lab-providers/${providerId}/fully-booked-dates`);
+          fullyBookedDates = response.data.data;
         }
         */
 
-        setOccupiedDates(dates);
+        setOccupiedDates(fullyBookedDates);
       } catch (err) {
-        console.error("Error fetching occupied dates:", err);
-        setError("Failed to load occupied dates");
+        console.error("Error fetching fully booked dates:", err);
+        setError("Failed to load availability");
         setOccupiedDates([]);
       } finally {
         setIsLoading(false);
@@ -172,7 +209,7 @@ export const useCalendarBookings = ({
     }
   };
 
-  // Helper function to check if a date is occupied
+  // Helper function to check if a date is fully booked (all time slots occupied)
   const isDateOccupied = (date: Date): boolean => {
     const dateString = date.toISOString().split("T")[0];
     return occupiedDates.includes(dateString);

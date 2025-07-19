@@ -48,6 +48,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import labService, { LabProvider, LabTestService } from "@/services/labService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
 import { useMpesaPayment } from "@/hooks/useMpesaPayment";
+import appointmentService from "@/services/appointmentService";
 
 const LabProviderDetails = () => {
   const { id } = useParams();
@@ -92,8 +93,43 @@ const LabProviderDetails = () => {
     paymentStatus,
     resetPayment,
   } = useMpesaPayment({
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       setIsProcessing(false);
+
+      // Create lab appointment after successful payment
+      try {
+        if (user && provider && date && timeSlot && selectedTests.length > 0) {
+          const appointmentDateTime = new Date(date);
+          const [time, period] = timeSlot.split(" ");
+          const [hours, minutes] = time.split(":");
+          let hour24 = parseInt(hours);
+
+          if (period === "PM" && hour24 !== 12) {
+            hour24 += 12;
+          } else if (period === "AM" && hour24 === 12) {
+            hour24 = 0;
+          }
+
+          appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
+
+          await appointmentService.createLabAppointment({
+            patient_id: user.id,
+            lab_provider_id: provider.id,
+            appointment_datetime: appointmentDateTime.toISOString(),
+            test_ids: selectedTests,
+            total_amount: Number(totalPrice),
+            payment_reference:
+              result.transactionId || `LAB-${provider.id}-${Date.now()}`,
+            notes: `Lab tests booked via M-Pesa payment`,
+          });
+
+          console.log("Lab appointment created successfully");
+        }
+      } catch (error) {
+        console.error("Error creating lab appointment:", error);
+        // Still show success since payment went through
+      }
+
       setIsPaymentSuccess(true);
       setIsPaymentModalOpen(false);
     },

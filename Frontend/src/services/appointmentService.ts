@@ -1,5 +1,6 @@
 import api from "./api";
 import { Doctor } from "./doctorService";
+import { LabProvider, LabTestService } from "./labService";
 
 export interface Appointment {
   id: number;
@@ -35,6 +36,50 @@ export interface Appointment {
       phone_number: string;
     };
   };
+}
+
+export interface LabAppointment {
+  id: number;
+  patient_id: number;
+  lab_provider_id: number;
+  appointment_datetime: string;
+  status:
+    | "scheduled"
+    | "confirmed"
+    | "completed"
+    | "cancelled"
+    | "rescheduled"
+    | "in_progress";
+  test_ids: number[];
+  total_amount: number;
+  is_paid: boolean;
+  payment_reference?: string;
+  notes?: string;
+  results?: string;
+  lab_notes?: string;
+  created_at: string;
+  updated_at: string;
+  patient?: {
+    id: number;
+    name: string;
+    email: string;
+    phone_number: string;
+  };
+  // Laravel returns snake_case, so we need to handle both
+  labProvider?: LabProvider;
+  lab_provider?: LabProvider;
+  labTests?: LabTestService[];
+  lab_tests?: LabTestService[];
+}
+
+export interface LabAppointmentCreateData {
+  patient_id: number;
+  lab_provider_id: number;
+  appointment_datetime: string;
+  test_ids: number[];
+  total_amount: number;
+  payment_reference?: string;
+  notes?: string;
 }
 
 export interface AppointmentCreateData {
@@ -142,6 +187,72 @@ const appointmentService = {
     const response = await api.put<{ data: Appointment }>(
       `/appointments/${id}/confirm`,
       {},
+    );
+    return response.data.data;
+  },
+
+  // Lab Appointment Methods
+  // Get all lab appointments for patient
+  getLabAppointments: async (): Promise<LabAppointment[]> => {
+    const response = await api.get<{ data: LabAppointment[] }>(
+      "/patient/lab-appointments",
+    );
+    return response.data.data;
+  },
+
+  // Create a new lab appointment
+  createLabAppointment: async (
+    data: LabAppointmentCreateData,
+  ): Promise<LabAppointment> => {
+    const response = await api.post<{ data: LabAppointment }>(
+      "/lab-appointments",
+      data,
+    );
+    return response.data.data;
+  },
+
+  // Get specific lab appointment
+  getLabAppointment: async (id: number): Promise<LabAppointment> => {
+    const response = await api.get<{ data: LabAppointment }>(
+      `/lab-appointments/${id}`,
+    );
+    return response.data.data;
+  },
+
+  // Update lab appointment
+  updateLabAppointment: async (
+    id: number,
+    data: Partial<LabAppointment>,
+  ): Promise<LabAppointment> => {
+    const response = await api.put<{ data: LabAppointment }>(
+      `/lab-appointments/${id}`,
+      data,
+    );
+    return response.data.data;
+  },
+
+  // Cancel lab appointment
+  cancelLabAppointment: async (id: number): Promise<void> => {
+    await api.put<void>(`/lab-appointments/${id}`, { status: "cancelled" });
+  },
+
+  // Get occupied times for lab provider
+  getLabProviderOccupiedTimes: async (
+    providerId: number,
+    date: string,
+  ): Promise<string[]> => {
+    const response = await api.get<{ data: string[] }>(
+      `/lab-providers/${providerId}/occupied-times?date=${date}`,
+    );
+    return response.data.data;
+  },
+
+  // Get fully booked dates for lab provider
+  getLabProviderFullyBookedDates: async (
+    providerId: number,
+  ): Promise<string[]> => {
+    const response = await api.get<{ data: string[] }>(
+      `/lab-providers/${providerId}/fully-booked-dates`,
     );
     return response.data.data;
   },

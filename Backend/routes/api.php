@@ -15,6 +15,7 @@ use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\MedicineOrderController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\LabAppointmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,6 +71,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // Lab provider booking routes
     Route::get('/lab-providers/{id}/occupied-dates', [LabProviderController::class, 'getOccupiedDates']);
     Route::get('/lab-providers/{id}/occupied-times', [LabProviderController::class, 'getOccupiedTimes']);
+    Route::get('/lab-providers/{id}/fully-booked-dates', [LabAppointmentController::class, 'getFullyBookedDates']);
+
+    // Lab Appointment routes
+    Route::apiResource('lab-appointments', LabAppointmentController::class);
+    Route::get('/patient/lab-appointments', [LabAppointmentController::class, 'index'])->name('patient.lab-appointments');
+    Route::get('/lab-providers/{id}/occupied-times', [LabAppointmentController::class, 'getOccupiedTimes']);
 
     // Lab Test Service routes (for lab providers)
     Route::get('/lab-provider/test-services', [LabTestServiceController::class, 'index']);
@@ -136,6 +143,8 @@ Route::get('/lab-providers/{labProviderId}/test-services', [LabTestServiceContro
 // Public route to get all doctors
 Route::get('/doctors', [DoctorController::class, 'index']);
 Route::get('/doctors/{id}', [DoctorController::class, 'show']);
+
+
 
 // M-Pesa Payment routes
 Route::prefix('payments/mpesa')->group(function () {

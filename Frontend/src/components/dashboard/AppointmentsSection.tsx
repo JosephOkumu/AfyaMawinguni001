@@ -1,10 +1,278 @@
-import React from "react";
-import { Calendar, Clock, Activity, Plus, FileText, Home } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import {
+  Calendar,
+  Clock,
+  Activity,
+  Plus,
+  FileText,
+  Home,
+  TestTube,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
+import appointmentService, {
+  Appointment,
+  LabAppointment,
+} from "@/services/appointmentService";
+import { useAuth } from "@/contexts/AuthContext";
+import { format } from "date-fns";
 
 const AppointmentsSection = () => {
+  const { user } = useAuth();
+  const [doctorAppointments, setDoctorAppointments] = useState<Appointment[]>(
+    [],
+  );
+  const [labAppointments, setLabAppointments] = useState<LabAppointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!user) return;
+
+      setLoading(true);
+      setError(null);
+      try {
+        // Fetch both doctor appointments and lab appointments
+        const [doctorAppts, labAppts] = await Promise.all([
+          appointmentService.getAppointments("patient"),
+          appointmentService.getLabAppointments(),
+        ]);
+
+        console.log("Fetched doctor appointments:", doctorAppts);
+        console.log("Fetched lab appointments:", labAppts);
+
+        setDoctorAppointments(doctorAppts);
+        setLabAppointments(labAppts);
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+        setError("Failed to load appointments. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, [user]);
+
+  const getUpcomingAppointments = () => {
+    const now = new Date();
+
+    const upcomingDoctor = doctorAppointments.filter(
+      (appt) =>
+        new Date(appt.appointment_datetime) > now &&
+        appt.status !== "cancelled",
+    );
+
+    const upcomingLab = labAppointments.filter(
+      (appt) =>
+        new Date(appt.appointment_datetime) > now &&
+        appt.status !== "cancelled",
+    );
+
+    return [...upcomingDoctor, ...upcomingLab].sort(
+      (a, b) =>
+        new Date(a.appointment_datetime).getTime() -
+        new Date(b.appointment_datetime).getTime(),
+    );
+  };
+
+  const getPastAppointments = () => {
+    const now = new Date();
+
+    const pastDoctor = doctorAppointments.filter(
+      (appt) =>
+        new Date(appt.appointment_datetime) <= now ||
+        appt.status === "completed",
+    );
+
+    const pastLab = labAppointments.filter(
+      (appt) =>
+        new Date(appt.appointment_datetime) <= now ||
+        appt.status === "completed",
+    );
+
+    return [...pastDoctor, ...pastLab].sort(
+      (a, b) =>
+        new Date(b.appointment_datetime).getTime() -
+        new Date(a.appointment_datetime).getTime(),
+    );
+  };
+
+  const getAppointmentIcon = (appointment: Appointment | LabAppointment) => {
+    if ("doctor_id" in appointment) {
+      return <Activity className="h-6 w-6" />;
+    } else {
+      return <TestTube className="h-6 w-6" />;
+    }
+  };
+
+  const getAppointmentTitle = (appointment: Appointment | LabAppointment) => {
+    if ("doctor_id" in appointment) {
+      return appointment.reason_for_visit || "Doctor Consultation";
+    } else {
+      const labTests = appointment.labTests || appointment.lab_tests;
+      const testCount = labTests?.length || appointment.test_ids?.length || 0;
+      return `Lab Tests (${testCount} test${testCount !== 1 ? "s" : ""})`;
+    }
+  };
+
+  const getAppointmentProvider = (
+    appointment: Appointment | LabAppointment,
+  ) => {
+    if ("doctor_id" in appointment) {
+      return {
+        name: appointment.doctor?.user?.name || "Doctor",
+        specialty: appointment.doctor?.specialty || "Doctor",
+        image:
+          appointment.doctor?.profile_image ||
+          "https://randomuser.me/api/portraits/men/36.jpg",
+      };
+    } else {
+      // Handle both camelCase and snake_case from Laravel
+      const labProvider = appointment.labProvider || appointment.lab_provider;
+      console.log("Processing lab appointment:", appointment);
+      console.log("Lab provider data:", labProvider);
+      console.log("Lab provider name:", labProvider?.lab_name);
+      console.log("Lab provider user name:", labProvider?.user?.name);
+      console.log("Lab provider image:", labProvider?.profile_image);
+
+      return {
+        name:
+          labProvider?.lab_name || labProvider?.user?.name || "Lab Provider",
+        specialty: "Laboratory",
+        image:
+          labProvider?.profile_image ||
+          "https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?w=100&h=100&fit=crop&crop=center",
+      };
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "confirmed":
+        return "text-green-600 bg-green-100";
+      case "scheduled":
+      case "pending":
+        return "text-blue-600 bg-blue-100";
+      case "completed":
+        return "text-gray-600 bg-gray-100";
+      case "cancelled":
+        return "text-red-600 bg-red-100";
+      default:
+        return "text-gray-600 bg-gray-100";
+    }
+  };
+
+  const getDisplayStatus = (status: string) => {
+    const displayStatus = status === "scheduled" ? "pending" : status;
+    return displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
+  };
+
+  const renderAppointmentCard = (
+    appointment: Appointment | LabAppointment,
+    isUpcoming: boolean = true,
+  ) => {
+    const provider = getAppointmentProvider(appointment);
+    const appointmentDate = new Date(appointment.appointment_datetime);
+
+    return (
+      <div
+        key={`${appointment.id}-${"doctor_id" in appointment ? "doctor" : "lab"}`}
+        className="border border-gray-200 rounded-lg p-4 flex items-start space-x-4"
+      >
+        <div className="flex-shrink-0 w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+          {getAppointmentIcon(appointment)}
+        </div>
+        <div className="flex-1">
+          <div className="flex justify-between">
+            <h4 className="font-semibold">
+              {getAppointmentTitle(appointment)}
+            </h4>
+            <span
+              className={`text-sm font-medium px-2 py-0.5 rounded-full ${getStatusColor(appointment.status)}`}
+            >
+              {getDisplayStatus(appointment.status)}
+            </span>
+          </div>
+          <p className="text-sm text-gray-600 mt-1 flex items-center">
+            <Calendar className="h-4 w-4 mr-1" />
+            {format(appointmentDate, "MMMM dd, yyyy")}
+          </p>
+          <p className="text-sm text-gray-600 flex items-center">
+            <Clock className="h-4 w-4 mr-1" />
+            {format(appointmentDate, "h:mm a")}
+          </p>
+          <div className="mt-3 flex items-center">
+            <div className="h-8 w-8 rounded-full bg-gray-100 mr-2 flex items-center justify-center text-white text-xs overflow-hidden">
+              <img
+                src={provider.image}
+                alt={provider.name}
+                className="rounded-full w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-medium">{provider.name}</p>
+              <p className="text-xs text-gray-500">{provider.specialty}</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex-shrink-0 flex space-x-2">
+          {isUpcoming ? (
+            <>
+              <Button variant="outline" size="sm" className="text-xs">
+                Reschedule
+              </Button>
+              <Button variant="destructive" size="sm" className="text-xs">
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button variant="outline" size="sm" className="text-xs">
+              {"doctor_id" in appointment ? "View Report" : "View Results"}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-center h-32">
+          <div className="animate-spin h-8 w-8 border border-gray-300 border-t-transparent rounded-full"></div>
+          <span className="ml-2 text-gray-500">Loading appointments...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="text-center py-8">
+          <div className="text-red-500 mb-4">
+            <Activity className="h-12 w-12 mx-auto mb-2" />
+            <p className="text-lg font-medium">Error Loading Appointments</p>
+            <p className="text-sm text-gray-600 mt-1">{error}</p>
+          </div>
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="mt-4"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const upcomingAppointments = getUpcomingAppointments();
+  const pastAppointments = getPastAppointments();
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <Tabs defaultValue="upcoming">
@@ -19,89 +287,21 @@ const AppointmentsSection = () => {
         </div>
 
         <TabsContent value="upcoming" className="space-y-4">
-          <div className="bg-blue-50 border border-primary-blue/20 rounded-lg p-4 flex items-start space-x-4">
-            <div className="flex-shrink-0 w-14 h-14 rounded-full bg-primary-blue flex items-center justify-center text-white">
-              <Calendar className="h-6 w-6" />
-            </div>
-            <div className="flex-1">
-              <div className="flex justify-between">
-                <h4 className="font-semibold text-[var(--primary-blue)]">
-                  General Check-up
-                </h4>
-                <span className="text-sm font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                  Confirmed
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1 flex items-center">
-                <Calendar className="h-4 w-4 mr-1" /> Tomorrow, April 14, 2025
+          {upcomingAppointments.length === 0 ? (
+            <div className="text-center py-8">
+              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No upcoming appointments
+              </h3>
+              <p className="text-gray-500">
+                You don't have any upcoming appointments scheduled.
               </p>
-              <p className="text-sm text-gray-600 flex items-center">
-                <Clock className="h-4 w-4 mr-1" /> 10:00 AM - 11:00 AM
-              </p>
-              <div className="mt-3 flex items-center">
-                <div className="h-8 w-8 rounded-full bg-green-100 mr-2 flex items-center justify-center text-white text-xs">
-                  <img
-                    src="https://randomuser.me/api/portraits/men/36.jpg"
-                    alt="Doctor"
-                    className="rounded-full"
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Dr. James Wilson</p>
-                  <p className="text-xs text-gray-500">General Practitioner</p>
-                </div>
-              </div>
             </div>
-            <div className="flex-shrink-0 flex space-x-2">
-              <Button variant="outline" size="sm" className="text-xs">
-                Reschedule
-              </Button>
-              <Button variant="destructive" size="sm" className="text-xs">
-                Cancel
-              </Button>
-            </div>
-          </div>
-
-          <div className="border border-gray-200 rounded-lg p-4 flex items-start space-x-4">
-            <div className="flex-shrink-0 w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-              <Activity className="h-6 w-6" />
-            </div>
-            <div className="flex-1">
-              <div className="flex justify-between">
-                <h4 className="font-semibold">Cardiology Consultation</h4>
-                <span className="text-sm font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                  Pending
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1 flex items-center">
-                <Calendar className="h-4 w-4 mr-1" /> April 18, 2025
-              </p>
-              <p className="text-sm text-gray-600 flex items-center">
-                <Clock className="h-4 w-4 mr-1" /> 2:30 PM - 3:30 PM
-              </p>
-              <div className="mt-3 flex items-center">
-                <div className="h-8 w-8 rounded-full bg-blue-100 mr-2 flex items-center justify-center text-white text-xs">
-                  <img
-                    src="https://randomuser.me/api/portraits/women/65.jpg"
-                    alt="Doctor"
-                    className="rounded-full"
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Dr. Lisa Chen</p>
-                  <p className="text-xs text-gray-500">Cardiologist</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex-shrink-0 flex space-x-2">
-              <Button variant="outline" size="sm" className="text-xs">
-                Reschedule
-              </Button>
-              <Button variant="destructive" size="sm" className="text-xs">
-                Cancel
-              </Button>
-            </div>
-          </div>
+          ) : (
+            upcomingAppointments.map((appointment) =>
+              renderAppointmentCard(appointment, true),
+            )
+          )}
 
           <div className="flex justify-center">
             <Link to="/patient-dashboard">
@@ -113,81 +313,21 @@ const AppointmentsSection = () => {
         </TabsContent>
 
         <TabsContent value="past" className="space-y-4">
-          <div className="border border-gray-200 rounded-lg p-4 flex items-start space-x-4">
-            <div className="flex-shrink-0 w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-              <FileText className="h-6 w-6" />
-            </div>
-            <div className="flex-1">
-              <div className="flex justify-between">
-                <h4 className="font-semibold">Annual Physical</h4>
-                <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
-                  Completed
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1 flex items-center">
-                <Calendar className="h-4 w-4 mr-1" /> March 10, 2025
+          {pastAppointments.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No past appointments
+              </h3>
+              <p className="text-gray-500">
+                You don't have any past appointments to view.
               </p>
-              <p className="text-sm text-gray-600 flex items-center">
-                <Clock className="h-4 w-4 mr-1" /> 9:00 AM - 10:30 AM
-              </p>
-              <div className="mt-3 flex items-center">
-                <div className="h-8 w-8 rounded-full bg-gray-100 mr-2 flex items-center justify-center text-white text-xs">
-                  <img
-                    src="https://randomuser.me/api/portraits/men/32.jpg"
-                    alt="Doctor"
-                    className="rounded-full"
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Dr. Robert Brown</p>
-                  <p className="text-xs text-gray-500">General Practitioner</p>
-                </div>
-              </div>
             </div>
-            <div className="flex-shrink-0">
-              <Button variant="outline" size="sm" className="text-xs">
-                View Report
-              </Button>
-            </div>
-          </div>
-
-          <div className="border border-gray-200 rounded-lg p-4 flex items-start space-x-4">
-            <div className="flex-shrink-0 w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-              <Activity className="h-6 w-6" />
-            </div>
-            <div className="flex-1">
-              <div className="flex justify-between">
-                <h4 className="font-semibold">Blood Test</h4>
-                <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
-                  Completed
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1 flex items-center">
-                <Calendar className="h-4 w-4 mr-1" /> February 15, 2025
-              </p>
-              <p className="text-sm text-gray-600 flex items-center">
-                <Clock className="h-4 w-4 mr-1" /> 11:00 AM - 11:30 AM
-              </p>
-              <div className="mt-3 flex items-center">
-                <div className="h-8 w-8 rounded-full bg-gray-100 mr-2 flex items-center justify-center text-white text-xs">
-                  <img
-                    src="https://randomuser.me/api/portraits/women/45.jpg"
-                    alt="Doctor"
-                    className="rounded-full"
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Dr. Amanda Smith</p>
-                  <p className="text-xs text-gray-500">Laboratory Technician</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex-shrink-0">
-              <Button variant="outline" size="sm" className="text-xs">
-                View Results
-              </Button>
-            </div>
-          </div>
+          ) : (
+            pastAppointments.map((appointment) =>
+              renderAppointmentCard(appointment, false),
+            )
+          )}
         </TabsContent>
       </Tabs>
     </div>
