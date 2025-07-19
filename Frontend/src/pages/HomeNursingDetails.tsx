@@ -18,6 +18,7 @@ import nursingService, {
 } from "@/services/nursingService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
 import { useMpesaPayment } from "@/hooks/useMpesaPayment";
+import appointmentService from "@/services/appointmentService";
 import {
   Search,
   Bell,
@@ -437,8 +438,64 @@ const HomeNursingDetails = () => {
     paymentStatus,
     resetPayment,
   } = useMpesaPayment({
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       setIsProcessing(false);
+
+      // Create nursing appointment after successful payment
+      try {
+        if (
+          user &&
+          provider &&
+          date &&
+          timeSlot &&
+          selectedServices.length > 0
+        ) {
+          const appointmentDateTime = new Date(date);
+          const [time, period] = timeSlot.split(" ");
+          const [hours, minutes] = time.split(":");
+          let hour24 = parseInt(hours);
+
+          if (period === "PM" && hour24 !== 12) {
+            hour24 += 12;
+          } else if (period === "AM" && hour24 === 12) {
+            hour24 = 0;
+          }
+
+          appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
+
+          // Calculate end time (add 2 hours as default duration)
+          const endDateTime = new Date(appointmentDateTime);
+          endDateTime.setHours(endDateTime.getHours() + 2);
+
+          // Get selected service names
+          const selectedServiceNames = selectedServices
+            .map((serviceId) => {
+              const service = provider.services.find((s) => s.id === serviceId);
+              return service?.name;
+            })
+            .filter(Boolean)
+            .join(", ");
+
+          await appointmentService.createNursingAppointment({
+            patient_id: user.id,
+            nursing_provider_id: provider.id,
+            service_name: selectedServiceNames || "Home Nursing Service",
+            service_description: `Home nursing services: ${selectedServiceNames}`,
+            service_price: Number(totalPrice),
+            scheduled_datetime: appointmentDateTime.toISOString(),
+            end_datetime: endDateTime.toISOString(),
+            patient_address: "Address to be confirmed",
+            care_notes: `Booked via M-Pesa payment. Services: ${selectedServiceNames}`,
+            is_recurring: false,
+          });
+
+          console.log("Nursing appointment created successfully");
+        }
+      } catch (error) {
+        console.error("Error creating nursing appointment:", error);
+        // Still show success since payment went through
+      }
+
       setIsSuccess(true);
       setIsPaymentModalOpen(false);
     },

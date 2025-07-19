@@ -1,6 +1,7 @@
 import api from "./api";
 import { Doctor } from "./doctorService";
 import { LabProvider, LabTestService } from "./labService";
+import { NursingProvider, NursingServiceOffering } from "./nursingService";
 
 export interface Appointment {
   id: number;
@@ -70,6 +71,60 @@ export interface LabAppointment {
   lab_provider?: LabProvider;
   labTests?: LabTestService[];
   lab_tests?: LabTestService[];
+}
+
+export interface NursingAppointment {
+  id: number;
+  patient_id: number;
+  nursing_provider_id: number;
+  service_name: string;
+  service_description?: string;
+  service_price: number;
+  scheduled_datetime: string;
+  end_datetime?: string;
+  patient_address: string;
+  status:
+    | "scheduled"
+    | "confirmed"
+    | "completed"
+    | "cancelled"
+    | "rescheduled"
+    | "in_progress";
+  care_notes?: string;
+  patient_requirements?: string;
+  medical_history?: string;
+  doctor_referral?: string;
+  is_recurring: boolean;
+  recurrence_pattern?: string;
+  is_paid: boolean;
+  created_at: string;
+  updated_at: string;
+  patient?: {
+    id: number;
+    name: string;
+    email: string;
+    phone_number: string;
+  };
+  // Laravel returns snake_case, so we need to handle both
+  nursingProvider?: NursingProvider;
+  nursing_provider?: NursingProvider;
+}
+
+export interface NursingAppointmentCreateData {
+  patient_id: number;
+  nursing_provider_id: number;
+  service_name: string;
+  service_description?: string;
+  service_price: number;
+  scheduled_datetime: string;
+  end_datetime?: string;
+  patient_address: string;
+  care_notes?: string;
+  patient_requirements?: string;
+  medical_history?: string;
+  doctor_referral?: string;
+  is_recurring?: boolean;
+  recurrence_pattern?: string;
 }
 
 export interface LabAppointmentCreateData {
@@ -255,6 +310,51 @@ const appointmentService = {
       `/lab-providers/${providerId}/fully-booked-dates`,
     );
     return response.data.data;
+  },
+
+  // Nursing Service Appointment Methods
+  // Get all nursing appointments for patient
+  getNursingAppointments: async (): Promise<NursingAppointment[]> => {
+    const response = await api.get<{ data: NursingAppointment[] }>(
+      "/patient/nursing-services",
+    );
+    return response.data.data;
+  },
+
+  // Create a new nursing appointment
+  createNursingAppointment: async (
+    data: NursingAppointmentCreateData,
+  ): Promise<NursingAppointment> => {
+    const response = await api.post<{ data: NursingAppointment }>(
+      "/nursing-services",
+      data,
+    );
+    return response.data.data;
+  },
+
+  // Get specific nursing appointment
+  getNursingAppointment: async (id: number): Promise<NursingAppointment> => {
+    const response = await api.get<{ data: NursingAppointment }>(
+      `/nursing-services/${id}`,
+    );
+    return response.data.data;
+  },
+
+  // Update nursing appointment
+  updateNursingAppointment: async (
+    id: number,
+    data: Partial<NursingAppointment>,
+  ): Promise<NursingAppointment> => {
+    const response = await api.put<{ data: NursingAppointment }>(
+      `/nursing-services/${id}`,
+      data,
+    );
+    return response.data.data;
+  },
+
+  // Cancel nursing appointment
+  cancelNursingAppointment: async (id: number): Promise<void> => {
+    await api.put<void>(`/nursing-services/${id}`, { status: "cancelled" });
   },
 };
 
