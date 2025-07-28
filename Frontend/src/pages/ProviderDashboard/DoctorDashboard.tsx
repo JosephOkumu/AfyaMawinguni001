@@ -64,6 +64,9 @@ import {
   Settings,
   X,
 } from "lucide-react";
+import AvailabilityScheduler, {
+  WeeklySchedule,
+} from "@/components/AvailabilityScheduler";
 
 interface DoctorProfileForm {
   name: string;
@@ -126,6 +129,31 @@ interface ServiceItem {
   price: number;
   duration: string;
 }
+
+// Helper functions for schedule parsing
+const parseScheduleFromString = (scheduleString: string): WeeklySchedule => {
+  try {
+    if (!scheduleString) return getDefaultSchedule();
+    const parsed = JSON.parse(scheduleString);
+    return parsed;
+  } catch {
+    return getDefaultSchedule();
+  }
+};
+
+const formatScheduleToString = (schedule: WeeklySchedule): string => {
+  return JSON.stringify(schedule);
+};
+
+const getDefaultSchedule = (): WeeklySchedule => ({
+  Sun: { available: false, times: [] },
+  Mon: { available: true, times: [{ start: "9:00am", end: "5:00pm" }] },
+  Tue: { available: true, times: [{ start: "9:00am", end: "5:00pm" }] },
+  Wed: { available: true, times: [{ start: "9:00am", end: "5:00pm" }] },
+  Thu: { available: true, times: [{ start: "9:00am", end: "5:00pm" }] },
+  Fri: { available: true, times: [{ start: "9:00am", end: "5:00pm" }] },
+  Sat: { available: false, times: [] },
+});
 
 const DoctorDashboard = () => {
   const { toast } = useToast();
@@ -1261,16 +1289,28 @@ const DoctorDashboard = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Availability</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Clock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                  <Input
-                                    className="pl-10"
-                                    placeholder="e.g., Mon-Fri, 9AM-5PM"
-                                    {...field}
-                                  />
-                                </div>
-                              </FormControl>
+                              <div className="mt-2">
+                                <AvailabilityScheduler
+                                  currentSchedule={parseScheduleFromString(
+                                    field.value,
+                                  )}
+                                  onSave={(schedule) => {
+                                    const scheduleString =
+                                      formatScheduleToString(schedule);
+                                    field.onChange(scheduleString);
+                                  }}
+                                  trigger={
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      type="button"
+                                    >
+                                      <Clock className="h-4 w-4 mr-2" />
+                                      Set Availability
+                                    </Button>
+                                  }
+                                />
+                              </div>
                             </FormItem>
                           )}
                         />

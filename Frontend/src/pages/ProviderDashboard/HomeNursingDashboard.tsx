@@ -33,6 +33,9 @@ import {
   TestTube,
   User,
 } from "lucide-react";
+import AvailabilityScheduler, {
+  WeeklySchedule,
+} from "@/components/AvailabilityScheduler";
 import {
   Table,
   TableBody,
@@ -82,6 +85,7 @@ interface ProviderProfileForm {
   location: string;
   professionalSummary: string;
   licenseNumber: string;
+  availability: string;
 }
 
 interface NursingAppointment {
@@ -115,6 +119,31 @@ interface NursingServiceForm {
   experience: string;
   price: string;
 }
+
+// Helper functions for schedule parsing
+const parseScheduleFromString = (scheduleString: string): WeeklySchedule => {
+  try {
+    if (!scheduleString) return getDefaultSchedule();
+    const parsed = JSON.parse(scheduleString);
+    return parsed;
+  } catch {
+    return getDefaultSchedule();
+  }
+};
+
+const formatScheduleToString = (schedule: WeeklySchedule): string => {
+  return JSON.stringify(schedule);
+};
+
+const getDefaultSchedule = (): WeeklySchedule => ({
+  Sun: { available: false, times: [] },
+  Mon: { available: true, times: [{ start: "9:00am", end: "5:00pm" }] },
+  Tue: { available: true, times: [{ start: "9:00am", end: "5:00pm" }] },
+  Wed: { available: true, times: [{ start: "9:00am", end: "5:00pm" }] },
+  Thu: { available: true, times: [{ start: "9:00am", end: "5:00pm" }] },
+  Fri: { available: true, times: [{ start: "9:00am", end: "5:00pm" }] },
+  Sat: { available: false, times: [] },
+});
 
 // Mock data for nursing appointments
 const mockAppointments: NursingAppointment[] = [
@@ -305,8 +334,9 @@ const HomeNursingDashboard = () => {
       phoneNumber: getCurrentUser().phone_number || "",
       email: getCurrentUser().email || "",
       location: "Nairobi, Kenya",
-      professionalSummary: "Professional nursing care services",
-      licenseNumber: getCurrentUser().license_number || "",
+      professionalSummary: "",
+      licenseNumber: "",
+      availability: "",
     },
   });
 
@@ -483,8 +513,9 @@ const HomeNursingDashboard = () => {
         phoneNumber: profile.user?.phone_number || "",
         email: profile.user?.email || "",
         location: "Nairobi, Kenya",
-        professionalSummary: profile.description || "",
+        professionalSummary: profile.professional_summary || "",
         licenseNumber: profile.license_number || "",
+        availability: profile.availability || "",
       });
     } catch (error: unknown) {
       console.log("Profile loading error:", error);
@@ -535,9 +566,9 @@ const HomeNursingDashboard = () => {
               newProfile.user?.phone_number || currentUser.phone_number || "",
             email: newProfile.user?.email || currentUser.email || "",
             location: "Nairobi, Kenya",
-            professionalSummary:
-              newProfile.description || "Professional nursing care services",
+            professionalSummary: newProfile.professional_summary || "",
             licenseNumber: newProfile.license_number || "",
+            availability: newProfile.availability || "",
           });
 
           console.log("Default nursing provider profile created successfully");
@@ -663,6 +694,7 @@ const HomeNursingDashboard = () => {
         services_offered: "Home nursing services",
         base_rate_per_hour: nursingProfile?.base_rate_per_hour || 0,
         license_number: data.licenseNumber || "",
+        availability: data.availability || "",
       };
 
       console.log("API data being sent:", apiData);
@@ -973,6 +1005,38 @@ const HomeNursingDashboard = () => {
                                   {...field}
                                 />
                               </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={profileForm.control}
+                          name="availability"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Availability</FormLabel>
+                              <div className="mt-2">
+                                <AvailabilityScheduler
+                                  currentSchedule={parseScheduleFromString(
+                                    field.value,
+                                  )}
+                                  onSave={(schedule) => {
+                                    const scheduleString =
+                                      formatScheduleToString(schedule);
+                                    field.onChange(scheduleString);
+                                  }}
+                                  trigger={
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      type="button"
+                                    >
+                                      <Clock className="h-4 w-4 mr-2" />
+                                      Set Availability
+                                    </Button>
+                                  }
+                                />
+                              </div>
                             </FormItem>
                           )}
                         />
