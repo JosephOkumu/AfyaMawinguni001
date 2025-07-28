@@ -513,9 +513,9 @@ const HomeNursingDashboard = () => {
         phoneNumber: profile.user?.phone_number || "",
         email: profile.user?.email || "",
         location: "Nairobi, Kenya",
-        professionalSummary: profile.professional_summary || "",
+        professionalSummary: profile.description || "",
         licenseNumber: profile.license_number || "",
-        availability: profile.availability || "",
+        availability: "",
       });
     } catch (error: unknown) {
       console.log("Profile loading error:", error);
@@ -566,9 +566,9 @@ const HomeNursingDashboard = () => {
               newProfile.user?.phone_number || currentUser.phone_number || "",
             email: newProfile.user?.email || currentUser.email || "",
             location: "Nairobi, Kenya",
-            professionalSummary: newProfile.professional_summary || "",
+            professionalSummary: newProfile.description || "",
             licenseNumber: newProfile.license_number || "",
-            availability: newProfile.availability || "",
+            availability: "",
           });
 
           console.log("Default nursing provider profile created successfully");
