@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
+use App\Services\PesapalService;
 
 class PaymentController extends Controller
 {
@@ -649,4 +650,206 @@ class PaymentController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Initiate Pesapal payment
+     */
+    public function initiatePesapalPayment(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'amount' => 'required|numeric|min:1',
+                'email' => 'required|email',
+                'phone_number' => 'required|string',
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'description' => 'required|string',
+                'lab_provider_id' => 'required|integer',
+                'patient_id' => 'required|integer'
+            ]);
+
+            $pesapalService = new PesapalService();
+
+            // Generate merchant reference
+            $merchantReference = $pesapalService->generateMerchantReference(
+                $request->lab_provider_id,
+                $request->patient_id
+            );
+
+            // Step 1: Get access token (already done in submitOrder method)
+            // Step 2: Register fresh IPN ID
+            Log::info('Registering fresh IPN for payment');
+            $ipnId = $pesapalService->getIPNId();
+            Log::info('IPN registered', ['ipn_id' => $ipnId]);
+
+            // Validate that we have a valid IPN ID before proceeding
+            if (!$ipnId) {
+                Log::error('Failed to get or register IPN ID');
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Payment service configuration error. Please try again later.'
+                ], 500);
+            }
+
+            $orderData = [
+                'merchant_reference' => $merchantReference,
+                'amount' => $request->amount,
+                'description' => $request->description,
+                'email' => $request->email,
+                'phone_number' => $request->phone_number,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'address' => $request->address ?? '',
+                'city' => $request->city ?? 'Nairobi',
+                'state' => $request->state ?? 'Nairobi',
+                'postal_code' => $request->postal_code ?? '00100',
+                'zip_code' => $request->zip_code ?? '00100',
+                'notification_id' => $ipnId
+            ];
+
+            // Step 3: Submit order and get redirect URL
+            Log::info('Submitting order to Pesapal', ['merchant_reference' => $merchantReference]);
+            $response = $pesapalService->submitOrder($orderData);
+
+            Log::info('Pesapal order response', ['response' => $response]);
+
+            if (isset($response['order_tracking_id']) && isset($response['redirect_url'])) {
+                // Store payment data for tracking
+                Cache::put('pesapal_payment_' . $merchantReference, [
+                    'order_tracking_id' => $response['order_tracking_id'],
+                    'merchant_reference' => $merchantReference,
+                    'amount' => $request->amount,
+                    'lab_provider_id' => $request->lab_provider_id,
+                    'patient_id' => $request->patient_id,
+                    'description' => $request->description,
+                    'initiated_at' => now()
+                ], now()->addHours(24));
+
+                Log::info('Pesapal payment initiated successfully', [
+                    'merchant_reference' => $merchantReference,
+                    'order_tracking_id' => $response['order_tracking_id'],
+                    'amount' => $request->amount
+                ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'merchant_reference' => $merchantReference,
+                    'order_tracking_id' => $response['order_tracking_id'],
+                    'redirect_url' => $response['redirect_url']
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to initiate payment'
+            ], 400);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Pesapal payment initiation failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Payment initiation failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    
+
+    /**
+     * Register IPN with Pesapal (Step 2)
+     */
+    public function registerPesapalIPN(): JsonResponse
+    {
+        try {
+            $pesapalService = new PesapalService();
+
+            Log::info('Registering IPN with Pesapal');
+
+            $result = $pesapalService->registerIPN();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'IPN registered successfully',
+                'ipn_id' => $result['ipn_id'] ?? null,
+                'url' => $result['url'] ?? null
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Pesapal IPN registration failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'IPN registration failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get Auth Token (Step 1)
+     */
+    public function getPesapalAuthToken(): JsonResponse
+    {
+        try {
+            $pesapalService = new PesapalService();
+
+            Log::info('Getting Pesapal auth token');
+
+            $token = $pesapalService->getAccessToken();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Token retrieved successfully',
+                'token_preview' => substr($token, 0, 20) . '...'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Pesapal auth token failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Auth token failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Test Pesapal connection
+     */
+    public function testPesapalConnection(): JsonResponse
+    {
+        try {
+            $pesapalService = new PesapalService();
+            $result = $pesapalService->testConnection();
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            Log::error('Pesapal connection test failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Connection test failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 }
