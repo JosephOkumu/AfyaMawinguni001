@@ -159,3 +159,18 @@ Route::prefix('payments/mpesa')->group(function () {
         Route::get('/status/{checkoutRequestId}', [PaymentController::class, 'getPaymentResult']);
     });
 });
+
+// Pesapal Payment routes
+Route::prefix('payments/pesapal')->group(function () {
+    // Public routes for Pesapal IPN callback
+    Route::post('/ipn', [PaymentController::class, 'handlePesapalIPN']);
+    Route::get('/test', [PaymentController::class, 'testPesapalConnection']);
+    Route::get('/auth-token', [PaymentController::class, 'getPesapalAuthToken']);
+    Route::post('/register-ipn', [PaymentController::class, 'registerPesapalIPN']);
+
+    // Protected routes for payment processing
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/initiate', [PaymentController::class, 'initiatePesapalPayment']);
+        Route::get('/status/{merchantReference}', [PaymentController::class, 'getPesapalPaymentStatus']);
+    });
+});
