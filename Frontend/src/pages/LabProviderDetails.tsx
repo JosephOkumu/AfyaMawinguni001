@@ -48,6 +48,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import labService, { LabProvider, LabTestService } from "@/services/labService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
 import { useMpesaPayment } from "@/hooks/useMpesaPayment";
+import { usePesapalPayment } from "@/hooks/usePesapalPayment";
 import appointmentService from "@/services/appointmentService";
 
 const LabProviderDetails = () => {
@@ -67,7 +68,7 @@ const LabProviderDetails = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [timeSlot, setTimeSlot] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("mpesa");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("+254722549387");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -139,6 +140,59 @@ const LabProviderDetails = () => {
     },
   });
 
+  // Pesapal payment hook
+  const {
+    initiatePayment: initiatePesapalPayment,
+    isProcessing: pesapalProcessing,
+    paymentStatus: pesapalPaymentStatus,
+    resetPayment: resetPesapalPayment,
+  } = usePesapalPayment({
+    onSuccess: async (result) => {
+      setIsProcessing(false);
+
+      // Create lab appointment after successful payment
+      try {
+        if (user && provider && date && timeSlot && selectedTests.length > 0) {
+          const appointmentDateTime = new Date(date);
+          const [time, period] = timeSlot.split(" ");
+          const [hours, minutes] = time.split(":");
+          let hour24 = parseInt(hours);
+
+          if (period === "PM" && hour24 !== 12) {
+            hour24 += 12;
+          } else if (period === "AM" && hour24 === 12) {
+            hour24 = 0;
+          }
+
+          appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
+
+          await appointmentService.createLabAppointment({
+            patient_id: user.id,
+            lab_provider_id: provider.id,
+            appointment_datetime: appointmentDateTime.toISOString(),
+            test_ids: selectedTests,
+            total_amount: Number(totalPrice),
+            payment_reference:
+              result.merchantReference || `LAB-${provider.id}-${Date.now()}`,
+            notes: `Lab tests booked via Pesapal payment`,
+          });
+
+          console.log("Lab appointment created successfully via Pesapal");
+        }
+      } catch (error) {
+        console.error("Error creating lab appointment:", error);
+        // Still show success since payment went through
+      }
+
+      setIsPaymentSuccess(true);
+      setIsPaymentModalOpen(false);
+    },
+    onError: (error) => {
+      setIsProcessing(false);
+      console.error("Pesapal payment error:", error);
+    },
+  });
+
   // Helper function to safely parse JSON
   const safeJsonParse = (jsonString: string | null | undefined) => {
     if (!jsonString) return null;
@@ -158,6 +212,7 @@ const LabProviderDetails = () => {
       );
     }
 
+    // Try to parse as JSON first
     const hours = safeJsonParse(hoursData);
     if (Array.isArray(hours)) {
       return hours.map(
@@ -169,15 +224,15 @@ const LabProviderDetails = () => {
         ),
       );
     } else if (typeof hours === "object" && hours !== null) {
-      // Handle object format like {"monday":"7:00 AM - 7:00 PM", "tuesday":"7:00 AM - 7:00 PM"}
       return Object.entries(hours).map(([day, time], index) => (
         <div key={index} className="flex justify-between text-sm">
-          <span className="capitalize">{day}</span>
-          <span>{time as string}</span>
+          <span>{day}</span>
+          <span>{String(time)}</span>
         </div>
       ));
     } else {
-      return <p className="text-gray-500 text-sm">{hoursData}</p>;
+      // If JSON parsing fails, treat as plain text
+      return <p className="text-gray-700 text-sm">{hoursData}</p>;
     }
   };
 
@@ -374,12 +429,75 @@ const LabProviderDetails = () => {
         console.error("Payment initiation failed:", error);
       }
     } else {
-      // Handle card payments (simulate for now)
+      // Handle Pesapal credit card payments
       setIsProcessing(true);
-      setTimeout(() => {
+
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to continue with payment.",
+          variant: "destructive",
+        });
         setIsProcessing(false);
-        setIsPaymentSuccess(true);
-      }, 2000);
+        return;
+      }
+
+      if (!provider) {
+        toast({
+          title: "Provider Not Found",
+          description: "Lab provider information is not available.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      try {
+        // Store booking data temporarily before redirect
+        const appointmentDateTime = new Date(date);
+        const [time, period] = timeSlot.split(" ");
+        const [hours, minutes] = time.split(":");
+        let hour24 = parseInt(hours);
+
+        if (period === "PM" && hour24 !== 12) {
+          hour24 += 12;
+        } else if (period === "AM" && hour24 === 12) {
+          hour24 = 0;
+        }
+
+        appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
+
+        const bookingData = {
+          patient_id: user.id,
+          lab_provider_id: provider.id,
+          appointment_datetime: appointmentDateTime.toISOString(),
+          test_ids: selectedTests,
+          total_amount: Number(totalPrice),
+        };
+
+        const paymentResponse = await initiatePesapalPayment({
+          amount: Number(totalPrice) || 0,
+          email: user.email || "",
+          phone_number: phoneNumber || "+254722549387",
+          first_name: user.name?.split(" ")[0] || "Patient",
+          last_name: user.name?.split(" ").slice(1).join(" ") || "User",
+          description:
+            `Lab tests at ${provider.lab_name}` || "Lab test booking",
+          lab_provider_id: provider.id,
+          patient_id: user.id,
+        });
+
+        // Store booking data with merchant reference
+        if (paymentResponse.merchantReference) {
+          localStorage.setItem(
+            `lab_booking_${paymentResponse.merchantReference}`,
+            JSON.stringify(bookingData),
+          );
+        }
+      } catch (error) {
+        setIsProcessing(false);
+        console.error("Pesapal payment initiation failed:", error);
+      }
     }
   };
 
@@ -1175,15 +1293,15 @@ const LabProviderDetails = () => {
                     id="phone"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="e.g. 0712345678"
+                    placeholder="+254722549387"
                     className="mb-2"
                   />
                   <p className="text-xs text-gray-500">
                     You will receive an M-Pesa prompt to complete the payment.
                   </p>
-                  {paymentStatus && (
+                  {(paymentStatus || pesapalPaymentStatus) && (
                     <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
-                      {paymentStatus}
+                      {paymentStatus || pesapalPaymentStatus}
                     </div>
                   )}
                 </div>
@@ -1193,29 +1311,39 @@ const LabProviderDetails = () => {
                 <div className="mb-6 space-y-4">
                   <div>
                     <Label
-                      htmlFor="cardNumber"
+                      htmlFor="cardPhone"
                       className="mb-2 block font-medium"
                     >
-                      Card Number
+                      Phone Number
                     </Label>
-                    <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
+                    <Input
+                      id="cardPhone"
+                      type="tel"
+                      placeholder="+254722549387"
+                      value={phoneNumber || "+254722549387"}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="mb-2"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Required for payment confirmation and notifications.
+                    </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label
-                        htmlFor="expiry"
-                        className="mb-2 block font-medium"
-                      >
-                        Expiry Date
-                      </Label>
-                      <Input id="expiry" placeholder="MM/YY" />
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Info className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">
+                        Secure Card Payment
+                      </span>
                     </div>
-                    <div>
-                      <Label htmlFor="cvv" className="mb-2 block font-medium">
-                        CVV
-                      </Label>
-                      <Input id="cvv" placeholder="123" />
-                    </div>
+                    <p className="text-xs text-blue-700">
+                      You will be redirected to a secure payment page to
+                      complete your card payment.
+                    </p>
+                    {pesapalPaymentStatus && (
+                      <div className="mt-2 p-2 bg-white rounded text-sm text-blue-700">
+                        {pesapalPaymentStatus}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1231,9 +1359,11 @@ const LabProviderDetails = () => {
                 <Button
                   className="flex-1"
                   onClick={processPayment}
-                  disabled={isProcessing || mpesaProcessing}
+                  disabled={
+                    isProcessing || mpesaProcessing || pesapalProcessing
+                  }
                 >
-                  {isProcessing || mpesaProcessing
+                  {isProcessing || mpesaProcessing || pesapalProcessing
                     ? "Processing..."
                     : "Complete Payment"}
                 </Button>
