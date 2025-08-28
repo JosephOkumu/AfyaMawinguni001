@@ -1475,7 +1475,7 @@ const HomeNursingDetails = () => {
                 >
                   {isProcessing || pesapalProcessing
                     ? "Processing..."
-                    : "Complete Payment"}
+                    : "Make Payment"}
                 </Button>
               </div>
             </CardContent>

@@ -262,7 +262,7 @@ class AIService {
         "Select required tests",
         "Choose home collection or lab visit",
         "Schedule convenient time slot",
-        "Complete payment",
+        "Make Payment",
         "Receive results online",
       ],
       relatedFeatures: [
@@ -533,7 +533,7 @@ class AIService {
 
     // Enhanced single word recognition for platform/service queries
     const singleWordPlatformResponses: { [key: string]: string } = {
-      book: `📅 **How to Book Services**\n\nI can help you book:\n\n**Available Services:**\n• **Doctor Consultation** - Video or in-person\n• **Home Nursing** - Professional care at home\n• **Laboratory Tests** - Sample collection or lab visits\n• **Pharmacy Services** - Medicine delivery\n\n**Quick booking steps:**\n1. Choose your service type\n2. Select provider/doctor\n3. Pick date and time\n4. Complete payment\n5. Receive confirmation\n\n**What would you like to book?**`,
+      book: `📅 **How to Book Services**\n\nI can help you book:\n\n**Available Services:**\n• **Doctor Consultation** - Video or in-person\n• **Home Nursing** - Professional care at home\n• **Laboratory Tests** - Sample collection or lab visits\n• **Pharmacy Services** - Medicine delivery\n\n**Quick booking steps:**\n1. Choose your service type\n2. Select provider/doctor\n3. Pick date and time\n4. Make Payment\n5. Receive confirmation\n\n**What would you like to book?**`,
       appointment: `📅 **Appointment Booking**\n\nLet me help you schedule an appointment:\n\n**Available Appointments:**\n• **Doctor Consultations** - All specialties\n• **Home Nursing** - Professional care\n• **Lab Tests** - Sample collection\n• **Specialist Consultations** - Expert care\n\n**Booking Process:**\n1. Go to "Doctor Consultation"\n2. Filter by specialty or location\n3. Choose available time slot\n4. Fill patient details\n5. Confirm booking\n\n**Need help with a specific type of appointment?**`,
       doctor: `👩‍⚕️ **Doctor Consultation**\n\nFind the right doctor for your needs:\n\n**Available Specialties:**\n• **General Practitioner** - Primary care\n• **Cardiologist** - Heart specialist\n• **Dermatologist** - Skin specialist\n• **Orthopedic** - Bone & joint specialist\n• **Neurologist** - Brain & nerve specialist\n• **Gastroenterologist** - Digestive specialist\n\n**Consultation Types:**\n• Video consultations\n• In-person visits\n• Emergency consultations\n\n**Ready to book a consultation?**`,
       nursing: `🏠 **Home Nursing Services**\n\nProfessional care at your home:\n\n**Available Services:**\n• **Medical Care** - Wound care, medication\n• **Personal Care** - Bathing, mobility support\n• **Elderly Care** - Specialized senior care\n• **Post-Surgery Care** - Recovery support\n• **Chronic Care** - Long-term assistance\n\n**How to book:**\n1. Go to "Home Nursing Services"\n2. Select type of care needed\n3. Choose qualified nurse\n4. Schedule home visit\n5. Confirm booking\n\n**Available 24/7 for urgent needs!**`,

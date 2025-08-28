@@ -1013,7 +1013,7 @@ const DoctorDetails = () => {
                       Processing...
                     </>
                   ) : (
-                    "Complete Payment"
+                    "Make Payment"
                   )}
                 </Button>
               </div>
