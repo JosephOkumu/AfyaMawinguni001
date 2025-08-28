@@ -39,7 +39,6 @@ import {
   CheckCircle,
   X,
   Check,
-  Info,
 } from "lucide-react";
 import doctorService, { Doctor } from "@/services/doctorService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
@@ -130,9 +129,7 @@ const DoctorDetails = () => {
   const [consultationType, setConsultationType] = useState("physical");
   const [date, setDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("mpesa");
-  const [phoneNumber, setPhoneNumber] = useState("+254722549387");
-  const [email, setEmail] = useState("");
+
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -286,16 +283,6 @@ const DoctorDetails = () => {
   };
 
   const processPayment = async () => {
-    // Validate phone number
-    if (!phoneNumber.trim()) {
-      toast({
-        title: "Phone Number Required",
-        description: "Please enter your phone number for payment.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!user || !doctor) {
       toast({
         title: "Missing Information",
@@ -312,7 +299,7 @@ const DoctorDetails = () => {
       const paymentResponse = await initiatePesapalPayment({
         amount: Number(consultationFee) || 0,
         email: user.email || "patient@example.com",
-        phone_number: phoneNumber,
+        phone_number: "+254722549387", // Default phone number
         first_name: user.name?.split(" ")[0] || "Patient",
         last_name: user.name?.split(" ").slice(1).join(" ") || "User",
         description: `Consultation with Dr. ${doctor.user.name}`,
@@ -340,7 +327,6 @@ const DoctorDetails = () => {
           doctor_id: doctor.id,
           appointment_datetime: appointmentDateTime.toISOString(),
           consultation_fee: Number(consultationFee),
-          payment_method: paymentMethod,
         };
 
         localStorage.setItem(
@@ -1008,110 +994,6 @@ const DoctorDetails = () => {
                 </div>
               </div>
 
-              <div className="mb-6">
-                <Label className="mb-2 block font-medium">
-                  Select Payment Method
-                </Label>
-                <RadioGroup
-                  value={paymentMethod}
-                  onValueChange={setPaymentMethod}
-                  className="space-y-2"
-                >
-                  <div className="border rounded-lg p-4 flex items-center space-x-2">
-                    <RadioGroupItem value="mpesa" id="mpesa" />
-                    <Label
-                      htmlFor="mpesa"
-                      className="flex items-center cursor-pointer"
-                    >
-                      <div className="bg-green-100 rounded-full p-1 mr-2">
-                        <span className="text-green-600 font-bold text-xs">
-                          M
-                        </span>
-                      </div>
-                      M-Pesa
-                    </Label>
-                  </div>
-                  <div className="border rounded-lg p-4 flex items-center space-x-2">
-                    <RadioGroupItem value="card" id="card" />
-                    <Label
-                      htmlFor="card"
-                      className="flex items-center cursor-pointer"
-                    >
-                      <div className="bg-blue-100 rounded-full p-1 mr-2">
-                        <span className="text-blue-600 font-bold text-xs">
-                          C
-                        </span>
-                      </div>
-                      Credit/Debit Card
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {paymentMethod === "mpesa" && (
-                <div className="mb-6">
-                  <Label htmlFor="phone" className="mb-2 block font-medium">
-                    Phone Number
-                  </Label>
-                  <Input
-                    id="phone"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="+254722549387"
-                    className="mb-2"
-                  />
-                  <p className="text-xs text-gray-500">
-                    You will receive an M-Pesa prompt to complete the payment.
-                  </p>
-                  {pesapalPaymentStatus && (
-                    <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
-                      {pesapalPaymentStatus}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {paymentMethod === "card" && (
-                <div className="mb-6 space-y-4">
-                  <div>
-                    <Label
-                      htmlFor="cardPhone"
-                      className="mb-2 block font-medium"
-                    >
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="cardPhone"
-                      type="tel"
-                      placeholder="+254722549387"
-                      value={phoneNumber || "+254722549387"}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="mb-2"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Required for payment confirmation and notifications.
-                    </p>
-                  </div>
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Info className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-800">
-                        Secure Card Payment
-                      </span>
-                    </div>
-                    <p className="text-xs text-blue-700">
-                      You will be redirected to a secure payment page to
-                      complete your card payment.
-                    </p>
-                    {pesapalPaymentStatus && (
-                      <div className="mt-2 p-2 bg-white rounded text-sm text-blue-700">
-                        {pesapalPaymentStatus}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
               <div className="flex gap-4">
                 <Button
                   variant="outline"
@@ -1123,9 +1005,7 @@ const DoctorDetails = () => {
                 <Button
                   className="flex-1"
                   onClick={processPayment}
-                  disabled={
-                    isProcessing || pesapalProcessing || !phoneNumber.trim()
-                  }
+                  disabled={isProcessing || pesapalProcessing}
                 >
                   {isProcessing || pesapalProcessing ? (
                     <>
