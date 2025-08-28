@@ -412,7 +412,7 @@ const HomeNursingDetails = () => {
   const [date, setDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("mpesa");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("+254722549387");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -712,7 +712,7 @@ const HomeNursingDetails = () => {
 
     try {
       // Both M-Pesa and Card options use Pesapal
-      await initiatePesapalPayment({
+      const paymentResponse = await initiatePesapalPayment({
         amount: Math.round(Number(totalPrice) || 0),
         email: user.email || "patient@example.com",
         phone_number: phoneNumber,
@@ -722,6 +722,49 @@ const HomeNursingDetails = () => {
         lab_provider_id: provider.id, // Using provider.id as reference
         patient_id: user.id,
       });
+
+      // Store booking data with merchant reference for future use
+      if (paymentResponse.merchantReference) {
+        const appointmentDateTime = new Date(date);
+        const [time, period] = timeSlot.split(" ");
+        const [hours, minutes] = time.split(":");
+        let hour24 = parseInt(hours);
+
+        if (period === "PM" && hour24 !== 12) {
+          hour24 += 12;
+        } else if (period === "AM" && hour24 === 12) {
+          hour24 = 0;
+        }
+
+        appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
+
+        const endDateTime = new Date(appointmentDateTime);
+        endDateTime.setHours(endDateTime.getHours() + serviceDuration);
+
+        const selectedServiceNames = selectedServices
+          .map((serviceId) => {
+            const service = provider?.services.find((s) => s.id === serviceId);
+            return service?.name;
+          })
+          .filter(Boolean)
+          .join(", ");
+
+        const bookingData = {
+          patient_id: user.id,
+          nursing_provider_id: provider.id,
+          service_ids: selectedServices,
+          appointment_datetime: appointmentDateTime.toISOString(),
+          end_datetime: endDateTime.toISOString(),
+          total_amount: Math.round(Number(totalPrice)),
+          service_names: selectedServiceNames,
+          payment_method: paymentMethod,
+        };
+
+        localStorage.setItem(
+          `nursing_booking_${paymentResponse.merchantReference}`,
+          JSON.stringify(bookingData),
+        );
+      }
     } catch (error) {
       setIsProcessing(false);
       console.error("Pesapal payment initiation failed:", error);
