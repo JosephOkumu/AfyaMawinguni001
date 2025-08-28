@@ -47,8 +47,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import labService, { LabProvider, LabTestService } from "@/services/labService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
-import { useMpesaPayment } from "@/hooks/useMpesaPayment";
-import { usePesapalPayment } from "@/hooks/usePesapalPayment";
+import usePesapalPayment from "@/hooks/usePesapalPayment";
 import appointmentService from "@/services/appointmentService";
 
 const LabProviderDetails = () => {
@@ -87,60 +86,7 @@ const LabProviderDetails = () => {
     providerType: "lab",
   });
 
-  // M-Pesa payment hook
-  const {
-    initiatePayment,
-    isProcessing: mpesaProcessing,
-    paymentStatus,
-    resetPayment,
-  } = useMpesaPayment({
-    onSuccess: async (result) => {
-      setIsProcessing(false);
-
-      // Create lab appointment after successful payment
-      try {
-        if (user && provider && date && timeSlot && selectedTests.length > 0) {
-          const appointmentDateTime = new Date(date);
-          const [time, period] = timeSlot.split(" ");
-          const [hours, minutes] = time.split(":");
-          let hour24 = parseInt(hours);
-
-          if (period === "PM" && hour24 !== 12) {
-            hour24 += 12;
-          } else if (period === "AM" && hour24 === 12) {
-            hour24 = 0;
-          }
-
-          appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
-
-          await appointmentService.createLabAppointment({
-            patient_id: user.id,
-            lab_provider_id: provider.id,
-            appointment_datetime: appointmentDateTime.toISOString(),
-            test_ids: selectedTests,
-            total_amount: Number(totalPrice),
-            payment_reference:
-              result.transactionId || `LAB-${provider.id}-${Date.now()}`,
-            notes: `Lab tests booked via M-Pesa payment`,
-          });
-
-          console.log("Lab appointment created successfully");
-        }
-      } catch (error) {
-        console.error("Error creating lab appointment:", error);
-        // Still show success since payment went through
-      }
-
-      setIsPaymentSuccess(true);
-      setIsPaymentModalOpen(false);
-    },
-    onError: (error) => {
-      setIsProcessing(false);
-      console.error("Payment error:", error);
-    },
-  });
-
-  // Pesapal payment hook
+  // Pesapal payment hook - used for both M-Pesa and Card UI options
   const {
     initiatePayment: initiatePesapalPayment,
     isProcessing: pesapalProcessing,
@@ -177,7 +123,7 @@ const LabProviderDetails = () => {
             notes: `Lab tests booked via Pesapal payment`,
           });
 
-          console.log("Lab appointment created successfully via Pesapal");
+          console.log("Lab appointment created successfully");
         }
       } catch (error) {
         console.error("Error creating lab appointment:", error);
@@ -189,7 +135,7 @@ const LabProviderDetails = () => {
     },
     onError: (error) => {
       setIsProcessing(false);
-      console.error("Pesapal payment error:", error);
+      console.error("Payment error:", error);
     },
   });
 
@@ -404,100 +350,81 @@ const LabProviderDetails = () => {
   };
 
   const processPayment = async () => {
-    if (paymentMethod === "mpesa") {
-      // Validate phone number
-      if (!phoneNumber.trim()) {
-        toast({
-          title: "Phone Number Required",
-          description: "Please enter your phone number for M-Pesa payment.",
-          variant: "destructive",
-        });
-        return;
+    // Validate phone number
+    if (!phoneNumber.trim()) {
+      toast({
+        title: "Phone Number Required",
+        description: "Please enter your phone number for payment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to continue with payment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!provider) {
+      toast({
+        title: "Provider Not Found",
+        description: "Lab provider information is not available.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Store booking data temporarily before redirect
+      const appointmentDateTime = new Date(date);
+      const [time, period] = timeSlot.split(" ");
+      const [hours, minutes] = time.split(":");
+      let hour24 = parseInt(hours);
+
+      if (period === "PM" && hour24 !== 12) {
+        hour24 += 12;
+      } else if (period === "AM" && hour24 === 12) {
+        hour24 = 0;
       }
 
-      setIsProcessing(true);
+      appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
 
-      try {
-        await initiatePayment({
-          amount: Number(totalPrice) || 0,
-          phoneNumber: phoneNumber,
-          accountReference: `LAB-${provider?.id}-${Date.now()}`,
-          transactionDesc: `Lab tests at ${provider?.lab_name}`,
-        });
-      } catch (error) {
-        setIsProcessing(false);
-        console.error("Payment initiation failed:", error);
+      const bookingData = {
+        patient_id: user.id,
+        lab_provider_id: provider.id,
+        appointment_datetime: appointmentDateTime.toISOString(),
+        test_ids: selectedTests,
+        total_amount: Number(totalPrice),
+      };
+
+      // Both M-Pesa and Card options use Pesapal
+      const paymentResponse = await initiatePesapalPayment({
+        amount: Number(totalPrice) || 0,
+        email: user.email || "patient@example.com",
+        phone_number: phoneNumber,
+        first_name: user.name?.split(" ")[0] || "Patient",
+        last_name: user.name?.split(" ").slice(1).join(" ") || "User",
+        description: `Lab tests at ${provider.lab_name || "Lab Provider"}`,
+        lab_provider_id: provider.id,
+        patient_id: user.id,
+      });
+
+      // Store booking data with merchant reference
+      if (paymentResponse.merchantReference) {
+        localStorage.setItem(
+          `lab_booking_${paymentResponse.merchantReference}`,
+          JSON.stringify(bookingData),
+        );
       }
-    } else {
-      // Handle Pesapal credit card payments
-      setIsProcessing(true);
-
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to continue with payment.",
-          variant: "destructive",
-        });
-        setIsProcessing(false);
-        return;
-      }
-
-      if (!provider) {
-        toast({
-          title: "Provider Not Found",
-          description: "Lab provider information is not available.",
-          variant: "destructive",
-        });
-        setIsProcessing(false);
-        return;
-      }
-
-      try {
-        // Store booking data temporarily before redirect
-        const appointmentDateTime = new Date(date);
-        const [time, period] = timeSlot.split(" ");
-        const [hours, minutes] = time.split(":");
-        let hour24 = parseInt(hours);
-
-        if (period === "PM" && hour24 !== 12) {
-          hour24 += 12;
-        } else if (period === "AM" && hour24 === 12) {
-          hour24 = 0;
-        }
-
-        appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
-
-        const bookingData = {
-          patient_id: user.id,
-          lab_provider_id: provider.id,
-          appointment_datetime: appointmentDateTime.toISOString(),
-          test_ids: selectedTests,
-          total_amount: Number(totalPrice),
-        };
-
-        const paymentResponse = await initiatePesapalPayment({
-          amount: Number(totalPrice) || 0,
-          email: user.email || "",
-          phone_number: phoneNumber || "+254722549387",
-          first_name: user.name?.split(" ")[0] || "Patient",
-          last_name: user.name?.split(" ").slice(1).join(" ") || "User",
-          description:
-            `Lab tests at ${provider.lab_name}` || "Lab test booking",
-          lab_provider_id: provider.id,
-          patient_id: user.id,
-        });
-
-        // Store booking data with merchant reference
-        if (paymentResponse.merchantReference) {
-          localStorage.setItem(
-            `lab_booking_${paymentResponse.merchantReference}`,
-            JSON.stringify(bookingData),
-          );
-        }
-      } catch (error) {
-        setIsProcessing(false);
-        console.error("Pesapal payment initiation failed:", error);
-      }
+    } catch (error) {
+      setIsProcessing(false);
+      console.error("Pesapal payment initiation failed:", error);
     }
   };
 
@@ -1299,9 +1226,9 @@ const LabProviderDetails = () => {
                   <p className="text-xs text-gray-500">
                     You will receive an M-Pesa prompt to complete the payment.
                   </p>
-                  {(paymentStatus || pesapalPaymentStatus) && (
+                  {pesapalPaymentStatus && (
                     <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
-                      {paymentStatus || pesapalPaymentStatus}
+                      {pesapalPaymentStatus}
                     </div>
                   )}
                 </div>
@@ -1360,10 +1287,10 @@ const LabProviderDetails = () => {
                   className="flex-1"
                   onClick={processPayment}
                   disabled={
-                    isProcessing || mpesaProcessing || pesapalProcessing
+                    isProcessing || pesapalProcessing || !phoneNumber.trim()
                   }
                 >
-                  {isProcessing || mpesaProcessing || pesapalProcessing
+                  {isProcessing || pesapalProcessing
                     ? "Processing..."
                     : "Complete Payment"}
                 </Button>
