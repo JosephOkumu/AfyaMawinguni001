@@ -37,12 +37,23 @@ class PesapalService {
   /**
    * Initiate payment with Pesapal
    */
-  async initiatePayment(request: PesapalPaymentRequest): Promise<PesapalPaymentResponse> {
+  async initiatePayment(
+    request: PesapalPaymentRequest,
+  ): Promise<PesapalPaymentResponse> {
     try {
       console.log("Initiating Pesapal payment:", request);
 
       // Validate required fields
-      const requiredFields = ['amount', 'email', 'phone_number', 'first_name', 'last_name', 'description', 'lab_provider_id', 'patient_id'];
+      const requiredFields = [
+        "amount",
+        "email",
+        "phone_number",
+        "first_name",
+        "last_name",
+        "description",
+        "lab_provider_id",
+        "patient_id",
+      ];
       for (const field of requiredFields) {
         if (!request[field as keyof PesapalPaymentRequest]) {
           throw new Error(`${field} is required`);
@@ -63,13 +74,13 @@ class PesapalService {
 
       const payload = {
         ...request,
-        amount: numericAmount
+        amount: numericAmount,
       };
 
       const response = await api.post("/payments/pesapal/initiate", payload);
       console.log("Pesapal payment response:", response.data);
 
-      if (response.data.status === 'success') {
+      if (response.data.status === "success") {
         return response.data;
       } else {
         throw new Error(response.data.message || "Failed to initiate payment");
@@ -80,7 +91,11 @@ class PesapalService {
       if (error && typeof error === "object" && "response" in error) {
         const axiosError = error as {
           response?: {
-            data?: { message?: string; error?: string; errors?: any };
+            data?: {
+              message?: string;
+              error?: string;
+              errors?: Record<string, unknown>;
+            };
             status?: number;
           };
         };
@@ -96,7 +111,9 @@ class PesapalService {
         if (axiosError.response?.data?.errors) {
           const errors = axiosError.response.data.errors;
           const firstError = Object.values(errors)[0];
-          throw new Error(Array.isArray(firstError) ? firstError[0] : firstError);
+          throw new Error(
+            Array.isArray(firstError) ? firstError[0] : firstError,
+          );
         }
 
         if (axiosError.response?.status === 401) {
@@ -112,24 +129,32 @@ class PesapalService {
         throw new Error((error as Error).message);
       }
 
-      throw new Error("Failed to initiate payment - please check your network connection");
+      throw new Error(
+        "Failed to initiate payment - please check your network connection",
+      );
     }
   }
 
   /**
    * Check payment status
    */
-  async getPaymentStatus(merchantReference: string): Promise<PesapalPaymentStatus> {
+  async getPaymentStatus(
+    merchantReference: string,
+  ): Promise<PesapalPaymentStatus> {
     try {
       console.log("Getting Pesapal payment status for:", merchantReference);
 
-      const response = await api.get(`/payments/pesapal/status/${merchantReference}`);
+      const response = await api.get(
+        `/payments/pesapal/status/${merchantReference}`,
+      );
       console.log("Pesapal status response:", response.data);
 
-      if (response.data.status === 'success') {
+      if (response.data.status === "success") {
         return response.data;
       } else {
-        throw new Error(response.data.message || "Failed to get payment status");
+        throw new Error(
+          response.data.message || "Failed to get payment status",
+        );
       }
     } catch (error: unknown) {
       console.error("Error getting Pesapal payment status:", error);
@@ -162,7 +187,11 @@ class PesapalService {
   /**
    * Test Pesapal connection
    */
-  async testConnection(): Promise<any> {
+  async testConnection(): Promise<{
+    status: string;
+    message: string;
+    [key: string]: unknown;
+  }> {
     try {
       const response = await api.get("/payments/pesapal/test");
       return response.data;
@@ -184,21 +213,27 @@ class PesapalService {
    * Check if payment is successful
    */
   isPaymentSuccessful(paymentStatus: string): boolean {
-    return ['COMPLETED', 'SUCCESS'].includes(paymentStatus?.toUpperCase());
+    return ["COMPLETED", "SUCCESS"].includes(paymentStatus?.toUpperCase());
   }
 
   /**
    * Check if payment failed
    */
   isPaymentFailed(paymentStatus: string): boolean {
-    return ['FAILED', 'INVALID', 'CANCELLED'].includes(paymentStatus?.toUpperCase());
+    return ["FAILED", "INVALID", "CANCELLED"].includes(
+      paymentStatus?.toUpperCase(),
+    );
   }
 
   /**
    * Check if payment is pending
    */
   isPaymentPending(paymentStatus: string): boolean {
-    return ['PENDING', 'PROCESSING', 'INITIATED'].includes(paymentStatus?.toUpperCase()) || !paymentStatus;
+    return (
+      ["PENDING", "PROCESSING", "INITIATED"].includes(
+        paymentStatus?.toUpperCase(),
+      ) || !paymentStatus
+    );
   }
 
   /**
