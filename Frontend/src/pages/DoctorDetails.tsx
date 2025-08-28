@@ -131,7 +131,7 @@ const DoctorDetails = () => {
   const [date, setDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("mpesa");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("+254722549387");
   const [email, setEmail] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -309,7 +309,7 @@ const DoctorDetails = () => {
 
     try {
       // Both M-Pesa and Card options use Pesapal
-      await initiatePesapalPayment({
+      const paymentResponse = await initiatePesapalPayment({
         amount: Number(consultationFee) || 0,
         email: user.email || "patient@example.com",
         phone_number: phoneNumber,
@@ -319,6 +319,35 @@ const DoctorDetails = () => {
         lab_provider_id: doctor.id, // Using doctor.id as provider reference
         patient_id: user.id,
       });
+
+      // Store booking data with merchant reference for future use
+      if (paymentResponse.merchantReference) {
+        const appointmentDateTime = new Date(date);
+        const [time, period] = timeSlot.split(" ");
+        const [hours, minutes] = time.split(":");
+        let hour24 = parseInt(hours);
+
+        if (period === "PM" && hour24 !== 12) {
+          hour24 += 12;
+        } else if (period === "AM" && hour24 === 12) {
+          hour24 = 0;
+        }
+
+        appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
+
+        const bookingData = {
+          patient_id: user.id,
+          doctor_id: doctor.id,
+          appointment_datetime: appointmentDateTime.toISOString(),
+          consultation_fee: Number(consultationFee),
+          payment_method: paymentMethod,
+        };
+
+        localStorage.setItem(
+          `doctor_booking_${paymentResponse.merchantReference}`,
+          JSON.stringify(bookingData),
+        );
+      }
     } catch (error) {
       setIsProcessing(false);
       console.error("Pesapal payment initiation failed:", error);
