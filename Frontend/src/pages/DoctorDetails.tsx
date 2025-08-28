@@ -39,10 +39,11 @@ import {
   CheckCircle,
   X,
   Check,
+  Info,
 } from "lucide-react";
 import doctorService, { Doctor } from "@/services/doctorService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
-import { useMpesaPayment } from "@/hooks/useMpesaPayment";
+import usePesapalPayment from "@/hooks/usePesapalPayment";
 import appointmentService from "@/services/appointmentService";
 
 const defaultDoctorImage =
@@ -131,6 +132,7 @@ const DoctorDetails = () => {
   const [timeSlot, setTimeSlot] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("mpesa");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -150,13 +152,13 @@ const DoctorDetails = () => {
     providerType: "doctor",
   });
 
-  // M-Pesa payment hook
+  // Pesapal payment hook
   const {
-    initiatePayment,
-    isProcessing: mpesaProcessing,
-    paymentStatus,
-    resetPayment,
-  } = useMpesaPayment({
+    initiatePayment: initiatePesapalPayment,
+    isProcessing: pesapalProcessing,
+    paymentStatus: pesapalPaymentStatus,
+    resetPayment: resetPesapalPayment,
+  } = usePesapalPayment({
     onSuccess: async (result) => {
       setIsProcessing(false);
 
@@ -284,60 +286,42 @@ const DoctorDetails = () => {
   };
 
   const processPayment = async () => {
-    if (paymentMethod === "mpesa") {
-      // Validate phone number
-      if (!phoneNumber.trim()) {
-        toast({
-          title: "Phone Number Required",
-          description: "Please enter your phone number for M-Pesa payment.",
-          variant: "destructive",
-        });
-        return;
-      }
+    // Validate phone number
+    if (!phoneNumber.trim()) {
+      toast({
+        title: "Phone Number Required",
+        description: "Please enter your phone number for payment.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      // Validate phone number format
-      const phoneRegex = /^(0|254)[17]\d{8}$/;
-      if (!phoneRegex.test(phoneNumber.replace(/\s/g, ""))) {
-        toast({
-          title: "Invalid Phone Number",
-          description:
-            "Please enter a valid Safaricom number (e.g., 0712345678).",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!user || !doctor) {
+      toast({
+        title: "Missing Information",
+        description: "User or doctor information is not available.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      setIsProcessing(true);
+    setIsProcessing(true);
 
-      try {
-        await initiatePayment({
-          amount: Number(consultationFee) || 0,
-          phoneNumber: phoneNumber,
-          accountReference: `DOC-${doctor.id}-${Date.now()}`,
-          transactionDesc: `Consultation with ${doctor.user.name}`,
-        });
-      } catch (error) {
-        setIsProcessing(false);
-        console.error("Payment initiation failed:", error);
-      }
-    } else {
-      // Handle card payments (simulate for now)
-      setIsProcessing(true);
-      setTimeout(() => {
-        setIsProcessing(false);
-        setIsSuccess(true);
-
-        toast({
-          title: "Appointment Booked!",
-          description: "Your appointment has been successfully scheduled.",
-          variant: "default",
-        });
-
-        // Redirect after a short delay
-        setTimeout(() => {
-          navigate("/patient-dashboard/appointments");
-        }, 2000);
-      }, 2000);
+    try {
+      // Both M-Pesa and Card options use Pesapal
+      await initiatePesapalPayment({
+        amount: Number(consultationFee) || 0,
+        email: user.email || "patient@example.com",
+        phone_number: phoneNumber,
+        first_name: user.name?.split(" ")[0] || "Patient",
+        last_name: user.name?.split(" ").slice(1).join(" ") || "User",
+        description: `Consultation with Dr. ${doctor.user.name}`,
+        lab_provider_id: doctor.id, // Using doctor.id as provider reference
+        patient_id: user.id,
+      });
+    } catch (error) {
+      setIsProcessing(false);
+      console.error("Pesapal payment initiation failed:", error);
     }
   };
 
@@ -1044,20 +1028,15 @@ const DoctorDetails = () => {
                     id="phone"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="e.g. 0712345678"
+                    placeholder="+254722549387"
                     className="mb-2"
                   />
                   <p className="text-xs text-gray-500">
                     You will receive an M-Pesa prompt to complete the payment.
                   </p>
-                  {paymentStatus && (
-                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-                      <div className="flex items-center space-x-2">
-                        {isProcessing || mpesaProcessing ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                        ) : null}
-                        <span>{paymentStatus}</span>
-                      </div>
+                  {pesapalPaymentStatus && (
+                    <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
+                      {pesapalPaymentStatus}
                     </div>
                   )}
                 </div>
@@ -1067,29 +1046,39 @@ const DoctorDetails = () => {
                 <div className="mb-6 space-y-4">
                   <div>
                     <Label
-                      htmlFor="cardNumber"
+                      htmlFor="cardPhone"
                       className="mb-2 block font-medium"
                     >
-                      Card Number
+                      Phone Number
                     </Label>
-                    <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
+                    <Input
+                      id="cardPhone"
+                      type="tel"
+                      placeholder="+254722549387"
+                      value={phoneNumber || "+254722549387"}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="mb-2"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Required for payment confirmation and notifications.
+                    </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label
-                        htmlFor="expiry"
-                        className="mb-2 block font-medium"
-                      >
-                        Expiry Date
-                      </Label>
-                      <Input id="expiry" placeholder="MM/YY" />
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Info className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">
+                        Secure Card Payment
+                      </span>
                     </div>
-                    <div>
-                      <Label htmlFor="cvv" className="mb-2 block font-medium">
-                        CVV
-                      </Label>
-                      <Input id="cvv" placeholder="123" />
-                    </div>
+                    <p className="text-xs text-blue-700">
+                      You will be redirected to a secure payment page to
+                      complete your card payment.
+                    </p>
+                    {pesapalPaymentStatus && (
+                      <div className="mt-2 p-2 bg-white rounded text-sm text-blue-700">
+                        {pesapalPaymentStatus}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1106,10 +1095,10 @@ const DoctorDetails = () => {
                   className="flex-1"
                   onClick={processPayment}
                   disabled={
-                    isProcessing || mpesaProcessing || !phoneNumber.trim()
+                    isProcessing || pesapalProcessing || !phoneNumber.trim()
                   }
                 >
-                  {isProcessing || mpesaProcessing ? (
+                  {isProcessing || pesapalProcessing ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Processing...
