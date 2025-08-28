@@ -146,19 +146,7 @@ Route::get('/doctors/{id}', [DoctorController::class, 'show']);
 
 
 
-// M-Pesa Payment routes
-Route::prefix('payments/mpesa')->group(function () {
-    // Public routes for M-Pesa authentication and callbacks
-    Route::post('/auth', [PaymentController::class, 'generateAccessToken']);
-    Route::post('/callback', [PaymentController::class, 'handleCallback']);
-    Route::get('/test', [PaymentController::class, 'testConnection']);
 
-    // Protected routes for payment processing
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/stk-push', [PaymentController::class, 'initiateSTKPush']);
-        Route::get('/status/{checkoutRequestId}', [PaymentController::class, 'getPaymentResult']);
-    });
-});
 
 // Pesapal Payment routes
 Route::prefix('payments/pesapal')->group(function () {
