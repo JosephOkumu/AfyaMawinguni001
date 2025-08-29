@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class NursingProviderController extends Controller
 {
@@ -395,15 +397,23 @@ class NursingProviderController extends Controller
         }
 
         try {
-            // Get all confirmed nursing services for this provider
-            $occupiedDates = \DB::table('nursing_services')
+            // Log the request for debugging
+            Log::info('Fetching occupied dates for nursing provider', ['provider_id' => $id]);
+
+            // Get all scheduled nursing services for this provider
+            $occupiedDates = DB::table('nursing_services')
                 ->where('nursing_provider_id', $id)
-                ->where('status', 'confirmed')
-                ->whereDate('start_date', '>=', now()->toDateString())
-                ->select(\DB::raw('DATE(start_date) as date'))
+                ->whereIn('status', ['scheduled', 'in_progress'])
+                ->whereDate('scheduled_datetime', '>=', now()->toDateString())
+                ->select(DB::raw('DATE(scheduled_datetime) as date'))
                 ->distinct()
                 ->pluck('date')
                 ->toArray();
+
+            Log::info('Occupied dates fetched successfully', [
+                'provider_id' => $id,
+                'dates_count' => count($occupiedDates)
+            ]);
 
             return response()->json([
                 'status' => 'success',
@@ -411,6 +421,12 @@ class NursingProviderController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Failed to fetch occupied dates for nursing provider', [
+                'provider_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to fetch occupied dates: ' . $e->getMessage()
@@ -451,14 +467,25 @@ class NursingProviderController extends Controller
         try {
             $date = $request->get('date');
 
-            // Get all confirmed nursing services for this provider on the specified date
-            $occupiedTimes = \DB::table('nursing_services')
+            Log::info('Fetching occupied times for nursing provider', [
+                'provider_id' => $id,
+                'date' => $date
+            ]);
+
+            // Get all scheduled nursing services for this provider on the specified date
+            $occupiedTimes = DB::table('nursing_services')
                 ->where('nursing_provider_id', $id)
-                ->where('status', 'confirmed')
-                ->whereDate('start_date', $date)
-                ->select(\DB::raw('TIME_FORMAT(start_date, "%h:%i %p") as time'))
+                ->whereIn('status', ['scheduled', 'in_progress'])
+                ->whereDate('scheduled_datetime', $date)
+                ->select(DB::raw('TIME_FORMAT(scheduled_datetime, "%h:%i %p") as time'))
                 ->pluck('time')
                 ->toArray();
+
+            Log::info('Occupied times fetched successfully', [
+                'provider_id' => $id,
+                'date' => $date,
+                'times_count' => count($occupiedTimes)
+            ]);
 
             return response()->json([
                 'status' => 'success',
@@ -466,6 +493,13 @@ class NursingProviderController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Failed to fetch occupied times for nursing provider', [
+                'provider_id' => $id,
+                'date' => $date,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to fetch occupied times: ' . $e->getMessage()
