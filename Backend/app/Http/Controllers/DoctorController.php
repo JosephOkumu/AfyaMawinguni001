@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class DoctorController extends Controller
 {
@@ -415,11 +416,11 @@ class DoctorController extends Controller
 
         try {
             // Get all confirmed appointments for this doctor
-            $occupiedDates = \DB::table('appointments')
+            $occupiedDates = DB::table('appointments')
                 ->where('doctor_id', $id)
                 ->where('status', 'confirmed')
                 ->whereDate('appointment_datetime', '>=', now()->toDateString())
-                ->select(\DB::raw('DATE(appointment_datetime) as date'))
+                ->select(DB::raw('DATE(appointment_datetime) as date'))
                 ->distinct()
                 ->pluck('date')
                 ->toArray();
@@ -471,11 +472,11 @@ class DoctorController extends Controller
             $date = $request->get('date');
 
             // Get all confirmed appointments for this doctor on the specified date
-            $occupiedTimes = \DB::table('appointments')
+            $occupiedTimes = DB::table('appointments')
                 ->where('doctor_id', $id)
                 ->where('status', 'confirmed')
                 ->whereDate('appointment_datetime', $date)
-                ->select(\DB::raw('TIME_FORMAT(appointment_datetime, "%h:%i %p") as time'))
+                ->select(DB::raw('TIME_FORMAT(appointment_datetime, "%h:%i %p") as time'))
                 ->pluck('time')
                 ->toArray();
 
