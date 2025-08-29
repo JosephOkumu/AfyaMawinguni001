@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use App\Services\PesapalService;
+use App\Models\NursingService;
+use App\Models\Appointment;
+use App\Models\LabAppointment;
 
 class PaymentController extends Controller
 {
@@ -23,7 +26,9 @@ class PaymentController extends Controller
                 'last_name' => 'required|string',
                 'description' => 'required|string',
                 'lab_provider_id' => 'required|integer',
-                'patient_id' => 'required|integer'
+                'patient_id' => 'required|integer',
+                'payment_method' => 'sometimes|string|in:mpesa,card,all',
+                'booking_data' => 'sometimes|array'
             ]);
 
             $pesapalService = new PesapalService();
@@ -80,8 +85,24 @@ class PaymentController extends Controller
                     'lab_provider_id' => $request->lab_provider_id,
                     'patient_id' => $request->patient_id,
                     'description' => $request->description,
+                    'payment_method' => $request->payment_method ?? 'pesapal',
                     'initiated_at' => now()
                 ], now()->addHours(24));
+
+                // Store detailed booking data if provided
+                if ($request->has('booking_data')) {
+                    $bookingType = 'lab'; // Default
+                    if (isset($request->booking_data['doctor_id'])) {
+                        $bookingType = 'doctor';
+                    } elseif (isset($request->booking_data['nursing_provider_id'])) {
+                        $bookingType = 'nursing';
+                    }
+
+                    cache()->put($bookingType . '_booking_' . $merchantReference,
+                        json_encode($request->booking_data),
+                        now()->addDays(7)
+                    );
+                }
 
                 Log::info('Pesapal payment initiated successfully', [
                     'merchant_reference' => $merchantReference,
@@ -147,7 +168,10 @@ class PaymentController extends Controller
             // Update payment status in cache
             $paymentData = cache()->get('pesapal_payment_' . $orderMerchantReference);
             if ($paymentData) {
-                $paymentData['status'] = $transactionStatus['payment_status_description'] ?? 'UNKNOWN';
+                $currentStatus = $paymentData['status'] ?? 'UNKNOWN';
+                $newStatus = $transactionStatus['payment_status_description'] ?? 'UNKNOWN';
+
+                $paymentData['status'] = $newStatus;
                 $paymentData['payment_method'] = $transactionStatus['payment_method'] ?? null;
                 $paymentData['confirmation_code'] = $transactionStatus['confirmation_code'] ?? null;
                 $paymentData['updated_at'] = now();
@@ -156,9 +180,15 @@ class PaymentController extends Controller
 
                 Log::info('Pesapal payment status updated', [
                     'merchant_reference' => $orderMerchantReference,
-                    'status' => $paymentData['status'],
+                    'old_status' => $currentStatus,
+                    'new_status' => $newStatus,
                     'payment_method' => $paymentData['payment_method']
                 ]);
+
+                // Create appointment if payment is successful and not already created
+                if (($newStatus === 'COMPLETED' || $newStatus === 'SUCCESS') && $currentStatus !== $newStatus) {
+                    $this->createAppointmentFromPayment($paymentData, $orderMerchantReference);
+                }
             }
 
             return response()->json(['message' => 'IPN processed successfully']);
@@ -173,6 +203,110 @@ class PaymentController extends Controller
             return response()->json(['message' => 'IPN processing failed'], 500);
         }
     }
+
+    /**
+     * Create appointment based on successful payment data
+     */
+    private function createAppointmentFromPayment($paymentData, $merchantReference)
+        {
+            try {
+                // Get stored booking data from localStorage equivalent (cache)
+                $bookingDataKeys = [
+                    "doctor_booking_$merchantReference",
+                    "nursing_booking_$merchantReference",
+                    "lab_booking_$merchantReference"
+                ];
+
+                $bookingData = null;
+                $appointmentType = null;
+
+                foreach ($bookingDataKeys as $key) {
+                    $data = cache()->get($key);
+                    if ($data) {
+                        $bookingData = json_decode($data, true);
+                        if (strpos($key, 'doctor_') !== false) {
+                            $appointmentType = 'doctor';
+                        } elseif (strpos($key, 'nursing_') !== false) {
+                            $appointmentType = 'nursing';
+                        } elseif (strpos($key, 'lab_') !== false) {
+                            $appointmentType = 'lab';
+                        }
+                        break;
+                    }
+                }
+
+                if (!$bookingData || !$appointmentType) {
+                    Log::warning('No booking data found for payment', [
+                        'merchant_reference' => $merchantReference
+                    ]);
+                    return;
+                }
+
+                // Create appointment based on type
+                switch ($appointmentType) {
+                    case 'doctor':
+                        $appointment = new Appointment();
+                        $appointment->patient_id = $bookingData['patient_id'];
+                        $appointment->doctor_id = $bookingData['doctor_id'];
+                        $appointment->appointment_datetime = $bookingData['appointment_datetime'];
+                        $appointment->type = 'in_person'; // or virtual based on booking
+                        $appointment->reason_for_visit = 'Doctor consultation';
+                        $appointment->fee = $bookingData['consultation_fee'];
+                        $appointment->status = 'confirmed';
+                        $appointment->save();
+
+                        Log::info('Doctor appointment created', [
+                            'appointment_id' => $appointment->id,
+                            'merchant_reference' => $merchantReference
+                        ]);
+                        break;
+
+                    case 'nursing':
+                        $nursingService = new NursingService();
+                        $nursingService->patient_id = $bookingData['patient_id'];
+                        $nursingService->nursing_provider_id = $bookingData['nursing_provider_id'];
+                        $nursingService->service_name = $bookingData['service_names'] ?? 'Home Nursing Service';
+                        $nursingService->service_description = 'Home nursing services';
+                        $nursingService->service_price = $bookingData['total_amount'];
+                        $nursingService->start_date = $bookingData['appointment_datetime'];
+                        $nursingService->end_date = $bookingData['end_datetime'] ?? $bookingData['appointment_datetime'];
+                        $nursingService->patient_address = 'Address to be confirmed';
+                        $nursingService->status = 'confirmed';
+                        $nursingService->save();
+
+                        Log::info('Nursing appointment created', [
+                            'nursing_service_id' => $nursingService->id,
+                            'merchant_reference' => $merchantReference
+                        ]);
+                        break;
+
+                    case 'lab':
+                        $labAppointment = new LabAppointment();
+                        $labAppointment->patient_id = $bookingData['patient_id'];
+                        $labAppointment->lab_provider_id = $bookingData['lab_provider_id'];
+                        $labAppointment->appointment_datetime = $bookingData['appointment_datetime'];
+                        $labAppointment->test_ids = json_encode($bookingData['test_ids']);
+                        $labAppointment->total_amount = $bookingData['total_amount'];
+                        $labAppointment->payment_reference = $merchantReference;
+                        $labAppointment->status = 'confirmed';
+                        $labAppointment->notes = 'Lab tests booked via Pesapal payment';
+                        $labAppointment->save();
+
+                        Log::info('Lab appointment created', [
+                            'lab_appointment_id' => $labAppointment->id,
+                            'merchant_reference' => $merchantReference
+                        ]);
+                        break;
+                }
+
+            } catch (\Exception $e) {
+                Log::error('Failed to create appointment from payment', [
+                    'merchant_reference' => $merchantReference,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        }
 
     /**
      * Get Pesapal payment status
@@ -326,6 +460,178 @@ class PaymentController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Connection test failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Debug endpoint to test Pesapal integration step by step
+     */
+    public function debugPesapal(Request $request): JsonResponse
+    {
+        try {
+            Log::info('Starting Pesapal debug test');
+
+            $pesapalService = new PesapalService();
+            $results = [];
+
+            // Step 1: Test configuration
+            $results['config'] = [
+                'consumer_key' => config('pesapal.consumer_key') ? 'SET' : 'MISSING',
+                'consumer_secret' => config('pesapal.consumer_secret') ? 'SET' : 'MISSING',
+                'base_url' => config('pesapal.base_url'),
+                'ipn_url' => config('pesapal.ipn_url'),
+                'callback_url' => config('pesapal.callback_url'),
+                'currency' => config('pesapal.currency')
+            ];
+
+            // Step 2: Test token generation
+            try {
+                $token = $pesapalService->getAccessToken();
+                $results['token'] = [
+                    'status' => 'SUCCESS',
+                    'token_preview' => substr($token, 0, 20) . '...',
+                    'token_length' => strlen($token)
+                ];
+            } catch (\Exception $e) {
+                $results['token'] = [
+                    'status' => 'FAILED',
+                    'error' => $e->getMessage()
+                ];
+                return response()->json($results, 500);
+            }
+
+            // Step 3: Test IPN registration
+            try {
+                $ipnResponse = $pesapalService->registerIPN();
+                $results['ipn'] = [
+                    'status' => 'SUCCESS',
+                    'ipn_id' => $ipnResponse['ipn_id'] ?? null,
+                    'response' => $ipnResponse
+                ];
+            } catch (\Exception $e) {
+                $results['ipn'] = [
+                    'status' => 'FAILED',
+                    'error' => $e->getMessage()
+                ];
+                return response()->json($results, 500);
+            }
+
+            // Step 4: Test order submission (with test data)
+            if ($request->has('test_order')) {
+                try {
+                    $testOrderData = [
+                        'merchant_reference' => 'TEST-' . time(),
+                        'amount' => 100.00,
+                        'description' => 'Test payment',
+                        'email' => 'test@example.com',
+                        'phone_number' => '+254722549387',
+                        'first_name' => 'Test',
+                        'last_name' => 'User',
+                        'address' => 'Test Address',
+                        'city' => 'Nairobi',
+                        'state' => 'Nairobi',
+                        'postal_code' => '00100',
+                        'zip_code' => '00100',
+                        'notification_id' => $results['ipn']['ipn_id']
+                    ];
+
+                    $orderResponse = $pesapalService->submitOrder($testOrderData);
+                    $results['order'] = [
+                        'status' => 'SUCCESS',
+                        'order_tracking_id' => $orderResponse['order_tracking_id'] ?? null,
+                        'redirect_url' => $orderResponse['redirect_url'] ?? null
+                    ];
+                } catch (\Exception $e) {
+                    $results['order'] = [
+                        'status' => 'FAILED',
+                        'error' => $e->getMessage()
+                    ];
+                }
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pesapal debug completed',
+                'results' => $results
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Pesapal debug failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Debug failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get payment status by order tracking ID (alternative to merchant reference)
+     */
+    public function getPesapalPaymentStatusByTrackingId(Request $request, $orderTrackingId): JsonResponse
+    {
+        try {
+            Log::info('Getting payment status by tracking ID', ['order_tracking_id' => $orderTrackingId]);
+
+            $pesapalService = new PesapalService();
+            $transactionStatus = $pesapalService->getTransactionStatus($orderTrackingId);
+
+            if (!$transactionStatus) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Payment not found'
+                ], 404);
+            }
+
+            // Try to find merchant reference from cache
+            $merchantReference = null;
+            $paymentData = null;
+
+            // Try to find the payment data in cache using a simple approach
+            // Since we can't easily search all cache keys, we'll rely on the transaction status from Pesapal
+            // and use that to get merchant reference if available in the response
+            $merchantReference = $transactionStatus['merchant_reference'] ?? null;
+            $paymentData = null;
+
+            // If we have merchant reference from Pesapal, try to get cached payment data
+            if ($merchantReference) {
+                $paymentData = cache()->get('pesapal_payment_' . $merchantReference);
+            }
+
+            Log::info('Payment status retrieved by tracking ID', [
+                'order_tracking_id' => $orderTrackingId,
+                'merchant_reference' => $merchantReference,
+                'payment_status' => $transactionStatus['payment_status_description'] ?? 'UNKNOWN'
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'order_tracking_id' => $orderTrackingId,
+                'merchant_reference' => $merchantReference,
+                'payment_status' => $transactionStatus['payment_status_description'] ?? 'UNKNOWN',
+                'amount' => $transactionStatus['amount'] ?? ($paymentData['amount'] ?? null),
+                'currency' => $transactionStatus['currency'] ?? 'KES',
+                'payment_method' => $transactionStatus['payment_method'] ?? null,
+                'confirmation_code' => $transactionStatus['confirmation_code'] ?? null,
+                'transaction_reference' => $transactionStatus['pesapal_transaction_id'] ?? null,
+                'created_date' => $transactionStatus['created_date'] ?? null,
+                'description' => $transactionStatus['description'] ?? ($paymentData['description'] ?? null)
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to get payment status by tracking ID', [
+                'order_tracking_id' => $orderTrackingId,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unable to retrieve payment status: ' . $e->getMessage()
             ], 500);
         }
     }
