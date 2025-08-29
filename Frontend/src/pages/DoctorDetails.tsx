@@ -156,44 +156,6 @@ const DoctorDetails = () => {
     paymentStatus: pesapalPaymentStatus,
     resetPayment: resetPesapalPayment,
   } = usePesapalPayment({
-    onSuccess: async (result) => {
-      setIsProcessing(false);
-
-      // Create doctor appointment after successful payment
-      try {
-        if (user && doctor && date && timeSlot) {
-          const appointmentDateTime = new Date(date);
-          const [time, period] = timeSlot.split(" ");
-          const [hours, minutes] = time.split(":");
-          let hour24 = parseInt(hours);
-
-          if (period === "PM" && hour24 !== 12) {
-            hour24 += 12;
-          } else if (period === "AM" && hour24 === 12) {
-            hour24 = 0;
-          }
-
-          appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
-
-          await appointmentService.createAppointment({
-            doctor_id: doctor.id,
-            appointment_datetime: appointmentDateTime.toISOString(),
-            type: consultationType === "physical" ? "in_person" : "virtual",
-            reason_for_visit: "Doctor consultation",
-            symptoms: "",
-            fee: Number(consultationFee) || 0,
-          });
-
-          console.log("Doctor appointment created successfully");
-        }
-      } catch (error) {
-        console.error("Error creating doctor appointment:", error);
-        // Still show success since payment went through
-      }
-
-      setIsSuccess(true);
-      setIsPaymentModalOpen(false);
-    },
     onError: (error) => {
       setIsProcessing(false);
       console.error("Payment error:", error);
