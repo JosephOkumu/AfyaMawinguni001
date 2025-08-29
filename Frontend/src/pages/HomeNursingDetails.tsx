@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  Link,
+  useSearchParams,
+} from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -392,6 +397,7 @@ const timeSlots = [
 const HomeNursingDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
   // Generate user initials
@@ -441,6 +447,21 @@ const HomeNursingDetails = () => {
       console.error("Payment error:", error);
     },
   });
+
+  // Check for booking success parameter
+  useEffect(() => {
+    const bookingSuccess = searchParams.get("booking_success");
+    if (bookingSuccess === "true") {
+      setIsSuccess(true);
+      // Clean up the URL parameter
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("booking_success");
+      navigate(
+        `/patient-dashboard/nursing/${id}?${newSearchParams.toString()}`,
+        { replace: true },
+      );
+    }
+  }, [searchParams, navigate, id]);
 
   // Fetch provider data when component mounts
   useEffect(() => {
@@ -639,6 +660,33 @@ const HomeNursingDetails = () => {
 
     try {
       // Both M-Pesa and Card options use Pesapal
+      // Prepare booking data
+      const appointmentDateTime = new Date(date);
+      const [time, period] = timeSlot.split(" ");
+      const [hours, minutes] = time.split(":");
+      let hour24 = parseInt(hours);
+
+      if (period === "PM" && hour24 !== 12) {
+        hour24 += 12;
+      } else if (period === "AM" && hour24 === 12) {
+        hour24 = 0;
+      }
+
+      appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
+
+      // Calculate default service duration (2 hours for most services)
+      const serviceDuration = 2;
+      const endDateTime = new Date(appointmentDateTime);
+      endDateTime.setHours(endDateTime.getHours() + serviceDuration);
+
+      const selectedServiceNames = selectedServices
+        .map((serviceId) => {
+          const service = provider?.services.find((s) => s.id === serviceId);
+          return service?.name;
+        })
+        .filter(Boolean)
+        .join(", ");
+
       const paymentResponse = await initiatePesapalPayment({
         amount: Math.round(Number(totalPrice) || 0),
         email: user.email || "patient@example.com",
@@ -648,36 +696,19 @@ const HomeNursingDetails = () => {
         description: `Home nursing services from ${provider?.provider_name || provider?.user.name}`,
         lab_provider_id: provider.id, // Using provider.id as reference
         patient_id: user.id,
+        booking_data: {
+          patient_id: user.id,
+          nursing_provider_id: provider.id,
+          service_ids: selectedServices,
+          appointment_datetime: appointmentDateTime.toISOString(),
+          end_datetime: endDateTime.toISOString(),
+          total_amount: Math.round(Number(totalPrice)),
+          service_names: selectedServiceNames,
+        },
       });
 
-      // Store booking data with merchant reference for future use
+      // Store booking data with merchant reference for future use (frontend backup)
       if (paymentResponse.merchantReference) {
-        const appointmentDateTime = new Date(date);
-        const [time, period] = timeSlot.split(" ");
-        const [hours, minutes] = time.split(":");
-        let hour24 = parseInt(hours);
-
-        if (period === "PM" && hour24 !== 12) {
-          hour24 += 12;
-        } else if (period === "AM" && hour24 === 12) {
-          hour24 = 0;
-        }
-
-        appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
-
-        // Calculate default service duration (2 hours for most services)
-        const serviceDuration = 2;
-        const endDateTime = new Date(appointmentDateTime);
-        endDateTime.setHours(endDateTime.getHours() + serviceDuration);
-
-        const selectedServiceNames = selectedServices
-          .map((serviceId) => {
-            const service = provider?.services.find((s) => s.id === serviceId);
-            return service?.name;
-          })
-          .filter(Boolean)
-          .join(", ");
-
         const bookingData = {
           patient_id: user.id,
           nursing_provider_id: provider.id,
