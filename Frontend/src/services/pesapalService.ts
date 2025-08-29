@@ -1,5 +1,20 @@
 import api from "./api";
 
+export interface BookingData {
+  patient_id: number;
+  doctor_id?: number;
+  nursing_provider_id?: number;
+  lab_provider_id?: number;
+  appointment_datetime: string;
+  consultation_fee?: number;
+  consultation_type?: string;
+  service_ids?: number[];
+  end_datetime?: string;
+  total_amount?: number;
+  service_names?: string;
+  test_ids?: number[];
+}
+
 export interface PesapalPaymentRequest {
   amount: number;
   email: string;
@@ -9,6 +24,8 @@ export interface PesapalPaymentRequest {
   description: string;
   lab_provider_id: number;
   patient_id: number;
+  payment_method?: string;
+  booking_data?: BookingData;
   address?: string;
   city?: string;
   state?: string;
@@ -75,6 +92,7 @@ class PesapalService {
       const payload = {
         ...request,
         amount: numericAmount,
+        payment_method: request.payment_method || "all",
       };
 
       const response = await api.post("/payments/pesapal/initiate", payload);
