@@ -6,6 +6,8 @@ use App\Models\LabProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class LabProviderController extends Controller
 {
@@ -383,12 +385,12 @@ class LabProviderController extends Controller
         }
 
         try {
-            // Get all confirmed lab tests for this provider
-            $occupiedDates = \DB::table('lab_tests')
+            // Get all confirmed lab appointments for this provider
+            $occupiedDates = DB::table('lab_appointments')
                 ->where('lab_provider_id', $id)
                 ->where('status', 'confirmed')
-                ->whereDate('test_date', '>=', now()->toDateString())
-                ->select(\DB::raw('DATE(test_date) as date'))
+                ->whereDate('appointment_datetime', '>=', now()->toDateString())
+                ->select(DB::raw('DATE(appointment_datetime) as date'))
                 ->distinct()
                 ->pluck('date')
                 ->toArray();
@@ -439,12 +441,12 @@ class LabProviderController extends Controller
         try {
             $date = $request->get('date');
 
-            // Get all confirmed lab tests for this provider on the specified date
-            $occupiedTimes = \DB::table('lab_tests')
+            // Get all confirmed lab appointments for this provider on the specified date
+            $occupiedTimes = DB::table('lab_appointments')
                 ->where('lab_provider_id', $id)
                 ->where('status', 'confirmed')
-                ->whereDate('test_date', $date)
-                ->select(\DB::raw('TIME_FORMAT(test_date, "%h:%i %p") as time'))
+                ->whereDate('appointment_datetime', $date)
+                ->select(DB::raw('TIME_FORMAT(appointment_datetime, "%h:%i %p") as time'))
                 ->pluck('time')
                 ->toArray();
 
