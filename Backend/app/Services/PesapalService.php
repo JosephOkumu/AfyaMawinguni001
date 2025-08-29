@@ -108,7 +108,7 @@ class PesapalService
                 'amount' => floatval($orderData['amount']),
                 'description' => $orderData['description'],
                 'redirect_mode' => 'PARENT_WINDOW',
-                'callback_url' => $orderData['callback_url'] ?? $this->callbackUrl,
+                'callback_url' => $orderData['callback_url'] ?? $this->callbackUrl . '?merchant_reference=' . urlencode($orderData['merchant_reference']),
                 'notification_id' => $orderData['notification_id'] ?? null,
                 'billing_address' => [
                     'email_address' => $orderData['email'] ?? '',
