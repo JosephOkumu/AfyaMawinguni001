@@ -52,9 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/doctor/profile', [DoctorController::class, 'updateProfile']);
     Route::post('/doctor/upload-image', [DoctorController::class, 'uploadProfileImage']);
 
-    // Doctor booking routes
-    Route::get('/doctors/{id}/occupied-dates', [DoctorController::class, 'getOccupiedDates']);
-    Route::get('/doctors/{id}/occupied-times', [DoctorController::class, 'getOccupiedTimes']);
+    // Doctor booking routes (booking availability moved to public section)
 
     // Appointment routes
     Route::apiResource('appointments', AppointmentController::class);
@@ -68,10 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/lab-provider/profile', [LabProviderController::class, 'updateProfile']);
     Route::post('/lab-provider/upload-image', [LabProviderController::class, 'uploadProfileImage']);
 
-    // Lab provider booking routes
-    Route::get('/lab-providers/{id}/occupied-dates', [LabProviderController::class, 'getOccupiedDates']);
-    Route::get('/lab-providers/{id}/occupied-times', [LabProviderController::class, 'getOccupiedTimes']);
-    Route::get('/lab-providers/{id}/fully-booked-dates', [LabAppointmentController::class, 'getFullyBookedDates']);
+    // Lab provider booking routes (booking availability moved to public section)
 
     // Lab Appointment routes
     Route::apiResource('lab-appointments', LabAppointmentController::class);
@@ -98,9 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/nursing-provider/profile', [NursingProviderController::class, 'updateProfile']);
     Route::post('/nursing-provider/upload-image', [NursingProviderController::class, 'uploadProfileImage']);
 
-    // Nursing provider booking routes
-    Route::get('/nursing-providers/{id}/occupied-dates', [NursingProviderController::class, 'getOccupiedDates']);
-    Route::get('/nursing-providers/{id}/occupied-times', [NursingProviderController::class, 'getOccupiedTimes']);
+    // Nursing provider booking routes (other routes moved to public section)
 
     // Nursing Service Offerings routes (for providers to manage their services)
     Route::get('/nursing-provider/service-offerings', [NursingServiceOfferingController::class, 'index']);
@@ -144,6 +137,15 @@ Route::get('/lab-providers/{labProviderId}/test-services', [LabTestServiceContro
 Route::get('/doctors', [DoctorController::class, 'index']);
 Route::get('/doctors/{id}', [DoctorController::class, 'show']);
 
+// Public routes for booking availability (no auth required for viewing)
+Route::get('/doctors/{id}/occupied-dates', [DoctorController::class, 'getOccupiedDates']);
+Route::get('/doctors/{id}/occupied-times', [DoctorController::class, 'getOccupiedTimes']);
+Route::get('/lab-providers/{id}/occupied-dates', [LabProviderController::class, 'getOccupiedDates']);
+Route::get('/lab-providers/{id}/occupied-times', [LabProviderController::class, 'getOccupiedTimes']);
+Route::get('/lab-providers/{id}/fully-booked-dates', [LabAppointmentController::class, 'getFullyBookedDates']);
+Route::get('/nursing-providers/{id}/occupied-dates', [NursingProviderController::class, 'getOccupiedDates']);
+Route::get('/nursing-providers/{id}/occupied-times', [NursingProviderController::class, 'getOccupiedTimes']);
+
 
 
 
@@ -155,10 +157,12 @@ Route::prefix('payments/pesapal')->group(function () {
     Route::get('/test', [PaymentController::class, 'testPesapalConnection']);
     Route::get('/auth-token', [PaymentController::class, 'getPesapalAuthToken']);
     Route::post('/register-ipn', [PaymentController::class, 'registerPesapalIPN']);
+    Route::get('/debug', [PaymentController::class, 'debugPesapal']);
 
     // Protected routes for payment processing
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/initiate', [PaymentController::class, 'initiatePesapalPayment']);
         Route::get('/status/{merchantReference}', [PaymentController::class, 'getPesapalPaymentStatus']);
+        Route::get('/status-by-tracking/{orderTrackingId}', [PaymentController::class, 'getPesapalPaymentStatusByTrackingId']);
     });
 });
