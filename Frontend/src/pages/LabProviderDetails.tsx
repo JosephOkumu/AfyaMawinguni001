@@ -168,6 +168,21 @@ const LabProviderDetails = () => {
     }
   };
 
+  // Check for booking success parameter
+  useEffect(() => {
+    const bookingSuccess = searchParams.get("booking_success");
+    if (bookingSuccess === "true") {
+      setIsPaymentSuccess(true);
+      // Clean up the URL parameter
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("booking_success");
+      navigate(
+        `/patient-dashboard/lab-provider/${id}?${newSearchParams.toString()}`,
+        { replace: true },
+      );
+    }
+  }, [searchParams, navigate, id]);
+
   // Fetch lab provider details and test services
   useEffect(() => {
     const fetchProviderDetails = async () => {
@@ -361,6 +376,13 @@ const LabProviderDetails = () => {
         description: `Lab tests at ${provider.lab_name || "Lab Provider"}`,
         lab_provider_id: provider.id,
         patient_id: user.id,
+        booking_data: {
+          patient_id: user.id,
+          lab_provider_id: provider.id,
+          appointment_datetime: appointmentDateTime.toISOString(),
+          test_ids: selectedTests,
+          total_amount: Number(totalPrice),
+        },
       });
 
       // Store booking data with merchant reference
