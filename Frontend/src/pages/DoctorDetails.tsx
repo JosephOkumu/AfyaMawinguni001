@@ -258,6 +258,20 @@ const DoctorDetails = () => {
 
     try {
       // Both M-Pesa and Card options use Pesapal
+      // Prepare booking data
+      const appointmentDateTime = new Date(date);
+      const [time, period] = timeSlot.split(" ");
+      const [hours, minutes] = time.split(":");
+      let hour24 = parseInt(hours);
+
+      if (period === "PM" && hour24 !== 12) {
+        hour24 += 12;
+      } else if (period === "AM" && hour24 === 12) {
+        hour24 = 0;
+      }
+
+      appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0);
+
       const paymentResponse = await initiatePesapalPayment({
         amount: Number(consultationFee) || 0,
         email: user.email || "patient@example.com",
@@ -267,6 +281,13 @@ const DoctorDetails = () => {
         description: `Consultation with Dr. ${doctor.user.name}`,
         lab_provider_id: doctor.id, // Using doctor.id as provider reference
         patient_id: user.id,
+        booking_data: {
+          patient_id: user.id,
+          doctor_id: doctor.id,
+          appointment_datetime: appointmentDateTime.toISOString(),
+          consultation_fee: Number(consultationFee),
+          consultation_type: consultationType,
+        },
       });
 
       // Store booking data with merchant reference for future use
