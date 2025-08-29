@@ -42,84 +42,6 @@ const ALL_TIME_SLOTS = [
   "4:30 PM",
 ];
 
-// Dummy occupied dates for demonstration (will be removed when payment features are implemented)
-const getDummyOccupiedDates = (): string[] => {
-  const dates = [];
-  const today = new Date();
-
-  // Check each date in the next 30 days to see if it should be fully booked
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    const dateString = date.toISOString().split("T")[0];
-
-    // Get occupied times for this date
-    const occupiedTimes = getDummyOccupiedTimes(dateString);
-
-    // Only mark as fully booked if ALL time slots are occupied
-    if (occupiedTimes.length >= ALL_TIME_SLOTS.length) {
-      dates.push(dateString);
-    }
-  }
-
-  return dates;
-};
-
-// Dummy occupied times for demonstration
-const getDummyOccupiedTimes = (dateString: string): string[] => {
-  const occupiedTimes = [];
-  const date = new Date(dateString);
-  const dayOfWeek = date.getDay();
-
-  // Different patterns for different days
-  if (dayOfWeek === 1) {
-    // Monday - busy morning
-    occupiedTimes.push("8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM");
-  } else if (dayOfWeek === 2) {
-    // Tuesday - afternoon busy
-    occupiedTimes.push("1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM");
-  } else if (dayOfWeek === 3) {
-    // Wednesday - scattered
-    occupiedTimes.push("8:00 AM", "10:30 AM", "12:30 PM", "3:30 PM", "5:00 PM");
-  } else if (dayOfWeek === 4) {
-    // Thursday - evening busy
-    occupiedTimes.push(
-      "3:00 PM",
-      "3:30 PM",
-      "4:00 PM",
-      "4:30 PM",
-      "5:00 PM",
-      "5:30 PM",
-    );
-  } else if (dayOfWeek === 5) {
-    // Friday - very busy but not fully booked
-    occupiedTimes.push(
-      "8:00 AM",
-      "9:00 AM",
-      "10:00 AM",
-      "11:00 AM",
-      "1:00 PM",
-      "2:00 PM",
-      "3:00 PM",
-      "4:00 PM",
-    );
-  } else if (dayOfWeek === 6) {
-    // Saturday - half day
-    occupiedTimes.push("8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM");
-  }
-  // Sunday - mostly available
-
-  // Only make one specific date fully booked for demonstration
-  // Let's make the 15th of each month fully booked
-  const dayOfMonth = date.getDate();
-  if (dayOfMonth === 15) {
-    // Fully booked - all time slots occupied
-    return [...ALL_TIME_SLOTS];
-  }
-
-  return occupiedTimes;
-};
-
 export const useCalendarBookings = ({
   providerId,
   providerType,
@@ -141,22 +63,22 @@ export const useCalendarBookings = ({
       try {
         let fullyBookedDates: string[] = [];
 
-        // For demonstration purposes, use dummy data
-        // This will be replaced with real API calls when payment features are implemented
-        fullyBookedDates = getDummyOccupiedDates();
-
-        /* Real API calls (commented out for demo):
+        // Get dates where all time slots are booked based on real appointments
         if (providerType === "doctor") {
-          // Get dates where all time slots are booked
-          fullyBookedDates = await appointmentService.getDoctorFullyBookedDates(providerId);
+          fullyBookedDates =
+            await appointmentService.getDoctorOccupiedDates(providerId);
         } else if (providerType === "nursing") {
-          fullyBookedDates = await appointmentService.getNursingProviderFullyBookedDates(providerId);
+          fullyBookedDates =
+            await appointmentService.getNursingProviderOccupiedDates(
+              providerId,
+            );
         } else if (providerType === "lab") {
           // Lab provider fully booked dates - check when all time slots are occupied
-          const response = await api.get(`/lab-providers/${providerId}/fully-booked-dates`);
+          const response = await api.get(
+            `/lab-providers/${providerId}/fully-booked-dates`,
+          );
           fullyBookedDates = response.data.data;
         }
-        */
 
         setOccupiedDates(fullyBookedDates);
       } catch (err) {
@@ -183,21 +105,24 @@ export const useCalendarBookings = ({
       const dateString = date.toISOString().split("T")[0]; // YYYY-MM-DD format
       let times: string[] = [];
 
-      // For demonstration purposes, use dummy data
-      // This will be replaced with real API calls when payment features are implemented
-      times = getDummyOccupiedTimes(dateString);
-
-      /* Real API calls (commented out for demo):
+      // Get occupied times based on real appointments with successful payments
       if (providerType === "doctor") {
-        times = await appointmentService.getDoctorOccupiedTimes(providerId, dateString);
+        times = await appointmentService.getDoctorOccupiedTimes(
+          providerId,
+          dateString,
+        );
       } else if (providerType === "nursing") {
-        times = await appointmentService.getNursingProviderOccupiedTimes(providerId, dateString);
+        times = await appointmentService.getNursingProviderOccupiedTimes(
+          providerId,
+          dateString,
+        );
       } else if (providerType === "lab") {
         // Lab provider occupied times - API endpoint exists
-        const response = await api.get(`/lab-providers/${providerId}/occupied-times?date=${dateString}`);
+        const response = await api.get(
+          `/lab-providers/${providerId}/occupied-times?date=${dateString}`,
+        );
         times = response.data.data;
       }
-      */
 
       setOccupiedTimes(times);
     } catch (err) {
