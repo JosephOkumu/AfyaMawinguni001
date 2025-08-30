@@ -153,6 +153,7 @@ const PaymentSuccess = () => {
             patient_address: "Patient's home address",
             payment_reference: merchantRef,
             care_notes: `Booked via Pesapal payment`,
+            is_paid: true,
           });
           localStorage.removeItem(nursingBookingKey);
           bookingType = "nursing";
@@ -177,7 +178,7 @@ const PaymentSuccess = () => {
     };
 
     verifyPaymentAndRedirect();
-  }, [merchantReference, orderTrackingId, navigate, toast]);
+  }, [merchantReference, orderTrackingId, navigate, toast, searchParams]);
 
   const handleRetry = () => {
     navigate(-1); // Go back to previous page
