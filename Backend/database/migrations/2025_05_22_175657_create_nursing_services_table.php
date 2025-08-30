@@ -21,7 +21,7 @@ return new class extends Migration
             $table->dateTime('scheduled_datetime');
             $table->dateTime('end_datetime')->nullable(); // For services with duration
             $table->text('patient_address'); // Home address for service
-            $table->enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled'])->default('scheduled');
+            $table->enum('status', ['scheduled', 'confirmed', 'in_progress', 'completed', 'cancelled'])->default('scheduled');
             $table->text('care_notes')->nullable(); // Notes from nursing staff
             $table->text('patient_requirements')->nullable(); // Special requirements specified by patient
             $table->text('medical_history')->nullable(); // Relevant medical history
@@ -30,7 +30,7 @@ return new class extends Migration
             $table->string('recurrence_pattern')->nullable(); // e.g., 'daily', 'weekly', etc.
             $table->boolean('is_paid')->default(false);
             $table->timestamps();
-            
+
             // Indexes for faster queries
             $table->index('scheduled_datetime');
             $table->index('status');
