@@ -318,4 +318,57 @@ class NursingServiceController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Mark a nursing service as completed
+     *
+     * @param  int  $id
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function complete($id, Request $request)
+    {
+        $nursingService = NursingService::find($id);
+
+        if (!$nursingService) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing service not found'
+            ], 404);
+        }
+
+        // Check if the service is in a state that can be completed
+        if (!in_array($nursingService->status, ['confirmed', 'in_progress'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing service cannot be completed in its current status'
+            ], 400);
+        }
+
+        try {
+            $updateData = ['status' => 'completed'];
+
+            // Add completion notes if provided
+            if ($request->has('completion_notes')) {
+                $updateData['care_notes'] = $request->completion_notes;
+            }
+
+            $nursingService->update($updateData);
+
+            // Reload with relationships
+            $nursingService = $nursingService->fresh(['patient', 'nursingProvider']);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Nursing service completed successfully',
+                'data' => $nursingService
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to complete nursing service: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
