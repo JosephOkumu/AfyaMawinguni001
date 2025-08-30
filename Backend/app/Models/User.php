@@ -51,7 +51,7 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    
+
     /**
      * Get the user type that this user belongs to.
      */
@@ -59,12 +59,20 @@ class User extends Authenticatable
     {
         return $this->belongsTo(UserType::class);
     }
-    
+
     /**
      * Get the profile associated with this user.
      */
     public function profile()
     {
         return $this->hasOne(UserProfile::class);
+    }
+
+    /**
+     * Get the nursing provider profile if this user is a nursing provider.
+     */
+    public function nursingProvider()
+    {
+        return $this->hasOne(NursingProvider::class);
     }
 }
