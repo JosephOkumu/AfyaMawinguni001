@@ -113,6 +113,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/nursing-services/{id}/accept', [NursingServiceController::class, 'accept']);
     Route::put('/nursing-services/{id}/confirm', [NursingServiceController::class, 'confirm']);
     Route::put('/nursing-services/{id}/reject', [NursingServiceController::class, 'reject']);
+    Route::put('/nursing-services/{id}/complete', [NursingServiceController::class, 'complete']);
 
     // Pharmacy routes
     Route::apiResource('pharmacies', PharmacyController::class);
