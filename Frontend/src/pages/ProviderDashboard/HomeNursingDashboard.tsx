@@ -305,6 +305,9 @@ const HomeNursingDashboard = () => {
   const [confirmedAppointments, setConfirmedAppointments] = useState<
     NursingService[]
   >([]);
+  const [appointmentHistory, setAppointmentHistory] = useState<
+    NursingService[]
+  >([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentService, setCurrentService] =
@@ -800,16 +803,20 @@ const HomeNursingDashboard = () => {
       const requests =
         await nursingService.getNursingServices("nursing-provider");
 
-      // Separate pending requests from confirmed appointments
+      // Separate pending requests from confirmed appointments and history
       const pendingRequests = requests.filter(
         (req) => req.status === "scheduled" && req.is_paid,
       );
       const confirmedAppts = requests.filter(
         (req) => req.status === "confirmed",
       );
+      const historyAppts = requests.filter(
+        (req) => req.status === "cancelled" || req.status === "completed",
+      );
 
       setNursingRequests(pendingRequests);
       setConfirmedAppointments(confirmedAppts);
+      setAppointmentHistory(historyAppts);
     } catch (error) {
       console.error("Failed to fetch nursing requests:", error);
       toast({
@@ -859,8 +866,19 @@ const HomeNursingDashboard = () => {
     try {
       await nursingService.rejectNursingService(requestId, reason);
 
-      // Remove from pending requests
-      setNursingRequests((prev) => prev.filter((req) => req.id !== requestId));
+      // Move request from pending to history as cancelled
+      const rejectedRequest = nursingRequests.find(
+        (req) => req.id === requestId,
+      );
+      if (rejectedRequest) {
+        setNursingRequests((prev) =>
+          prev.filter((req) => req.id !== requestId),
+        );
+        setAppointmentHistory((prev) => [
+          ...prev,
+          { ...rejectedRequest, status: "cancelled" as const },
+        ]);
+      }
 
       toast({
         title: "Request Rejected",
@@ -871,6 +889,41 @@ const HomeNursingDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to reject the request. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCompleteAppointment = async (
+    appointmentId: number,
+    notes?: string,
+  ) => {
+    try {
+      await nursingService.completeNursingService(appointmentId, notes);
+
+      // Move appointment from confirmed to history as completed
+      const completedAppointment = confirmedAppointments.find(
+        (apt) => apt.id === appointmentId,
+      );
+      if (completedAppointment) {
+        setConfirmedAppointments((prev) =>
+          prev.filter((apt) => apt.id !== appointmentId),
+        );
+        setAppointmentHistory((prev) => [
+          ...prev,
+          { ...completedAppointment, status: "completed" as const },
+        ]);
+      }
+
+      toast({
+        title: "Appointment Completed",
+        description: "The nursing service has been marked as completed.",
+      });
+    } catch (error) {
+      console.error("Failed to complete appointment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to complete the appointment. Please try again.",
         variant: "destructive",
       });
     }
@@ -1706,6 +1759,16 @@ const HomeNursingDashboard = () => {
                             );
                           }
                         }}
+                        onAppointmentComplete={async (appointmentId) => {
+                          try {
+                            await handleCompleteAppointment(appointmentId);
+                          } catch (error) {
+                            console.error(
+                              "Failed to complete appointment:",
+                              error,
+                            );
+                          }
+                        }}
                       />
                     )}
                   </CardContent>
@@ -1733,100 +1796,109 @@ const HomeNursingDashboard = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="border rounded-lg p-4 bg-green-50 border-green-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src="https://randomuser.me/api/portraits/women/44.jpg" />
-                              <AvatarFallback>SK</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-medium">Sarah Kimani</h3>
-                              <p className="text-sm text-gray-600">
-                                Wound care and dressing
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Completed: Dec 12, 2024 • Duration: 2 hours
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <Badge className="bg-green-100 text-green-800 mb-2">
-                              Completed
-                            </Badge>
-                            <p className="text-sm font-medium">KES 2,500</p>
-                          </div>
-                        </div>
+                    {isLoadingRequests ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                        <span className="text-gray-500">
+                          Loading history...
+                        </span>
                       </div>
-
-                      <div className="border rounded-lg p-4 bg-green-50 border-green-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src="https://randomuser.me/api/portraits/men/55.jpg" />
-                              <AvatarFallback>DM</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-medium">David Mutua</h3>
-                              <p className="text-sm text-gray-600">
-                                Medication administration
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Completed: Dec 10, 2024 • Duration: 1.5 hours
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <Badge className="bg-green-100 text-green-800 mb-2">
-                              Completed
-                            </Badge>
-                            <p className="text-sm font-medium">KES 1,800</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="border rounded-lg p-4 bg-red-50 border-red-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src="https://randomuser.me/api/portraits/women/33.jpg" />
-                              <AvatarFallback>GW</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-medium">Grace Wanjiku</h3>
-                              <p className="text-sm text-gray-600">
-                                Physical therapy assistance
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Cancelled: Dec 8, 2024 • Reason: Patient
-                                unavailable
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <Badge variant="destructive" className="mb-2">
-                              Cancelled
-                            </Badge>
-                            <p className="text-sm text-gray-500">KES 2,000</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-6 pt-4 border-t">
-                        <p className="text-sm text-gray-600">
-                          Showing 1-3 of 15 appointments
+                    ) : appointmentHistory.length === 0 ? (
+                      <div className="text-center py-8">
+                        <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          No Appointment History
+                        </h3>
+                        <p className="text-gray-500">
+                          You don't have any completed or cancelled
+                          appointments.
                         </p>
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm" disabled>
-                            Previous
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            Next
-                          </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {appointmentHistory.map((appointment) => (
+                          <div
+                            key={appointment.id}
+                            className={`border rounded-lg p-4 ${
+                              appointment.status === "completed"
+                                ? "bg-green-50 border-green-200"
+                                : "bg-red-50 border-red-200"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage
+                                    src={
+                                      appointment.patient?.profile?.avatar ||
+                                      "https://randomuser.me/api/portraits/men/32.jpg"
+                                    }
+                                  />
+                                  <AvatarFallback>
+                                    {appointment.patient?.name
+                                      ?.charAt(0)
+                                      .toUpperCase() || "P"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <h3 className="font-medium">
+                                    {appointment.patient?.name || "Patient"}
+                                  </h3>
+                                  <p className="text-sm text-gray-600">
+                                    {appointment.service_name ||
+                                      "Nursing Service"}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {appointment.status === "completed"
+                                      ? "Completed"
+                                      : "Cancelled"}
+                                    :{" "}
+                                    {new Date(
+                                      appointment.scheduled_datetime,
+                                    ).toLocaleDateString("en-GB", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}{" "}
+                                    at{" "}
+                                    {new Date(
+                                      appointment.scheduled_datetime,
+                                    ).toLocaleTimeString("en-GB", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                    })}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <Badge
+                                  className={
+                                    appointment.status === "completed"
+                                      ? "bg-green-100 text-green-800 mb-2"
+                                      : "bg-red-100 text-red-800 mb-2"
+                                  }
+                                >
+                                  {appointment.status === "completed"
+                                    ? "Completed"
+                                    : "Cancelled"}
+                                </Badge>
+                                <p className="text-sm font-medium">
+                                  KES {appointment.service_price}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                          <p className="text-sm text-gray-600">
+                            Showing 1-{appointmentHistory.length} of{" "}
+                            {appointmentHistory.length} appointments
+                          </p>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
