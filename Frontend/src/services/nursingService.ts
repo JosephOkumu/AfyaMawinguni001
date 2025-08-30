@@ -26,20 +26,30 @@ export interface NursingService {
   id: number;
   patient_id: number;
   nursing_provider_id: number;
-  service_type: string;
-  status: string; // e.g., 'requested', 'in-progress', 'completed', 'cancelled'
-  start_date: string;
-  end_date?: string;
-  location: string;
-  notes?: string;
+  service_name: string;
+  service_description?: string;
+  service_price: number;
+  scheduled_datetime: string;
+  end_datetime?: string;
+  patient_address: string;
+  status: "scheduled" | "confirmed" | "in_progress" | "completed" | "cancelled";
+  care_notes?: string;
+  patient_requirements?: string;
+  medical_history?: string;
+  doctor_referral?: string;
+  is_recurring: boolean;
+  recurrence_pattern?: string;
+  is_paid: boolean;
+  created_at: string;
+  updated_at: string;
   nursing_provider?: NursingProvider;
   patient?: {
     id: number;
-    user_id: number;
-    user: {
-      name: string;
-      email: string;
-      phone_number: string;
+    name: string;
+    email: string;
+    phone_number: string;
+    profile?: {
+      avatar?: string;
     };
   };
 }
