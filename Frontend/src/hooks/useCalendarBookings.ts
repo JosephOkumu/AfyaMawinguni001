@@ -63,11 +63,15 @@ export const useCalendarBookings = ({
       try {
         let fullyBookedDates: string[] = [];
 
-        // Get dates where all time slots are booked based on real appointments
+        // Get dates where ALL time slots are booked based on real appointments
         if (providerType === "doctor") {
+          // For doctors, we need to check dates where all available slots are occupied
+          // This should be handled by the backend to return only fully booked dates
           fullyBookedDates =
             await appointmentService.getDoctorOccupiedDates(providerId);
         } else if (providerType === "nursing") {
+          // For nursing, we need to check dates where all available slots are occupied
+          // This should be handled by the backend to return only fully booked dates
           fullyBookedDates =
             await appointmentService.getNursingProviderOccupiedDates(
               providerId,
@@ -80,6 +84,7 @@ export const useCalendarBookings = ({
           fullyBookedDates = response.data.data;
         }
 
+        // Only set dates as occupied if ALL time slots for that date are booked
         setOccupiedDates(fullyBookedDates);
       } catch (err) {
         console.error("Error fetching fully booked dates:", err);
