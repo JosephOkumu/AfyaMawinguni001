@@ -176,21 +176,6 @@ const nursingService = {
     return response.data.data;
   },
 
-  completeNursingService: async (
-    id: number,
-    notes?: string,
-  ): Promise<NursingService> => {
-    const response = await api.put<{ data: NursingService }>(
-      `/nursing-services/${id}`,
-      {
-        status: "completed",
-        end_date: new Date().toISOString().split("T")[0], // Current date in YYYY-MM-DD format
-        notes: notes,
-      },
-    );
-    return response.data.data;
-  },
-
   // Profile management methods
   getProfile: async (): Promise<NursingProvider> => {
     const response = await api.get<{ data: NursingProvider }>(
@@ -306,6 +291,22 @@ const nursingService = {
       `/nursing-services/${id}/reject`,
       {
         rejection_reason: rejectionReason,
+      },
+    );
+    return response.data.data;
+  },
+
+  completeNursingService: async (
+    id: number,
+    completionNotes?: string,
+  ): Promise<NursingService> => {
+    const response = await api.put<{ data: NursingService }>(
+      `/nursing-services/${id}/complete`,
+      {
+        status: "completed",
+        end_date: new Date().toISOString().split("T")[0], // Current date in YYYY-MM-DD format
+        completion_notes: completionNotes,
+        notes: completionNotes, // For backward compatibility
       },
     );
     return response.data.data;
