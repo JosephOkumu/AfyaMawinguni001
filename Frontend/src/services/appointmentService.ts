@@ -125,6 +125,8 @@ export interface NursingAppointmentCreateData {
   doctor_referral?: string;
   is_recurring?: boolean;
   recurrence_pattern?: string;
+  is_paid?: boolean;
+  payment_reference?: string;
 }
 
 export interface LabAppointmentCreateData {
