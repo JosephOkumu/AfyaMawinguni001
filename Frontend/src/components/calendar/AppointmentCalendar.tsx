@@ -51,6 +51,7 @@ interface AppointmentCalendarProps {
   onAppointmentClick?: (appointment: Appointment) => void;
   onAppointmentConfirm?: (appointmentId: number) => void;
   onAppointmentReject?: (appointmentId: number) => void;
+  onAppointmentComplete?: (appointmentId: number) => void;
 }
 
 type FilterType = "all" | "today" | "tomorrow" | "week" | "month";
@@ -60,6 +61,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   onAppointmentClick,
   onAppointmentConfirm,
   onAppointmentReject,
+  onAppointmentComplete,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -579,6 +581,12 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                         <Button
                           size="sm"
                           className="flex-1 bg-green-600 hover:bg-green-700"
+                          onClick={() => {
+                            if (onAppointmentComplete) {
+                              onAppointmentComplete(selectedAppointment.id);
+                              setShowAppointmentDetails(false);
+                            }
+                          }}
                         >
                           <Check className="h-4 w-4 mr-2" />
                           Mark as Complete
