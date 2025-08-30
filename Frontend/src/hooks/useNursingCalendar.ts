@@ -53,7 +53,7 @@ export const useNursingCalendar = () => {
       id: service.id,
       patient_id: service.patient_id,
       doctor_id: service.nursing_provider_id, // Map nursing_provider_id to doctor_id for compatibility
-      appointment_datetime: service.start_date,
+      appointment_datetime: service.scheduled_datetime,
       status: service.status as
         | "scheduled"
         | "confirmed"
@@ -62,18 +62,22 @@ export const useNursingCalendar = () => {
         | "rescheduled"
         | "no_show",
       type: "in_person", // Nursing services are typically in-person
-      reason_for_visit: service.service_type || "Nursing care",
-      symptoms: service.notes || "",
-      doctor_notes: service.notes || "",
+      reason_for_visit: service.service_name || "Nursing care",
+      symptoms: service.service_description || "",
+      doctor_notes: service.care_notes || "",
       prescription: "",
       meeting_link: "",
-      fee: 0, // Fee would need to be calculated based on service
-      is_paid: false,
+      fee: service.service_price,
+      is_paid: service.is_paid,
       patient: service.patient
         ? {
             id: service.patient.id,
-            user_id: service.patient.user_id,
-            user: service.patient.user,
+            user_id: service.patient.id,
+            user: {
+              name: service.patient.name,
+              email: service.patient.email,
+              phone_number: service.patient.phone_number,
+            },
           }
         : undefined,
     };
