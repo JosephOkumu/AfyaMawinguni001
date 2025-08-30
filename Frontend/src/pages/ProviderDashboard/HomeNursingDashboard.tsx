@@ -32,6 +32,7 @@ import {
   Settings,
   TestTube,
   User,
+  Loader2,
 } from "lucide-react";
 import AvailabilityScheduler, {
   WeeklySchedule,
@@ -60,6 +61,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LocationAutocomplete } from "@/components/LocationInput";
 import nursingService, {
   NursingProvider,
+  NursingService,
   NursingServiceOffering,
   NursingServiceOfferingCreateData,
 } from "@/services/nursingService";
@@ -299,6 +301,11 @@ const mockServices = [
 const HomeNursingDashboard = () => {
   const [services, setServices] = useState<NursingServiceOffering[]>([]);
   const [appointments, setAppointments] = useState(mockAppointments);
+  const [nursingRequests, setNursingRequests] = useState<NursingService[]>([]);
+  const [confirmedAppointments, setConfirmedAppointments] = useState<
+    NursingService[]
+  >([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentService, setCurrentService] =
     useState<NursingServiceForm | null>(null);
@@ -635,6 +642,7 @@ const HomeNursingDashboard = () => {
   useEffect(() => {
     loadProfile();
     loadServices();
+    fetchNursingRequests();
   }, [loadProfile, loadServices]);
 
   const handleImageUpload = async (file: File) => {
@@ -785,22 +793,57 @@ const HomeNursingDashboard = () => {
     }
   };
 
+  // Fetch nursing service requests for the provider
+  const fetchNursingRequests = async () => {
+    try {
+      setIsLoadingRequests(true);
+      const requests =
+        await nursingService.getNursingServices("nursing-provider");
+
+      // Separate pending requests from confirmed appointments
+      const pendingRequests = requests.filter(
+        (req) => req.status === "scheduled" && req.is_paid,
+      );
+      const confirmedAppts = requests.filter(
+        (req) => req.status === "confirmed",
+      );
+
+      setNursingRequests(pendingRequests);
+      setConfirmedAppointments(confirmedAppts);
+    } catch (error) {
+      console.error("Failed to fetch nursing requests:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load nursing requests. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingRequests(false);
+    }
+  };
+
   const handleAcceptRequest = async (requestId: number) => {
     try {
       // Accept the nursing service request
       await nursingService.acceptNursingService(requestId);
 
-      // Update the local state to reflect the accepted request
-      setAppointments((prev) =>
-        prev.map((apt) =>
-          apt.id === requestId ? { ...apt, status: "confirmed" as const } : apt,
-        ),
+      // Move request from pending to confirmed
+      const acceptedRequest = nursingRequests.find(
+        (req) => req.id === requestId,
       );
+      if (acceptedRequest) {
+        setNursingRequests((prev) =>
+          prev.filter((req) => req.id !== requestId),
+        );
+        setConfirmedAppointments((prev) => [
+          ...prev,
+          { ...acceptedRequest, status: "confirmed" as const },
+        ]);
+      }
 
       toast({
         title: "Request Accepted",
-        description:
-          "The nursing service request has been accepted successfully.",
+        description: "The nursing service request has been accepted.",
       });
     } catch (error) {
       console.error("Failed to accept request:", error);
@@ -812,20 +855,12 @@ const HomeNursingDashboard = () => {
     }
   };
 
-  const handleRejectRequest = async (
-    requestId: number,
-    rejectionReason?: string,
-  ) => {
+  const handleRejectRequest = async (requestId: number, reason?: string) => {
     try {
-      // Reject the nursing service request
-      await nursingService.rejectNursingService(requestId, rejectionReason);
+      await nursingService.rejectNursingService(requestId, reason);
 
-      // Update the local state to reflect the rejected request
-      setAppointments((prev) =>
-        prev.map((apt) =>
-          apt.id === requestId ? { ...apt, status: "cancelled" as const } : apt,
-        ),
-      );
+      // Remove from pending requests
+      setNursingRequests((prev) => prev.filter((req) => req.id !== requestId));
 
       toast({
         title: "Request Rejected",
@@ -1152,8 +1187,18 @@ const HomeNursingDashboard = () => {
               <Card className="bg-gradient-to-br from-green-50 to-green-100">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Total Appointments</p>
-                    <h3 className="text-2xl font-bold">12</h3>
+                    <p className="text-sm text-gray-600">
+                      Today's Appointments
+                    </p>
+                    <h3 className="text-2xl font-bold">
+                      {
+                        confirmedAppointments.filter(
+                          (apt) =>
+                            new Date(apt.scheduled_datetime).toDateString() ===
+                            new Date().toDateString(),
+                        ).length
+                      }
+                    </h3>
                   </div>
                   <div className="h-10 w-10 bg-green-200 rounded-full flex items-center justify-center">
                     <Calendar className="h-5 w-5 text-green-600" />
@@ -1165,7 +1210,9 @@ const HomeNursingDashboard = () => {
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Pending Requests</p>
-                    <h3 className="text-2xl font-bold">3</h3>
+                    <h3 className="text-2xl font-bold">
+                      {nursingRequests.length}
+                    </h3>
                   </div>
                   <div className="h-10 w-10 bg-amber-200 rounded-full flex items-center justify-center">
                     <Clock className="h-5 w-5 text-amber-600" />
@@ -1471,126 +1518,110 @@ const HomeNursingDashboard = () => {
                         variant="secondary"
                         className="bg-orange-100 text-orange-800"
                       >
-                        3 Pending
+                        {nursingRequests.length} Pending
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="border rounded-lg p-4 bg-orange-50 border-orange-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src="https://randomuser.me/api/portraits/women/25.jpg" />
-                              <AvatarFallback>MK</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-medium">Mary Kiprotich</h3>
-                              <p className="text-sm text-gray-600">
-                                Post-surgical care needed
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Requested: Dec 15, 2024 at 2:30 PM
-                              </p>
+                    {isLoadingRequests ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                        <span className="text-gray-500">
+                          Loading requests...
+                        </span>
+                      </div>
+                    ) : nursingRequests.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          No Pending Requests
+                        </h3>
+                        <p className="text-gray-500">
+                          You don't have any pending appointment requests.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {nursingRequests.map((request) => (
+                          <div
+                            key={request.id}
+                            className="border rounded-lg p-4 bg-orange-50 border-orange-200"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage
+                                    src={
+                                      request.patient?.profile?.avatar ||
+                                      "https://randomuser.me/api/portraits/men/32.jpg"
+                                    }
+                                  />
+                                  <AvatarFallback>
+                                    {request.patient?.name
+                                      ?.charAt(0)
+                                      .toUpperCase() || "P"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <h3 className="font-medium">
+                                    {request.patient?.name || "Patient"}
+                                  </h3>
+                                  <p className="text-sm text-gray-600">
+                                    {request.service_name || "Nursing Service"}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    Requested:{" "}
+                                    {new Date(
+                                      request.scheduled_datetime,
+                                    ).toLocaleDateString("en-GB", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}{" "}
+                                    at{" "}
+                                    {new Date(
+                                      request.scheduled_datetime,
+                                    ).toLocaleTimeString("en-GB", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                    })}
+                                  </p>
+                                  <p className="text-xs text-green-600 font-medium">
+                                    Amount: KES {request.service_price}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-green-600 border-green-600"
+                                  onClick={() =>
+                                    handleAcceptRequest(request.id)
+                                  }
+                                >
+                                  Accept
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-600 border-red-600"
+                                  onClick={() =>
+                                    handleRejectRequest(
+                                      request.id,
+                                      "Provider unavailable",
+                                    )
+                                  }
+                                >
+                                  Decline
+                                </Button>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-green-600 border-green-600"
-                              onClick={() => handleAcceptRequest(1)}
-                            >
-                              Accept
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 border-red-600"
-                              onClick={() => handleRejectRequest(1)}
-                            >
-                              Decline
-                            </Button>
-                          </div>
-                        </div>
+                        ))}
                       </div>
-
-                      <div className="border rounded-lg p-4 bg-orange-50 border-orange-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src="https://randomuser.me/api/portraits/men/32.jpg" />
-                              <AvatarFallback>JM</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-medium">John Mwangi</h3>
-                              <p className="text-sm text-gray-600">
-                                Chronic condition monitoring
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Requested: Dec 14, 2024 at 10:15 AM
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-green-600 border-green-600"
-                              onClick={() => handleAcceptRequest(2)}
-                            >
-                              Accept
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 border-red-600"
-                              onClick={() => handleRejectRequest(2)}
-                            >
-                              Decline
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="border rounded-lg p-4 bg-orange-50 border-orange-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src="https://randomuser.me/api/portraits/women/18.jpg" />
-                              <AvatarFallback>AN</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-medium">Alice Njeri</h3>
-                              <p className="text-sm text-gray-600">
-                                General nursing care
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Requested: Dec 13, 2024 at 4:45 PM
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-green-600 border-green-600"
-                              onClick={() => handleAcceptRequest(3)}
-                            >
-                              Accept
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 border-red-600"
-                              onClick={() => handleRejectRequest(3)}
-                            >
-                              Decline
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -1620,10 +1651,40 @@ const HomeNursingDashboard = () => {
                       </div>
                     ) : (
                       <AppointmentCalendar
-                        appointments={calendarAppointments}
+                        appointments={confirmedAppointments.map((apt) => ({
+                          id: apt.id,
+                          patient_id: apt.patient_id,
+                          doctor_id: apt.nursing_provider_id,
+                          appointment_datetime: apt.scheduled_datetime,
+                          status: apt.status as
+                            | "scheduled"
+                            | "confirmed"
+                            | "completed"
+                            | "cancelled"
+                            | "rescheduled"
+                            | "no_show",
+                          type: "in_person" as const,
+                          reason_for_visit:
+                            apt.service_name || "Nursing service",
+                          symptoms: apt.service_description || "",
+                          doctor_notes: apt.care_notes || "",
+                          prescription: "",
+                          meeting_link: "",
+                          fee: apt.service_price,
+                          is_paid: apt.is_paid,
+                          patient: {
+                            id: apt.patient_id,
+                            user_id: apt.patient_id,
+                            user: {
+                              name: apt.patient?.name || "Patient",
+                              email: apt.patient?.email || "",
+                              phone_number: apt.patient?.phone_number || "",
+                            },
+                          },
+                        }))}
                         onAppointmentClick={(appointment) => {
-                          console.log("Appointment clicked:", appointment);
-                          // You can add custom handling here
+                          setSelectedAppointment(null);
+                          setShowAppointmentModal(true);
                         }}
                         onAppointmentConfirm={async (appointmentId) => {
                           try {
