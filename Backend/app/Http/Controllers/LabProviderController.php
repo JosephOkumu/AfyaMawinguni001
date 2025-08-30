@@ -385,13 +385,25 @@ class LabProviderController extends Controller
         }
 
         try {
-            // Get all confirmed lab appointments for this provider
+            // Define all available time slots for lab providers
+            $allTimeSlots = [
+                '7:00 AM', '7:30 AM', '8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM',
+                '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
+                '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
+                '4:00 PM', '4:30 PM'
+            ];
+            $totalSlots = count($allTimeSlots);
+
+            // Get dates where ALL time slots are booked
+            // Only include paid appointments to mark dates as fully occupied
             $occupiedDates = DB::table('lab_appointments')
                 ->where('lab_provider_id', $id)
                 ->where('status', 'confirmed')
+                ->where('is_paid', true)
                 ->whereDate('appointment_datetime', '>=', now()->toDateString())
                 ->select(DB::raw('DATE(appointment_datetime) as date'))
-                ->distinct()
+                ->groupBy(DB::raw('DATE(appointment_datetime)'))
+                ->havingRaw('COUNT(*) >= ?', [$totalSlots])
                 ->pluck('date')
                 ->toArray();
 
@@ -441,10 +453,11 @@ class LabProviderController extends Controller
         try {
             $date = $request->get('date');
 
-            // Get all confirmed lab appointments for this provider on the specified date
+            // Get all confirmed and paid lab appointments for this provider on the specified date
             $occupiedTimes = DB::table('lab_appointments')
                 ->where('lab_provider_id', $id)
                 ->where('status', 'confirmed')
+                ->where('is_paid', true)
                 ->whereDate('appointment_datetime', $date)
                 ->select(DB::raw('TIME_FORMAT(appointment_datetime, "%h:%i %p") as time'))
                 ->pluck('time')
