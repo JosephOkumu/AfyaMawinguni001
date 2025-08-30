@@ -400,13 +400,25 @@ class NursingProviderController extends Controller
             // Log the request for debugging
             Log::info('Fetching occupied dates for nursing provider', ['provider_id' => $id]);
 
-            // Get all scheduled nursing services for this provider
+            // Define all available time slots for nursing services
+            $allTimeSlots = [
+                '7:00 AM', '7:30 AM', '8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM',
+                '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
+                '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
+                '4:00 PM', '4:30 PM'
+            ];
+            $totalSlots = count($allTimeSlots);
+
+            // Get dates where ALL time slots are booked
+            // Only include paid appointments to mark dates as fully occupied
             $occupiedDates = DB::table('nursing_services')
                 ->where('nursing_provider_id', $id)
                 ->whereIn('status', ['scheduled', 'in_progress'])
+                ->where('is_paid', true)
                 ->whereDate('scheduled_datetime', '>=', now()->toDateString())
                 ->select(DB::raw('DATE(scheduled_datetime) as date'))
-                ->distinct()
+                ->groupBy(DB::raw('DATE(scheduled_datetime)'))
+                ->havingRaw('COUNT(*) >= ?', [$totalSlots])
                 ->pluck('date')
                 ->toArray();
 
@@ -473,9 +485,11 @@ class NursingProviderController extends Controller
             ]);
 
             // Get all scheduled nursing services for this provider on the specified date
+            // Only include paid appointments to mark time slots as occupied
             $occupiedTimes = DB::table('nursing_services')
                 ->where('nursing_provider_id', $id)
                 ->whereIn('status', ['scheduled', 'in_progress'])
+                ->where('is_paid', true)
                 ->whereDate('scheduled_datetime', $date)
                 ->select(DB::raw('TIME_FORMAT(scheduled_datetime, "%h:%i %p") as time'))
                 ->pluck('time')
