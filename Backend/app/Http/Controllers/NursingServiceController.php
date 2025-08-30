@@ -19,7 +19,22 @@ class NursingServiceController extends Controller
         // Allow filtering by patient_id or nursing_provider_id
         $query = NursingService::query();
 
-        if ($request->has('patient_id')) {
+        // If this is the patient endpoint, filter by authenticated user
+        if ($request->route()->getName() === 'patient.nursing-services') {
+            $query->where('patient_id', auth()->id());
+        } elseif ($request->route()->getName() === 'nursing-provider.nursing-services') {
+            // If this is the nursing provider endpoint, filter by authenticated provider
+            $user = auth()->user();
+            $nursingProvider = $user->nursingProvider;
+            if ($nursingProvider) {
+                $query->where('nursing_provider_id', $nursingProvider->id);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User is not a nursing provider'
+                ], 403);
+            }
+        } elseif ($request->has('patient_id')) {
             $query->where('patient_id', $request->patient_id);
         }
 
@@ -31,7 +46,9 @@ class NursingServiceController extends Controller
             $query->where('status', $request->status);
         }
 
-        $nursingServices = $query->with(['patient', 'nursingProvider'])->orderBy('scheduled_datetime', 'asc')->get();
+        // Order by scheduled_datetime descending (latest first) for patient view
+        $orderDirection = $request->route()->getName() === 'patient.nursing-services' ? 'desc' : 'asc';
+        $nursingServices = $query->with(['patient', 'nursingProvider'])->orderBy('scheduled_datetime', $orderDirection)->get();
 
         return response()->json([
             'status' => 'success',
@@ -61,6 +78,7 @@ class NursingServiceController extends Controller
             'doctor_referral' => 'nullable|string',
             'is_recurring' => 'boolean',
             'recurrence_pattern' => 'required_if:is_recurring,true|nullable|string',
+            'is_paid' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -74,7 +92,11 @@ class NursingServiceController extends Controller
         // Set default values for remaining fields
         $data = $request->all();
         $data['status'] = 'scheduled';
-        $data['is_paid'] = false;
+
+        // Only set is_paid to false if not provided in the request
+        if (!isset($data['is_paid'])) {
+            $data['is_paid'] = false;
+        }
 
         $nursingService = NursingService::create($data);
 
