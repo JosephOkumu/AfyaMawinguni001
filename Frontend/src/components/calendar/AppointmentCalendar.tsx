@@ -357,7 +357,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-gray-500" />
                         <span className="text-gray-700">
-                          {appointment.patient?.user?.name || "Unknown Patient"}
+                          {appointment.patient?.name || "Unknown Patient"}
                         </span>
                       </div>
                     </div>
@@ -471,7 +471,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                   Patient
                 </label>
                 <p className="text-sm text-gray-900">
-                  {selectedAppointment.patient?.user?.name || "Unknown Patient"}
+                  {selectedAppointment.patient?.name || "Unknown Patient"}
                 </p>
               </div>
 
@@ -480,8 +480,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                   Contact
                 </label>
                 <p className="text-sm text-gray-900">
-                  {selectedAppointment.patient?.user?.phone_number ||
-                    "Not provided"}
+                  {selectedAppointment.patient?.phone_number || "Not provided"}
                 </p>
               </div>
 
