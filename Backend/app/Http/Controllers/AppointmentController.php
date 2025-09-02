@@ -280,4 +280,39 @@ class AppointmentController extends Controller
             'data' => $appointment->load(['patient', 'doctor.user'])
         ]);
     }
+
+    /**
+     * Complete an appointment (change status from confirmed to completed).
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function complete($id)
+    {
+        $appointment = Appointment::find($id);
+
+        if (!$appointment) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Appointment not found'
+            ], 404);
+        }
+
+        // Check if appointment can be completed
+        if ($appointment->status !== 'confirmed') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Only confirmed appointments can be completed'
+            ], 422);
+        }
+
+        $appointment->status = 'completed';
+        $appointment->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Appointment completed successfully',
+            'data' => $appointment->load(['patient', 'doctor.user'])
+        ]);
+    }
 }
