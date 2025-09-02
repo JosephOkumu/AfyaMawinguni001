@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  useSearchParams,
+  Link,
+} from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -113,6 +118,7 @@ const timeSlots = [
 const DoctorDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
   // Generate user initials
@@ -148,6 +154,21 @@ const DoctorDetails = () => {
     providerId: doctor?.id || 0,
     providerType: "doctor",
   });
+
+  // Check for booking success parameter
+  useEffect(() => {
+    const bookingSuccess = searchParams.get("booking_success");
+    if (bookingSuccess === "true") {
+      setIsSuccess(true);
+      // Clean up the URL parameter
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("booking_success");
+      navigate(
+        `/patient-dashboard/doctor/${id}?${newSearchParams.toString()}`,
+        { replace: true },
+      );
+    }
+  }, [searchParams, navigate, id]);
 
   // Pesapal payment hook
   const {
