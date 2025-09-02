@@ -257,6 +257,15 @@ const appointmentService = {
     return response.data.data;
   },
 
+  // Complete an appointment (for providers)
+  completeAppointment: async (id: number): Promise<Appointment> => {
+    const response = await api.put<{ data: Appointment }>(
+      `/appointments/${id}/complete`,
+      {},
+    );
+    return response.data.data;
+  },
+
   // Lab Appointment Methods
   // Get all lab appointments for patient
   getLabAppointments: async (): Promise<LabAppointment[]> => {
