@@ -58,6 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('appointments', AppointmentController::class);
     Route::get('/patient/appointments', [AppointmentController::class, 'index'])->name('patient.appointments');
     Route::get('/doctor/appointments', [AppointmentController::class, 'index'])->name('doctor.appointments');
+    Route::put('/appointments/{id}/confirm', [AppointmentController::class, 'confirm']);
 
     // Lab Provider routes
     Route::apiResource('lab-providers', LabProviderController::class);
