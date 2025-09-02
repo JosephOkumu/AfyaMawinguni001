@@ -41,12 +41,13 @@ const PaymentSuccess = () => {
         const bookingKey = keys.find(
           (key) =>
             key.startsWith("lab_booking_") ||
-            key.startsWith("nursing_booking_"),
+            key.startsWith("nursing_booking_") ||
+            key.startsWith("doctor_booking_"),
         );
 
         if (bookingKey) {
           const extractedRef = bookingKey.replace(
-            /^(lab|nursing)_booking_/,
+            /^(lab|nursing|doctor)_booking_/,
             "",
           );
           console.log(
@@ -120,8 +121,10 @@ const PaymentSuccess = () => {
         // Get booking data from localStorage
         const labBookingKey = `lab_booking_${merchantRef}`;
         const nursingBookingKey = `nursing_booking_${merchantRef}`;
+        const doctorBookingKey = `doctor_booking_${merchantRef}`;
         const labBookingData = localStorage.getItem(labBookingKey);
         const nursingBookingData = localStorage.getItem(nursingBookingKey);
+        const doctorBookingData = localStorage.getItem(doctorBookingKey);
 
         let bookingType = "";
         let redirectPath = "";
@@ -158,6 +161,21 @@ const PaymentSuccess = () => {
           localStorage.removeItem(nursingBookingKey);
           bookingType = "nursing";
           redirectPath = `/patient-dashboard/nursing/${bookingData.nursing_provider_id}?booking_success=true`;
+        } else if (doctorBookingData) {
+          const bookingData = JSON.parse(doctorBookingData);
+          await appointmentService.createAppointment({
+            patient_id: bookingData.patient_id,
+            doctor_id: bookingData.doctor_id,
+            appointment_datetime: bookingData.appointment_datetime,
+            type: "in_person",
+            reason_for_visit: "Consultation",
+            fee: bookingData.consultation_fee,
+            is_paid: true,
+            payment_reference: merchantRef,
+          });
+          localStorage.removeItem(doctorBookingKey);
+          bookingType = "doctor";
+          redirectPath = `/patient-dashboard/doctor/${bookingData.doctor_id}?booking_success=true`;
         }
 
         console.log(`${bookingType} appointment created successfully`);
