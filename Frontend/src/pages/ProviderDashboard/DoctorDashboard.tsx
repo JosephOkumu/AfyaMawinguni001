@@ -33,6 +33,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { LocationAutocomplete } from "@/components/LocationInput";
 import AppointmentCalendar from "@/components/calendar/AppointmentCalendar";
 import appointmentService, { Appointment } from "@/services/appointmentService";
@@ -157,6 +158,7 @@ const getDefaultSchedule = (): WeeklySchedule => ({
 
 const DoctorDashboard = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("schedule");
   const [isAddingService, setIsAddingService] = useState(false);
   const [isEditingService, setIsEditingService] = useState(false);
@@ -216,22 +218,19 @@ const DoctorDashboard = () => {
       try {
         setIsLoadingAppointments(true);
 
-        // TODO: Remove this line when backend appointments API is ready
-        throw new Error("Using dummy data for UI development");
-
+        // Fetch real appointments for the current doctor
         const doctorAppointments =
           await appointmentService.getAppointments("doctor");
         setAppointments(doctorAppointments);
       } catch (error) {
         console.error("Failed to load appointments:", error);
         toast({
-          title: "Demo Mode",
+          title: "Loading Demo Data",
           description:
-            "Showing demo appointments for UI development and testing.",
+            "Using demo appointments for development. Real appointments will load once backend is connected.",
           variant: "default",
         });
-        // For demo purposes, set some sample appointments
-        // Demo appointments data - always loaded until backend API is implemented
+        // Demo appointments data - for UI development
         setAppointments([
           {
             id: 1,
@@ -246,12 +245,9 @@ const DoctorDashboard = () => {
             is_paid: true,
             patient: {
               id: 1,
-              user_id: 1,
-              user: {
-                name: "John Doe",
-                email: "john@example.com",
-                phone_number: "+254712345678",
-              },
+              name: "John Doe",
+              email: "john@example.com",
+              phone_number: "+254712345678",
             },
           },
           {
@@ -268,12 +264,9 @@ const DoctorDashboard = () => {
             is_paid: true,
             patient: {
               id: 2,
-              user_id: 2,
-              user: {
-                name: "Jane Smith",
-                email: "jane@example.com",
-                phone_number: "+254787654321",
-              },
+              name: "Jane Smith",
+              email: "jane@example.com",
+              phone_number: "+254787654321",
             },
           },
           {
@@ -291,12 +284,9 @@ const DoctorDashboard = () => {
             is_paid: false,
             patient: {
               id: 3,
-              user_id: 3,
-              user: {
-                name: "Mike Johnson",
-                email: "mike@example.com",
-                phone_number: "+254798765432",
-              },
+              name: "Mike Johnson",
+              email: "mike@example.com",
+              phone_number: "+254798765432",
             },
           },
           {
@@ -315,12 +305,9 @@ const DoctorDashboard = () => {
             is_paid: true,
             patient: {
               id: 4,
-              user_id: 4,
-              user: {
-                name: "Sarah Wilson",
-                email: "sarah@example.com",
-                phone_number: "+254701234567",
-              },
+              name: "Sarah Wilson",
+              email: "sarah@example.com",
+              phone_number: "+254709876543",
             },
           },
           {
@@ -337,13 +324,10 @@ const DoctorDashboard = () => {
             fee: 2500,
             is_paid: false,
             patient: {
-              id: 5,
-              user_id: 5,
-              user: {
-                name: "David Brown",
-                email: "david@example.com",
-                phone_number: "+254789012345",
-              },
+              id: 8,
+              name: "Lisa Thompson",
+              email: "lisa@example.com",
+              phone_number: "+254756789012",
             },
           },
           // Past appointments for history
@@ -360,12 +344,9 @@ const DoctorDashboard = () => {
             is_paid: true,
             patient: {
               id: 6,
-              user_id: 6,
-              user: {
-                name: "Alice Johnson",
-                email: "alice@example.com",
-                phone_number: "+254701234568",
-              },
+              name: "Emily Davis",
+              email: "emily@example.com",
+              phone_number: "+254734567890",
             },
           },
           {
@@ -383,13 +364,10 @@ const DoctorDashboard = () => {
             fee: 2000,
             is_paid: true,
             patient: {
-              id: 7,
-              user_id: 7,
-              user: {
-                name: "Robert Wilson",
-                email: "robert@example.com",
-                phone_number: "+254712345679",
-              },
+              id: 5,
+              name: "Robert Brown",
+              email: "robert@example.com",
+              phone_number: "+254723456789",
             },
           },
           {
@@ -406,13 +384,10 @@ const DoctorDashboard = () => {
             fee: 3000,
             is_paid: false,
             patient: {
-              id: 8,
-              user_id: 8,
-              user: {
-                name: "Emma Davis",
-                email: "emma@example.com",
-                phone_number: "+254787654322",
-              },
+              id: 9,
+              name: "Kevin Anderson",
+              email: "kevin@example.com",
+              phone_number: "+254767890123",
             },
           },
           {
@@ -431,12 +406,9 @@ const DoctorDashboard = () => {
             is_paid: true,
             patient: {
               id: 9,
-              user_id: 9,
-              user: {
-                name: "Michael Chen",
-                email: "michael@example.com",
-                phone_number: "+254798765433",
-              },
+              name: "Michael Chen",
+              email: "michael@example.com",
+              phone_number: "+254798765433",
             },
           },
           {
@@ -453,13 +425,10 @@ const DoctorDashboard = () => {
             fee: 2500,
             is_paid: true,
             patient: {
-              id: 10,
-              user_id: 10,
-              user: {
-                name: "Lisa Anderson",
-                email: "lisa@example.com",
-                phone_number: "+254701234569",
-              },
+              id: 11,
+              name: "Brian Lee",
+              email: "brian@example.com",
+              phone_number: "+254789012345",
             },
           },
           {
@@ -477,13 +446,10 @@ const DoctorDashboard = () => {
             fee: 3500,
             is_paid: false,
             patient: {
-              id: 11,
-              user_id: 11,
-              user: {
-                name: "James Martinez",
-                email: "james@example.com",
-                phone_number: "+254712345680",
-              },
+              id: 7,
+              name: "David Martinez",
+              email: "david@example.com",
+              phone_number: "+254745678901",
             },
           },
         ]);
@@ -498,7 +464,7 @@ const DoctorDashboard = () => {
   const handleAppointmentClick = (appointment: Appointment) => {
     toast({
       title: "Appointment Selected",
-      description: `Appointment with ${appointment.patient?.user?.name} at ${appointment.time}`,
+      description: `Appointment with ${appointment.patient?.name} at ${appointment.time}`,
       variant: "default",
     });
   };
@@ -1573,7 +1539,7 @@ const DoctorDashboard = () => {
                                   <div className="flex items-center gap-2">
                                     <User className="h-4 w-4 text-gray-500" />
                                     <span className="text-gray-700">
-                                      {appointment.patient?.user?.name ||
+                                      {appointment.patient?.name ||
                                         "Unknown Patient"}
                                     </span>
                                   </div>
@@ -1708,7 +1674,7 @@ const DoctorDashboard = () => {
                                   <div className="flex items-center gap-2">
                                     <User className="h-4 w-4 text-gray-500" />
                                     <span className="text-gray-700">
-                                      {appointment.patient?.user?.name ||
+                                      {appointment.patient?.name ||
                                         "Unknown Patient"}
                                     </span>
                                   </div>
