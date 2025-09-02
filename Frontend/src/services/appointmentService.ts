@@ -140,12 +140,15 @@ export interface LabAppointmentCreateData {
 }
 
 export interface AppointmentCreateData {
+  patient_id?: number;
   doctor_id: number;
   appointment_datetime: string;
   type: "in_person" | "virtual";
   reason_for_visit?: string;
   symptoms?: string;
   fee: number;
+  is_paid?: boolean;
+  payment_reference?: string;
   // Legacy fields for backward compatibility
   date?: string;
   time?: string;
