@@ -30,12 +30,9 @@ export interface Appointment {
   doctor?: Doctor;
   patient?: {
     id: number;
-    user_id: number;
-    user: {
-      name: string;
-      email: string;
-      phone_number: string;
-    };
+    name: string;
+    email: string;
+    phone_number: string;
   };
 }
 
