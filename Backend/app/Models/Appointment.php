@@ -27,6 +27,7 @@ class Appointment extends Model
         'meeting_link',
         'fee',
         'is_paid',
+        'payment_reference',
     ];
 
     /**
