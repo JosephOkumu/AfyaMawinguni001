@@ -899,9 +899,8 @@ const DoctorDashboard = () => {
     const now = new Date();
     return appointments
       .filter((appointment) => {
-        const appointmentDate = new Date(appointment.appointment_datetime);
         return (
-          (appointmentDate < now && appointment.status === "completed") ||
+          appointment.status === "completed" ||
           appointment.status === "cancelled"
         );
       })
@@ -985,6 +984,37 @@ const DoctorDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to reject appointment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handler to complete an appointment
+  const handleAppointmentComplete = async (appointmentId: number) => {
+    try {
+      // Update appointment status in backend
+      await appointmentService.completeAppointment(appointmentId);
+
+      // Update local state
+      setAppointments((prevAppointments) =>
+        prevAppointments.map((appointment) =>
+          appointment.id === appointmentId
+            ? { ...appointment, status: "completed" as const }
+            : appointment,
+        ),
+      );
+
+      toast({
+        title: "Appointment Completed",
+        description:
+          "The appointment has been marked as completed and moved to appointment history.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error completing appointment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to complete appointment. Please try again.",
         variant: "destructive",
       });
     }
@@ -1641,6 +1671,7 @@ const DoctorDashboard = () => {
                 onAppointmentClick={handleAppointmentClick}
                 onAppointmentConfirm={handleAppointmentConfirm}
                 onAppointmentReject={handleAppointmentReject}
+                onAppointmentComplete={handleAppointmentComplete}
               />
             )}
           </TabsContent>
