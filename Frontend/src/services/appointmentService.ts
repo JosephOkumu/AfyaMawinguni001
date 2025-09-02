@@ -248,6 +248,15 @@ const appointmentService = {
     return response.data.data;
   },
 
+  // Reject an appointment (for providers)
+  rejectAppointment: async (id: number): Promise<Appointment> => {
+    const response = await api.put<{ data: Appointment }>(
+      `/appointments/${id}/reject`,
+      {},
+    );
+    return response.data.data;
+  },
+
   // Lab Appointment Methods
   // Get all lab appointments for patient
   getLabAppointments: async (): Promise<LabAppointment[]> => {
