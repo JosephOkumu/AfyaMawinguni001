@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class AppointmentController extends Controller
 {
@@ -19,6 +20,27 @@ class AppointmentController extends Controller
         // Allow filtering by patient_id or doctor_id
         $query = Appointment::query();
 
+        // Check the route name to determine filtering context
+        $routeName = $request->route()->getName();
+
+        if ($routeName === 'doctor.appointments') {
+            // For doctor appointments route, get doctor_id from authenticated user's doctor profile
+            $user = Auth::user()->load('userType');
+            if ($user && $user->userType && $user->userType->name === 'doctor') {
+                $doctor = \App\Models\Doctor::where('user_id', $user->id)->first();
+                if ($doctor) {
+                    $query->where('doctor_id', $doctor->id);
+                }
+            }
+        } elseif ($routeName === 'patient.appointments') {
+            // For patient appointments route, filter by patient_id (user_id)
+            $user = Auth::user()->load('userType');
+            if ($user && $user->userType && $user->userType->name === 'patient') {
+                $query->where('patient_id', $user->id);
+            }
+        }
+
+        // Allow additional filtering via parameters
         if ($request->has('patient_id')) {
             $query->where('patient_id', $request->patient_id);
         }
@@ -31,7 +53,7 @@ class AppointmentController extends Controller
             $query->where('status', $request->status);
         }
 
-        $appointments = $query->with(['patient', 'doctor'])->orderBy('appointment_datetime', 'asc')->get();
+        $appointments = $query->with(['patient', 'doctor.user'])->orderBy('appointment_datetime', 'asc')->get();
 
         return response()->json([
             'status' => 'success',
@@ -186,6 +208,41 @@ class AppointmentController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Appointment deleted successfully'
+        ]);
+    }
+
+    /**
+     * Confirm an appointment (change status from scheduled to confirmed).
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function confirm($id)
+    {
+        $appointment = Appointment::find($id);
+
+        if (!$appointment) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Appointment not found'
+            ], 404);
+        }
+
+        // Check if appointment can be confirmed
+        if ($appointment->status !== 'scheduled') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Only scheduled appointments can be confirmed'
+            ], 422);
+        }
+
+        $appointment->status = 'confirmed';
+        $appointment->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Appointment confirmed successfully',
+            'data' => $appointment->load(['patient', 'doctor.user'])
         ]);
     }
 }
