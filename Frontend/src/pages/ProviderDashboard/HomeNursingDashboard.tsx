@@ -1727,12 +1727,9 @@ const HomeNursingDashboard = () => {
                           is_paid: apt.is_paid,
                           patient: {
                             id: apt.patient_id,
-                            user_id: apt.patient_id,
-                            user: {
-                              name: apt.patient?.name || "Patient",
-                              email: apt.patient?.email || "",
-                              phone_number: apt.patient?.phone_number || "",
-                            },
+                            name: apt.patient?.name || "Patient",
+                            email: apt.patient?.email || "",
+                            phone_number: apt.patient?.phone_number || "",
                           },
                         }))}
                         onAppointmentClick={(appointment) => {
