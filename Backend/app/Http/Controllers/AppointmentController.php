@@ -18,21 +18,21 @@ class AppointmentController extends Controller
     {
         // Allow filtering by patient_id or doctor_id
         $query = Appointment::query();
-        
+
         if ($request->has('patient_id')) {
             $query->where('patient_id', $request->patient_id);
         }
-        
+
         if ($request->has('doctor_id')) {
             $query->where('doctor_id', $request->doctor_id);
         }
-        
+
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
-        
+
         $appointments = $query->with(['patient', 'doctor'])->orderBy('appointment_datetime', 'asc')->get();
-        
+
         return response()->json([
             'status' => 'success',
             'data' => $appointments
@@ -55,6 +55,8 @@ class AppointmentController extends Controller
             'reason_for_visit' => 'nullable|string',
             'symptoms' => 'nullable|string',
             'fee' => 'required|numeric|min:0',
+            'is_paid' => 'nullable|boolean',
+            'payment_reference' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -68,8 +70,8 @@ class AppointmentController extends Controller
         // Set default values for remaining fields
         $data = $request->all();
         $data['status'] = 'scheduled';
-        $data['is_paid'] = false;
-        
+        $data['is_paid'] = $request->input('is_paid', false);
+
         // Generate meeting link for virtual appointments
         if ($request->type === 'virtual') {
             $data['meeting_link'] = 'https://meet.afyamawinguni.com/' . uniqid();
