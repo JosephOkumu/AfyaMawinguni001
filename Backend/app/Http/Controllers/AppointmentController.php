@@ -245,4 +245,39 @@ class AppointmentController extends Controller
             'data' => $appointment->load(['patient', 'doctor.user'])
         ]);
     }
+
+    /**
+     * Reject an appointment (change status from scheduled to cancelled).
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function reject($id)
+    {
+        $appointment = Appointment::find($id);
+
+        if (!$appointment) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Appointment not found'
+            ], 404);
+        }
+
+        // Check if appointment can be rejected
+        if ($appointment->status !== 'scheduled') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Only scheduled appointments can be rejected'
+            ], 422);
+        }
+
+        $appointment->status = 'cancelled';
+        $appointment->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Appointment rejected successfully',
+            'data' => $appointment->load(['patient', 'doctor.user'])
+        ]);
+    }
 }
