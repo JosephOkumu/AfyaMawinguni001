@@ -901,9 +901,8 @@ const DoctorDashboard = () => {
       .filter((appointment) => {
         const appointmentDate = new Date(appointment.appointment_datetime);
         return (
-          appointmentDate < now &&
-          (appointment.status === "completed" ||
-            appointment.status === "cancelled")
+          (appointmentDate < now && appointment.status === "completed") ||
+          appointment.status === "cancelled"
         );
       })
       .sort(
@@ -961,19 +960,34 @@ const DoctorDashboard = () => {
   };
 
   // Handler to reject an appointment
-  const handleAppointmentReject = (appointmentId: number) => {
-    setAppointments((prevAppointments) =>
-      prevAppointments.map((appointment) =>
-        appointment.id === appointmentId
-          ? { ...appointment, status: "cancelled" as const }
-          : appointment,
-      ),
-    );
-    toast({
-      title: "Appointment Rejected",
-      description: "The appointment has been rejected and cancelled.",
-      variant: "destructive",
-    });
+  const handleAppointmentReject = async (appointmentId: number) => {
+    try {
+      // Update appointment status in backend
+      await appointmentService.rejectAppointment(appointmentId);
+
+      // Update local state
+      setAppointments((prevAppointments) =>
+        prevAppointments.map((appointment) =>
+          appointment.id === appointmentId
+            ? { ...appointment, status: "cancelled" as const }
+            : appointment,
+        ),
+      );
+
+      toast({
+        title: "Appointment Rejected",
+        description:
+          "The appointment has been rejected and will appear in appointment history.",
+        variant: "destructive",
+      });
+    } catch (error) {
+      console.error("Error rejecting appointment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to reject appointment. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Helper function to get pending appointments
