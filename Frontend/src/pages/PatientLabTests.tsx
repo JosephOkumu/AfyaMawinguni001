@@ -171,8 +171,8 @@ const PatientLabTests = () => {
             </Link>
             <Link to="/patient-dashboard">
               <span className="font-semibold text-xl font-playfair">
-                <span className="text-primary-blue">AFYA</span>
-                <span className="text-secondary-green"> MAWINGUNI</span>
+                <span className="text-primary-blue">ACESO</span>
+                <span className="text-secondary-green"> HEALTH SOLUTIONS</span>
               </span>
             </Link>
           </div>
