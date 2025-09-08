@@ -151,7 +151,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
       await register(registrationData);
       toast({
         title: "Success",
-        description: "You have successfully registered. Welcome to Afya Mawinguni!",
+        description: "You have successfully registered. Welcome to Aceso Health Solutions!",
         variant: "default",
       });
       onClose();
@@ -208,7 +208,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] p-0 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="bg-gradient-to-r from-primary-blue to-secondary-green p-6 text-white">
-          <DialogTitle className="text-2xl font-bold text-center">Welcome to Afya Mawinguni</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center">Welcome to Aceso Health Solutions</DialogTitle>
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "signin" | "signup")} className="w-full">
