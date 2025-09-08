@@ -585,7 +585,7 @@ const HomeNursingDashboard = () => {
 
           // Show welcome notification
           toast({
-            title: "Welcome to Afya Mawinguni!",
+            title: "Welcome to Aceso Health Solutions!",
             description:
               "Your nursing provider profile has been created. You can update it in settings.",
           });
