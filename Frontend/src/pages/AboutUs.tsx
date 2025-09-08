@@ -19,7 +19,7 @@ const AboutUs = () => {
         <section className="text-center">
           <h2 className="text-3xl font-semibold text-gray-800 mb-4">Our Mission</h2>
           <p className="text-lg text-gray-700 leading-relaxed">
-            At Afya Mawinguni, our mission is to connect patients, providers, and healthcare services seamlessly through innovative technology. We are committed to improving access to quality healthcare for everyone.
+            At Aceso Health Solutions, our mission is to connect patients, providers, and healthcare services seamlessly through innovative technology. We are committed to improving access to quality healthcare for everyone.
           </p>
         </section>
 
