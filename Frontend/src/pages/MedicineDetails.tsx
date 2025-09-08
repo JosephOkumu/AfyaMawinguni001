@@ -795,7 +795,7 @@ const MedicineDetails = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-xl font-bold mb-4 font-playfair">
-                Afya Mawinguni
+                Aceso Health Solutions
               </h3>
               <p className="text-gray-400 mb-4">
                 Transforming healthcare access and delivery across Africa
