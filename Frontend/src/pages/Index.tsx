@@ -29,7 +29,7 @@ const Index = () => {
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to get started?</h2>
           <p className="max-w-2xl mx-auto mb-8 text-lg">
-            Join Afya Mawinguni today and experience the future of healthcare management.
+            Join Aceso Health Solutions today and experience the future of healthcare management.
           </p>
           <div className="flex justify-center">
             <AuthButton />
