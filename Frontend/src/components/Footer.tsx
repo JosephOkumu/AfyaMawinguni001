@@ -46,11 +46,7 @@ const Footer = () => {
                   Medical Records
                 </Link>
               </li>
-              <li>
-                <Link to="#" className="hover:text-gray-300">
-                  Telemedicine
-                </Link>
-              </li>
+             
             </ul>
           </div>
 
@@ -71,11 +67,6 @@ const Footer = () => {
               <li>
                 <Link to="#" className="hover:text-gray-300">
                   Patient Coordination
-                </Link>
-              </li>
-              <li>
-                <Link to="#" className="hover:text-gray-300">
-                  Billing
                 </Link>
               </li>
             </ul>
