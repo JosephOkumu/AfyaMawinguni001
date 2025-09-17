@@ -17,6 +17,22 @@ const Footer = () => {
             </ul>
           </div>
 
+          {/* Legal & Policies */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">Legal & Policies</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/terms-of-service" className="hover:text-gray-300">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy-policy" className="hover:text-gray-300">
+                  Privacy Policy
+                </Link>
+              </li>
+            </ul>
+          </div>
 
           {/* For Providers */}
           <div>
