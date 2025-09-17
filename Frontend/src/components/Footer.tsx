@@ -35,6 +35,15 @@ const Footer = () => {
             </ul>
           </div>
 
+          {/* Contact Us */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">Contact Us</h3>
+            <ul className="space-y-2">
+              <li>info@acesohealthsolutions.com</li>
+              <li>Support Center</li>
+            </ul>
+          </div>
+
           {/* Download Mobile App */}
           <div>
             <h3 className="font-bold text-lg mb-4">Download Mobile App</h3>
@@ -65,15 +74,6 @@ const Footer = () => {
                   iOS App
                 </Link>
               </li>
-            </ul>
-          </div>
-
-          {/* Contact Us */}
-          <div>
-            <h3 className="font-bold text-lg mb-4">Contact Us</h3>
-            <ul className="space-y-2">
-              <li>info@acesohealthsolutions.com</li>
-              <li>Support Center</li>
             </ul>
           </div>
         </div>
