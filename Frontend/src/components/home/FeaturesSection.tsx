@@ -21,7 +21,7 @@ const FeaturesSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <FeatureCard
-            title="Alex - AI Health Assistant"
+            title="AI Health Assistant"
             description="Meet Alex, our intelligent AI assistant who helps you find the right healthcare professional based on your symptoms and preferences, offering personalized recommendations and quick access to medical advice."
             icon={UserCog}
           />
