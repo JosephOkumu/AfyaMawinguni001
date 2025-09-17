@@ -17,28 +17,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* For Patients */}
-          <div>
-            <h3 className="font-bold text-lg mb-4">For Patients</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="#" className="hover:text-gray-300">
-                  Find a Doctor
-                </Link>
-              </li>
-              <li>
-                <Link to="#" className="hover:text-gray-300">
-                  Book Appointment
-                </Link>
-              </li>
-              <li>
-                <Link to="#" className="hover:text-gray-300">
-                  Medical Records
-                </Link>
-              </li>
-             
-            </ul>
-          </div>
 
           {/* For Providers */}
           <div>
