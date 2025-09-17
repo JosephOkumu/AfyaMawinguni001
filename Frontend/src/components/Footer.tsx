@@ -49,8 +49,10 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">Download Mobile App</h3>
             <ul className="space-y-2">
               <li>
-                <Link 
-                  to="#" 
+                <a 
+                  href="https://play.google.com/store/apps/details?id=com.acesohealthsolutions.app" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="hover:text-gray-300 flex items-center gap-2"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -61,7 +63,7 @@ const Footer = () => {
                     <path d="M14.54,11.15L16.81,8.88L17.89,9.5L15.39,12L14.54,12.85Z" fill="#4CAF50"/>
                   </svg>
                   Android App
-                </Link>
+                </a>
               </li>
               <li>
                 <Link 
