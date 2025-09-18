@@ -54,7 +54,7 @@ const AIChat: React.FC = () => {
     {
       id: "1",
       content:
-        "👋 Hello! I'm Alex, your AI health assistant powered by advanced medical knowledge. I can help you:\n\n🩺 **Health Guidance:**\n• Find the right specialist for your symptoms\n• Get personalized doctor recommendations\n• Understand urgency levels of health concerns\n\n💻 **Platform Navigation:**\n• Book appointments and services\n• Navigate our healthcare platform\n• Answer questions about our services\n\n🔍 **Smart Assistance:**\n• Contextual health advice based on your current page\n• Emergency guidance when needed\n• Step-by-step platform tutorials\n\nWhat can I help you with today?",
+        "👋 Hello! I am Alex, your AI health assistant powered by advanced medical knowledge. I can help you with:\n\n🩺 **Health Guidance:**\n• Find the right specialist for your symptoms\n• Get personalized doctor recommendations\n• Understand urgency levels of health concerns\n\n💻 **Platform Navigation:**\n• Book appointments and services\n• Navigate our healthcare platform\n• Answer questions about our services\n\n🔍 **Smart Assistance:**\n• Contextual health advice based on your current page\n• Emergency guidance when needed\n• Step-by-step platform tutorials\n\nWhat can I help you with today?",
       isUser: false,
       timestamp: new Date(),
     },
