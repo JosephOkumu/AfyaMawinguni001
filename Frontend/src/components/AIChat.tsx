@@ -190,7 +190,7 @@ const AIChat: React.FC = () => {
 
       {/* Chat Window */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md w-full h-[600px] p-0 flex flex-col">
+        <DialogContent className="max-w-md w-full h-[600px] p-0 flex flex-col [&>button]:hidden">
           <DialogHeader className="px-4 py-3 border-b bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-t-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
