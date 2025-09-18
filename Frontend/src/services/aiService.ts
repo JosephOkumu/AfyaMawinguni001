@@ -32,7 +32,7 @@ class AIService {
       urgencyLevel: "high",
       description: "Heart and cardiovascular system specialist",
       additionalInfo:
-        "⚠️ If experiencing severe chest pain, seek emergency care immediately!",
+        "⚠️ If you are experiencing severe chest pain, seek emergency care immediately!",
     },
     {
       symptoms: [
@@ -414,7 +414,7 @@ class AIService {
     if (
       actualQuery.includes("emergency") ||
       actualQuery.includes("urgent") ||
-      actualQuery.includes("911") ||
+      actualQuery.includes("999") ||
       actualQuery.includes("need help now")
     ) {
       return this.getEmergencyResponse();
@@ -440,7 +440,7 @@ class AIService {
     }
 
     if (actualQuery === "chest pain and breathing issues") {
-      return `❤️ **URGENT - Cardiologist or Emergency Care**\n\n⚠️ **This requires immediate attention!**\n\nChest pain with breathing issues could indicate:\n• Heart problems (requires Cardiologist)\n• Lung issues (requires Pulmonologist)\n• Emergency conditions\n\n**Immediate action:**\n• If severe or sudden: Call 911 immediately\n• If mild but persistent: See a Cardiologist today\n• Don't wait - chest pain needs prompt evaluation\n\n📅 **Book urgent appointment:**\n• Go to "Doctor Consultation"\n• Filter by "Cardiology" or "Emergency"\n• Select same-day or urgent slots\n\n🚨 When in doubt, always choose emergency care for chest pain!`;
+      return `❤️ **URGENT - Cardiologist or Emergency Care**\n\n⚠️ **This requires immediate attention!**\n\nChest pain with breathing issues could indicate:\n• Heart problems (requires Cardiologist)\n• Lung issues (requires Pulmonologist)\n• Emergency conditions\n\n**Immediate action:**\n• If severe or sudden: Call 999 immediately\n• If mild but persistent: See a Cardiologist today\n• Don't wait - chest pain needs prompt evaluation\n\n📅 **Book urgent appointment:**\n• Go to "Doctor Consultation"\n• Filter by "Cardiology" or "Emergency"\n• Select same-day or urgent slots\n\n🚨 When in doubt, always choose emergency care for chest pain!`;
     }
 
     if (actualQuery === "stomach pain and nausea") {
@@ -476,7 +476,7 @@ class AIService {
       actualQuery.includes("chest pain") &&
       actualQuery.includes("breathing")
     ) {
-      return `❤️ **URGENT - Cardiologist or Emergency Care**\n\n⚠️ **This requires immediate attention!**\n\nChest pain with breathing issues could indicate:\n• Heart problems (requires Cardiologist)\n• Lung issues (requires Pulmonologist)\n• Emergency conditions\n\n**Immediate action:**\n• If severe or sudden: Call 911 immediately\n• If mild but persistent: See a Cardiologist today\n• Don't wait - chest pain needs prompt evaluation\n\n📅 **Book urgent appointment:**\n• Go to "Doctor Consultation"\n• Filter by "Cardiology" or "Emergency"\n• Select same-day or urgent slots\n\n🚨 When in doubt, always choose emergency care for chest pain!`;
+      return `❤️ **URGENT - Cardiologist or Emergency Care**\n\n⚠️ **This requires immediate attention!**\n\nChest pain with breathing issues could indicate:\n• Heart problems (requires Cardiologist)\n• Lung issues (requires Pulmonologist)\n• Emergency conditions\n\n**Immediate action:**\n• If severe or sudden: Call 999 immediately\n• If mild but persistent: See a Cardiologist today\n• Don't wait - chest pain needs prompt evaluation\n\n📅 **Book urgent appointment:**\n• Go to "Doctor Consultation"\n• Filter by "Cardiology" or "Emergency"\n• Select same-day or urgent slots\n\n🚨 When in doubt, always choose emergency care for chest pain!`;
     }
 
     if (
@@ -519,7 +519,7 @@ class AIService {
 
     // Enhanced single word recognition for health symptoms
     const singleWordHealthResponses: { [key: string]: string } = {
-      heart: `❤️ **Heart Health Concerns**\n\nFor heart-related issues, I recommend:\n\n**Cardiologist** - Heart specialist for:\n• Chest pain or discomfort\n• Irregular heartbeat\n• High blood pressure\n• Heart palpitations\n• Shortness of breath\n\n**When to seek immediate care:**\n• Chest pain with breathing difficulty\n• Severe chest pressure\n• Pain radiating to arm, jaw, or back\n\n📅 **Book appointment:**\n• Go to "Doctor Consultation"\n• Filter by "Cardiology"\n• Choose your preferred time slot\n\n🚨 **Emergency:** Call 911 for severe chest pain!`,
+      heart: `❤️ **Heart Health Concerns**\n\nFor heart-related issues, I recommend:\n\n**Cardiologist** - Heart specialist for:\n• Chest pain or discomfort\n• Irregular heartbeat\n• High blood pressure\n• Heart palpitations\n• Shortness of breath\n\n**When to seek immediate care:**\n• Chest pain with breathing difficulty\n• Severe chest pressure\n• Pain radiating to arm, jaw, or back\n\n📅 **Book appointment:**\n• Go to "Doctor Consultation"\n• Filter by "Cardiology"\n• Choose your preferred time slot\n\n🚨 **Emergency:** Call 999 for severe chest pain!`,
       pain: `🩺 **Pain Assessment**\n\nI can help you find the right specialist for your pain:\n\n**Common pain specialists:**\n• **General Practitioner** - For general pain assessment\n• **Orthopedic** - For bone, joint, muscle pain\n• **Neurologist** - For nerve-related pain\n• **Rheumatologist** - For arthritis, joint inflammation\n\n**Tell me more specifically:**\n• Where is the pain? (head, back, chest, etc.)\n• How long have you had it?\n• What triggers it?\n\n📅 **Quick booking:** Use our "Doctor Consultation" service`,
       headache: `🧠 **Headache Help**\n\nFor headaches, I recommend:\n\n**Neurologist** - For:\n• Frequent or severe headaches\n• Migraines\n• Chronic headaches\n• Headaches with vision changes\n\n**General Practitioner** - For:\n• Occasional headaches\n• Tension headaches\n• Headaches with fever\n\n**Immediate care tips:**\n• Rest in a quiet, dark room\n• Stay hydrated\n• Apply cold/warm compress\n\n📅 **Book appointment** if headaches are frequent or severe`,
       stomach: `🏥 **Stomach Issues**\n\nFor stomach problems, consult:\n\n**Gastroenterologist** - For:\n• Chronic stomach pain\n• Digestive issues\n• Acid reflux\n• Ulcers\n\n**General Practitioner** - For:\n• Acute stomach pain\n• Nausea and vomiting\n• Food poisoning symptoms\n\n**Immediate care:**\n• Stay hydrated\n• Avoid solid foods temporarily\n• Rest\n\n📅 **Book consultation** for persistent symptoms`,
@@ -646,25 +646,29 @@ class AIService {
       emergency: "🚨",
     };
 
-    let response = `${condition.description}\n\n`;
+    let response = `${urgencyEmoji[condition.urgencyLevel]} **Let me help you with this!**\n\n`;
+    response += `Based on what you've described, I think you'd really benefit from seeing a **${condition.recommendedSpecialist}**. ${condition.description.toLowerCase()}, and they're absolutely the best people to help you feel better!\n\n`;
 
     if (
       condition.urgencyLevel === "emergency" ||
       condition.urgencyLevel === "high"
     ) {
-      response += `⚠️ Important: This seems to require prompt medical attention. `;
+      response += `⚠️ I want to make sure you know - this sounds like something that needs attention sooner rather than later. Please don't put it off! `;
+    } else if (condition.urgencyLevel === "medium") {
+      response += `It's a good idea to get this checked out when you can - no need to panic, but definitely worth addressing! `;
+    } else {
+      response += `This is something you can schedule at your convenience, but it's still worth getting looked at! `;
     }
-
-    response += `I recommend consulting with a **${condition.recommendedSpecialist}** who specializes in these types of conditions.\n\n`;
 
     if (condition.additionalInfo) {
       response += condition.additionalInfo + "\n\n";
     }
 
-    response += `📅 You can book an appointment through our platform:\n`;
-    response += `• Go to "Doctor Consultation"\n`;
-    response += `• Filter by specialty: ${condition.recommendedSpecialist}\n`;
-    response += `• Choose your preferred doctor and time slot`;
+    response += `📅 **Ready to book? It's super easy:**\n`;
+    response += `• Head over to "Doctor Consultation"\n`;
+    response += `• Look for specialty: **${condition.recommendedSpecialist}**\n`;
+    response += `• Pick a doctor and time that works perfectly for you\n\n`;
+    response += `I'm here if you need any help with the booking process! 😊`;
 
     return response;
   }
@@ -694,55 +698,55 @@ class AIService {
 
   private getGreetingResponse(): string {
     const greetings = [
-      "👋 **Hello! I'm Alex, your AI health assistant.**\n\nI can help you with:\n\n🩺 **Health Guidance:**\n• Find the right specialist for your symptoms\n• Get personalized doctor recommendations\n• Understand urgency levels of health concerns\n\n💻 **Platform Navigation:**\n• Book appointments and services\n• Navigate our healthcare platform\n• Answer questions about our services\n\n**What can I help you with today?**",
-      "Hi there! **I'm Alex, here to help you with health questions and platform navigation.**\n\n**Quick actions:**\n• Tell me your symptoms for doctor recommendations\n• Ask how to book appointments\n• Get help navigating our services\n\n**What would you like to know?**",
-      "Hello! **I'm Alex, and I can help you find the right doctor, book appointments, or answer questions about our services.**\n\n**I'm equipped with:**\n• Medical knowledge base\n• Platform navigation assistance\n• Emergency guidance\n\n**How may I assist you?**",
+      "Hey there! 👋 I'm Alex, and I'm really excited to help you today!\n\nI'm here to make your healthcare journey as smooth as possible. Whether you're feeling under the weather or just need to navigate our platform, I've got your back!\n\n🩺 **I can help you:**\n• Find the perfect specialist for what you're experiencing\n• Give you personalized doctor recommendations\n• Help you understand if something needs urgent attention\n\n💻 **Plus, I'll guide you through:**\n• Booking appointments (it's easier than you think!)\n• Finding the right services for you\n• Answering any questions about our platform\n\nSo, what's on your mind today? I'm all ears! 😊",
+      "Hi! 🌟 I'm Alex, your health assistant!\n\nI'm here to make healthcare feel less overwhelming and more approachable. Think of me as your personal guide through everything health-related!\n\n**Here's how I can help:**\n• Share your symptoms with me, and I'll point you toward the right specialist\n• Need to book something? I'll walk you through it step by step\n• Got questions about our services? I love answering those!\n\nDon't worry about asking the 'right' questions - just tell me what's going on, and we'll figure it out together! What can I help you with?",
+      "Hello! 😊 I'm Alex, and I'm genuinely happy you're here!\n\nI know dealing with health concerns can feel overwhelming sometimes, but that's exactly why I'm here - to make things easier and less stressful for you.\n\n**I'm really good at:**\n• Listening to your symptoms and connecting you with the right specialist\n• Making appointment booking feel like a breeze\n• Explaining our services in a way that actually makes sense\n• Being available whenever you need me (seriously, 24/7!)\n\nSo, what brings you here today? Whether it's a health concern or you just need help finding your way around, I'm ready to help! 🤗",
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   }
 
   private getThankYouResponse(): string {
     const responses = [
-      "You're very welcome! **I'm always here to help with your healthcare needs.** 😊\n\nFeel free to ask me anything else!",
-      "**Happy to help!** Feel free to ask me anything else about your health or our platform.\n\n**Remember:** I'm available 24/7 for your healthcare questions!",
-      "You're welcome! **Take care of your health,** and don't hesitate to reach out if you need more assistance. 💚\n\n**I'm here whenever you need me!**",
+      "You're so welcome! 😊 It genuinely makes me happy when I can help make your healthcare journey a little easier.\n\nPlease don't hesitate to come back anytime - whether it's for health questions, booking help, or just to chat about our services. I'm always here for you!",
+      "You're absolutely welcome! 🌟 That's exactly what I'm here for - to make your life a bit easier when it comes to healthcare.\n\nRemember, I'm available 24/7, so whenever something comes up (big or small), just give me a shout. I love helping out!",
+      "It was my pleasure helping you! 💚 Seriously, this is what I love doing - making healthcare feel less complicated and more approachable.\n\nTake good care of yourself, and remember I'm just a message away whenever you need anything. Looking forward to our next chat!",
     ];
     return responses[Math.floor(Math.random() * responses.length)];
   }
 
   private getGenericHealthResponse(): string {
-    return `🩺 **Health Consultation Needed**\n\nBased on your symptoms, I recommend consulting with a healthcare professional for proper evaluation.\n\n**General recommendations:**\n• **General Practitioner** - for initial assessment\n• **Specialist** - if referred by your GP\n\n📅 **Book an appointment:**\n• Browse our qualified doctors\n• Choose based on specialty and availability\n• Schedule at your convenience\n\n⚠️ If symptoms are severe or worsening, seek immediate medical attention.`;
+    return `🩺 **Let's get you the right care!**\n\nFrom what you've shared, I think it would be really beneficial for you to chat with a healthcare professional who can give you a proper evaluation and peace of mind.\n\n**Here's what I'd suggest:**\n• Start with a **General Practitioner** - they're fantastic for getting a complete picture of what's going on\n• If needed, they might connect you with a **Specialist** who focuses on your specific concern\n\n📅 **Ready to book? Here's how easy it is:**\n• Browse through our amazing doctors (they're all highly qualified!)\n• Pick someone based on their specialty and when they're available\n• Schedule at whatever time works best for you\n\n⚠️ Just a gentle reminder - if your symptoms feel severe or are getting worse, please don't wait. Seek immediate medical attention. Your health and safety come first! 💙`;
   }
 
   private getGenericPlatformResponse(): string {
-    return `🤝 **I'm here to help!**\n\nI can assist you with:\n\n🏥 **Healthcare Services:**\n• Finding the right doctor for your symptoms\n• Booking appointments and consultations\n• Home nursing services\n• Laboratory tests\n• Pharmacy services\n\n💻 **Platform Navigation:**\n• How to use our services\n• Account management\n• Payment and billing\n• Technical support\n\n**What would you like to know more about?**`;
+    return `🤝 **I'm absolutely here to help you!**\n\nHonestly, I love helping people navigate healthcare - it can feel overwhelming sometimes, but it doesn't have to be! Let me show you around.\n\n🏥 **Healthcare Services I can help you with:**\n• Finding the perfect doctor for whatever you're experiencing\n• Making appointment booking super simple\n• Connecting you with amazing home nursing services\n• Getting lab tests scheduled (easier than you'd think!)\n• Helping with pharmacy needs\n\n💻 **Platform stuff (I promise it's not complicated!):**\n• Walking you through how everything works\n• Helping with your account (no tech headaches!)\n• Explaining payment and billing clearly\n• Solving any technical hiccups\n\nSo, what's on your mind? I'm genuinely excited to help you out! 😊`;
   }
 
   private getGenericResponse(): string {
-    return `🤔 **I'd love to help you!** Could you please tell me more about:\n\n• **Health concerns** - Any symptoms you're experiencing?\n• **Platform help** - What service are you trying to use?\n• **General questions** - About our healthcare platform?\n\n**You can also try the quick action buttons below for common questions!**`;
+    return `🤔 **I'm really excited to help, but I want to make sure I give you exactly what you need!**\n\nCould you help me understand a bit more about what's going on? I'm here for whatever you need:\n\n• **Health stuff** - Are you experiencing any symptoms or have health questions?\n• **Platform help** - Trying to book something or navigate our services?\n• **Just curious** - Want to know more about what we offer?\n\nDon't worry about being too detailed or asking the 'perfect' question - just share what's on your mind! And if you're not sure how to start, those quick action buttons below are super helpful too! 😊`;
   }
 
   /**
    * Context-specific help responses
    */
   private getNursingContextHelp(): string {
-    return `🏠 **Home Nursing Services Help**\n\nI see you're on the nursing services page! I can help you with:\n\n**Current Page Actions:**\n• How to select a nursing provider\n• Understanding service pricing\n• Booking nursing appointments\n• Comparing provider qualifications\n\n**Available Services:**\n• General home nursing care\n• Specialized medical care\n• Elderly care assistance\n• Post-surgery recovery support\n\n**Need help with something specific on this page?**`;
+    return `🏠 **Perfect! You're looking at our nursing services!**\n\nI'm so glad you're here - our home nursing services are absolutely wonderful, and I'd love to help you find exactly what you need!\n\n**I can help you figure out:**\n• Which nursing provider would be the best fit for you\n• What the pricing looks like (no surprises!)\n• How to book your nursing appointment easily\n• What makes each provider special\n\n**We've got amazing services available:**\n• Caring general home nursing\n• Specialized medical care when you need it\n• Wonderful elderly care assistance\n• Supportive post-surgery recovery help\n\nWhat specific thing can I help you with? I'm excited to make this as easy as possible for you! 😊`;
   }
 
   private getDoctorContextHelp(): string {
-    return `👩‍⚕️ **Doctor Consultation Help**\n\nI see you're looking for doctor consultations! I can help you with:\n\n**Current Page Actions:**\n• How to find the right specialist\n• Booking consultation appointments\n• Understanding consultation types\n• Comparing doctor profiles\n\n**Consultation Options:**\n• Video consultations\n• In-person visits\n• Specialist referrals\n• Emergency consultations\n\n**What would you like help with?**`;
+    return `👩‍⚕️ **Awesome! You're in the right place for doctor consultations!**\n\nI'm really excited to help you find the perfect doctor - we have some truly amazing healthcare professionals on our platform!\n\n**Let me help you with:**\n• Finding the ideal specialist for what you're going through\n• Making booking your consultation super straightforward\n• Understanding all your consultation options\n• Checking out doctor profiles (they're all fantastic!)\n\n**You've got great options:**\n• Convenient video consultations from home\n• Traditional in-person visits\n• Specialist referrals when you need them\n• Emergency consultations for urgent needs\n\nWhat would you like me to help you with first? I'm here to make this whole process feel easy and stress-free! 🌟`;
   }
 
   private getLabContextHelp(): string {
-    return `🔬 **Laboratory Services Help**\n\nI see you're on the lab services page! I can help you with:\n\n**Current Page Actions:**\n• Selecting the right tests\n• Booking sample collection\n• Understanding test procedures\n• Interpreting test requirements\n\n**Available Options:**\n• Home sample collection\n• Lab visit appointments\n• Health check packages\n• Specialized diagnostic tests\n\n**How can I assist you with lab services?**`;
+    return `🔬 **Great choice! Our lab services are top-notch!**\n\nI'm here to make getting your lab work done as smooth and stress-free as possible - no more worrying about complicated medical stuff!\n\n**I'd love to help you with:**\n• Picking exactly the right tests for you\n• Setting up sample collection (we can even come to you!)\n• Explaining test procedures in plain English\n• Making sense of what tests you actually need\n\n**You've got some really convenient options:**\n• Home sample collection (so much easier!)\n• Lab visit appointments if you prefer\n• Complete health check packages\n• Specialized diagnostic tests when needed\n\nWhat part of the lab process can I help make easier for you? I promise it's not as complicated as it might seem! 😊`;
   }
 
   private getPharmacyContextHelp(): string {
-    return `💊 **Pharmacy Services Help**\n\nI see you're on the pharmacy page! I can help you with:\n\n**Current Page Actions:**\n• Uploading prescriptions\n• Finding medications\n• Understanding delivery options\n• Comparing medicine prices\n\n**Available Services:**\n• Prescription medicines\n• Over-the-counter drugs\n• Home delivery\n• Medicine reminders\n\n**What pharmacy assistance do you need?**`;
+    return `💊 **Perfect! You're checking out our pharmacy services!**\n\nI absolutely love helping people with their medication needs - it's so important to make this part of healthcare simple and convenient for you!\n\n**I'm here to help you with:**\n• Getting your prescriptions uploaded easily\n• Finding exactly the medications you need\n• Understanding all your delivery options (including home delivery!)\n• Making sure you get the best prices\n\n**We've got everything you need:**\n• All your prescription medicines\n• Over-the-counter drugs when you need them\n• Super convenient home delivery\n• Helpful medicine reminders so you never miss a dose\n\nWhat can I help you with today? Whether it's uploading a prescription or just browsing, I'm here to make it easy! 🌟`;
   }
 
   private getDashboardContextHelp(): string {
-    return `📊 **Patient Dashboard Help**\n\nWelcome to your dashboard! I can help you navigate:\n\n**Dashboard Features:**\n• View upcoming appointments\n• Access medical records\n• Book new services\n• Track order status\n• Manage your profile\n\n**Quick Actions:**\n• Book doctor consultation\n• Schedule home nursing\n• Order lab tests\n• Browse pharmacy\n\n**Where would you like to go next?**`;
+    return `📊 **Welcome to your personal healthcare hub!**\n\nI'm so excited you're here! Your dashboard is like your healthcare command center - everything you need is right at your fingertips, and I'm here to help you make the most of it!\n\n**Here's all the cool stuff you can do:**\n• Check out your upcoming appointments\n• Access all your medical records easily\n• Book any new services you need\n• Keep track of your orders\n• Update your profile whenever you want\n\n**Want to jump into action? Here are some popular things:**\n• Book a doctor consultation\n• Schedule some home nursing care\n• Get lab tests ordered\n• Browse our pharmacy\n\nWhat sounds most interesting to you right now? I'm here to guide you through anything you'd like to explore! 😊`;
   }
 
   /**
