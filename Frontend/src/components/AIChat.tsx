@@ -8,15 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Bot,
-  Send,
-  Minimize2,
-  X,
-  MessageCircle,
-  User,
-  Sparkles,
-} from "lucide-react";
+import { Bot, Send, X, MessageCircle, User, Sparkles } from "lucide-react";
 import aiService from "@/services/aiService";
 import { useLocation } from "react-router-dom";
 
@@ -47,7 +39,6 @@ const QUICK_ACTIONS = [
 const AIChat: React.FC = () => {
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const [minimized, setMinimized] = useState(false);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -173,19 +164,6 @@ const AIChat: React.FC = () => {
     ));
   };
 
-  if (minimized) {
-    return (
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => setMinimized(false)}
-          className="bg-green-500 hover:bg-green-600 text-white rounded-full p-3 shadow-lg transition-all duration-300 hover:scale-105"
-        >
-          <MessageCircle className="w-6 h-6" />
-        </button>
-      </div>
-    );
-  }
-
   return (
     <>
       {/* Floating Action Button */}
@@ -226,12 +204,6 @@ const AIChat: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setMinimized(true)}
-                  className="p-1 hover:bg-white/20 rounded"
-                >
-                  <Minimize2 className="w-4 h-4" />
-                </button>
                 <button
                   onClick={() => setOpen(false)}
                   className="p-1 hover:bg-white/20 rounded"
