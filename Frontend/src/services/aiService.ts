@@ -393,7 +393,42 @@ class AIService {
       actualQuery = parts[1].trim();
     }
 
-    // Immediate greeting responses - check first to avoid asking again
+    // PRIORITY 1: Enhanced quick action responses - exact match for button text (MUST BE FIRST!)
+    // These are the exact strings from the quick action buttons
+    if (actualQuery === "i have fever and headache") {
+      return `🌡️ **General Practitioner (Family Doctor)**\n\nFor fever and headaches, I recommend seeing a General Practitioner first. These symptoms could indicate:\n\n• Common viral infections (flu, cold)\n• Bacterial infections\n• Stress or tension headaches\n• Dehydration\n\n**Immediate care:**\n• Rest and stay hydrated\n• Monitor your temperature\n• Take over-the-counter pain relievers if needed\n\n📅 **Book appointment:**\n• Go to "Doctor Consultation"\n• Filter by "General Practice"\n• Choose available time slot\n\n⚠️ If fever exceeds 103°F (39.4°C) or symptoms worsen, seek immediate medical attention!`;
+    }
+
+    if (actualQuery === "chest pain and breathing issues") {
+      return `❤️ **URGENT - Cardiologist or Emergency Care**\n\n⚠️ **This requires immediate attention!**\n\nChest pain with breathing issues could indicate:\n• Heart problems (requires Cardiologist)\n• Lung issues (requires Pulmonologist)\n• Emergency conditions\n\n**Immediate action:**\n• If severe or sudden: Call 999 immediately\n• If mild but persistent: See a Cardiologist today\n• Don't wait - chest pain needs prompt evaluation\n\n📅 **Book urgent appointment:**\n• Go to "Doctor Consultation"\n• Filter by "Cardiology" or "Emergency"\n• Select same-day or urgent slots\n\n🚨 When in doubt, always choose emergency care for chest pain!`;
+    }
+
+    if (actualQuery === "stomach pain and nausea") {
+      return `🏥 **Gastroenterologist or General Practitioner**\n\nStomach pain with nausea suggests digestive issues. This could be:\n\n• Food poisoning or gastroenteritis\n• Acid reflux or GERD\n• Irritable bowel syndrome (IBS)\n• Gastric ulcers\n\n**Immediate care:**\n• Stay hydrated with small sips of water\n• Avoid solid foods temporarily\n• Try clear liquids (broth, electrolyte solutions)\n\n**See a doctor if:**\n• Symptoms persist over 24 hours\n• Severe abdominal pain\n• Blood in vomit or stool\n• High fever\n\n📅 **Book appointment:**\n• Start with "General Practice" for initial assessment\n• May refer to "Gastroenterology" if needed`;
+    }
+
+    if (actualQuery === "back pain after exercise") {
+      return `🦴 **Orthopedic Specialist or Sports Medicine**\n\nBack pain after exercise is common and could indicate:\n\n• Muscle strain or sprain\n• Poor form during exercise\n• Overexertion or sudden movement\n• Possible disc issues (if severe)\n\n**Immediate care:**\n• Rest and avoid aggravating activities\n• Apply ice for first 24-48 hours\n• Gentle stretching if tolerable\n• Over-the-counter anti-inflammatory medication\n\n**Red flags - seek immediate care:**\n• Severe pain radiating to legs\n• Numbness or tingling\n• Loss of bladder/bowel control\n\n📅 **Book appointment:**\n• "Orthopedic Specialist" for bone/joint issues\n• "Sports Medicine" for exercise-related injuries\n• "Physical Therapy" for rehabilitation`;
+    }
+
+    if (actualQuery === "skin rash and itching") {
+      return `🧴 **Dermatologist**\n\nSkin rash with itching needs dermatological evaluation. This could be:\n\n• Allergic reactions (contact dermatitis)\n• Eczema or atopic dermatitis\n• Fungal infections\n• Psoriasis\n• Drug reactions\n\n**Immediate care:**\n• Avoid scratching to prevent infection\n• Use cool, damp cloths for relief\n• Gentle, fragrance-free moisturizers\n• Avoid known irritants\n\n**Seek urgent care if:**\n• Rash spreads rapidly\n• Difficulty breathing (allergic reaction)\n• Signs of infection (pus, red streaks)\n• Fever with rash\n\n📅 **Book appointment:**\n• Go to "Doctor Consultation"\n• Filter by "Dermatology"\n• Consider same-day appointment if spreading`;
+    }
+
+    if (actualQuery === "how do i book an appointment?") {
+      return `📅 **How to Book an Appointment**\n\n**Step-by-step process:**\n\n1. **Choose your service:**\n   • Doctor Consultation\n   • Home Nursing Services\n   • Laboratory Tests\n   • Pharmacy Services\n\n2. **Select your provider:**\n   • Browse available doctors/services\n   • Check ratings and reviews\n   • View specialties and qualifications\n\n3. **Pick date and time:**\n   • See real-time availability\n   • Choose convenient time slot\n   • Select in-person or virtual consultation\n\n4. **Complete booking:**\n   • Fill in patient details\n   • Choose payment method\n   • Confirm appointment\n\n💡 **Pro tip:** Book in advance for better availability!`;
+    }
+
+    if (actualQuery === "how to find nursing services?") {
+      return `🏠 **How to Find Nursing Services**\n\n**Home Nursing Services available:**\n\n**Medical Care:**\n• Wound care and dressing\n• Medication administration\n• Vital signs monitoring\n• Post-operative care\n\n**Personal Care:**\n• Bathing and hygiene assistance\n• Mobility support\n• Companionship\n• Meal preparation\n\n**How to book:**\n1. Go to "Home Nursing Services"\n2. Select type of care needed\n3. Choose qualified nurse\n4. Schedule home visit\n5. Complete booking\n\n📞 **24/7 availability** for urgent nursing needs!`;
+    }
+
+    if (actualQuery === "emergency - need help now") {
+      return this.getEmergencyResponse();
+    }
+
+    // PRIORITY 2: Other response types (greetings, thanks, emergency)
+    // Immediate greeting responses
     if (
       actualQuery.includes("hello") ||
       actualQuery.includes("hi") ||
@@ -434,40 +469,7 @@ class AIService {
       return this.getEmergencyNumberResponse();
     }
 
-    // Enhanced quick action responses - exact match for button text
-    if (actualQuery === "i have fever and headache") {
-      return `🌡️ **General Practitioner (Family Doctor)**\n\nFor fever and headaches, I recommend seeing a General Practitioner first. These symptoms could indicate:\n\n• Common viral infections (flu, cold)\n• Bacterial infections\n• Stress or tension headaches\n• Dehydration\n\n**Immediate care:**\n• Rest and stay hydrated\n• Monitor your temperature\n• Take over-the-counter pain relievers if needed\n\n📅 **Book appointment:**\n• Go to "Doctor Consultation"\n• Filter by "General Practice"\n• Choose available time slot\n\n⚠️ If fever exceeds 103°F (39.4°C) or symptoms worsen, seek immediate medical attention!`;
-    }
-
-    if (actualQuery === "chest pain and breathing issues") {
-      return `❤️ **URGENT - Cardiologist or Emergency Care**\n\n⚠️ **This requires immediate attention!**\n\nChest pain with breathing issues could indicate:\n• Heart problems (requires Cardiologist)\n• Lung issues (requires Pulmonologist)\n• Emergency conditions\n\n**Immediate action:**\n• If severe or sudden: Call 999 immediately\n• If mild but persistent: See a Cardiologist today\n• Don't wait - chest pain needs prompt evaluation\n\n📅 **Book urgent appointment:**\n• Go to "Doctor Consultation"\n• Filter by "Cardiology" or "Emergency"\n• Select same-day or urgent slots\n\n🚨 When in doubt, always choose emergency care for chest pain!`;
-    }
-
-    if (actualQuery === "stomach pain and nausea") {
-      return `🏥 **Gastroenterologist or General Practitioner**\n\nStomach pain with nausea suggests digestive issues. This could be:\n\n• Food poisoning or gastroenteritis\n• Acid reflux or GERD\n• Irritable bowel syndrome (IBS)\n• Gastric ulcers\n\n**Immediate care:**\n• Stay hydrated with small sips of water\n• Avoid solid foods temporarily\n• Try clear liquids (broth, electrolyte solutions)\n\n**See a doctor if:**\n• Symptoms persist over 24 hours\n• Severe abdominal pain\n• Blood in vomit or stool\n• High fever\n\n📅 **Book appointment:**\n• Start with "General Practice" for initial assessment\n• May refer to "Gastroenterology" if needed`;
-    }
-
-    if (actualQuery === "back pain after exercise") {
-      return `🦴 **Orthopedic Specialist or Sports Medicine**\n\nBack pain after exercise is common and could indicate:\n\n• Muscle strain or sprain\n• Poor form during exercise\n• Overexertion or sudden movement\n• Possible disc issues (if severe)\n\n**Immediate care:**\n• Rest and avoid aggravating activities\n• Apply ice for first 24-48 hours\n• Gentle stretching if tolerable\n• Over-the-counter anti-inflammatory medication\n\n**Red flags - seek immediate care:**\n• Severe pain radiating to legs\n• Numbness or tingling\n• Loss of bladder/bowel control\n\n📅 **Book appointment:**\n• "Orthopedic Specialist" for bone/joint issues\n• "Sports Medicine" for exercise-related injuries\n• "Physical Therapy" for rehabilitation`;
-    }
-
-    if (actualQuery === "skin rash and itching") {
-      return `🧴 **Dermatologist**\n\nSkin rash with itching needs dermatological evaluation. This could be:\n\n• Allergic reactions (contact dermatitis)\n• Eczema or atopic dermatitis\n• Fungal infections\n• Psoriasis\n• Drug reactions\n\n**Immediate care:**\n• Avoid scratching to prevent infection\n• Use cool, damp cloths for relief\n• Gentle, fragrance-free moisturizers\n• Avoid known irritants\n\n**Seek urgent care if:**\n• Rash spreads rapidly\n• Difficulty breathing (allergic reaction)\n• Signs of infection (pus, red streaks)\n• Fever with rash\n\n📅 **Book appointment:**\n• Go to "Doctor Consultation"\n• Filter by "Dermatology"\n• Consider same-day appointment if spreading`;
-    }
-
-    if (actualQuery === "how do i book an appointment?") {
-      return `📅 **How to Book an Appointment**\n\n**Step-by-step process:**\n\n1. **Choose your service:**\n   • Doctor Consultation\n   • Home Nursing Services\n   • Laboratory Tests\n   • Pharmacy Services\n\n2. **Select your provider:**\n   • Browse available doctors/services\n   • Check ratings and reviews\n   • View specialties and qualifications\n\n3. **Pick date and time:**\n   • See real-time availability\n   • Choose convenient time slot\n   • Select in-person or virtual consultation\n\n4. **Complete booking:**\n   • Fill in patient details\n   • Choose payment method\n   • Confirm appointment\n\n💡 **Pro tip:** Book in advance for better availability!`;
-    }
-
-    if (actualQuery === "how to find nursing services?") {
-      return `🏠 **How to Find Nursing Services**\n\n**Home Nursing Services available:**\n\n**Medical Care:**\n• Wound care and dressing\n• Medication administration\n• Vital signs monitoring\n• Post-operative care\n\n**Personal Care:**\n• Bathing and hygiene assistance\n• Mobility support\n• Companionship\n• Meal preparation\n\n**How to book:**\n1. Go to "Home Nursing Services"\n2. Select type of care needed\n3. Choose qualified nurse\n4. Schedule home visit\n5. Complete booking\n\n📞 **24/7 availability** for urgent nursing needs!`;
-    }
-
-    if (actualQuery === "emergency - need help now") {
-      return this.getEmergencyResponse();
-    }
-
-    // Partial matches for symptoms (still recognize variations)
+    // PRIORITY 3: Partial matches for symptoms (still recognize variations)
     if (actualQuery.includes("fever") && actualQuery.includes("headache")) {
       return `🌡️ **General Practitioner (Family Doctor)**\n\nFor fever and headaches, I recommend seeing a General Practitioner first. These symptoms could indicate:\n\n• Common viral infections (flu, cold)\n• Bacterial infections\n• Stress or tension headaches\n• Dehydration\n\n**Immediate care:**\n• Rest and stay hydrated\n• Monitor your temperature\n• Take over-the-counter pain relievers if needed\n\n📅 **Book appointment:**\n• Go to "Doctor Consultation"\n• Filter by "General Practice"\n• Choose available time slot\n\n⚠️ If fever exceeds 103°F (39.4°C) or symptoms worsen, seek immediate medical attention!`;
     }
