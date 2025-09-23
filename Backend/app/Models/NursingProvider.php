@@ -18,6 +18,7 @@ class NursingProvider extends Model
         'user_id',
         'provider_name',
         'description',
+        'location',
         'license_number',
         'qualifications',
         'services_offered',
