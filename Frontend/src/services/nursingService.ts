@@ -5,6 +5,7 @@ export interface NursingProvider {
   user_id: number;
   provider_name: string;
   description: string;
+  location?: string;
   license_number: string;
   qualifications: string;
   services_offered: string;
