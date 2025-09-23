@@ -269,6 +269,9 @@ class NursingProviderController extends Controller
         if ($request->has('description')) {
             $providerData['description'] = $request->description;
         }
+        if ($request->has('location')) {
+            $providerData['location'] = $request->location;
+        }
         if ($request->has('qualifications')) {
             $providerData['qualifications'] = $request->qualifications;
         }
