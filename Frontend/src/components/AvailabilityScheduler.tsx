@@ -71,10 +71,32 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
   }, [currentSchedule]);
 
   useEffect(() => {
-    setAppointmentDuration(initialAppointmentDuration.toString());
+    // Check if the initial duration is a standard option or custom
+    const standardOptions = ["15", "30", "45", "60", "90", "120"];
+    const durationStr = initialAppointmentDuration.toString();
+    
+    if (standardOptions.includes(durationStr)) {
+      setAppointmentDuration(durationStr);
+    } else {
+      // It's a custom duration
+      setAppointmentDuration("custom");
+      
+      // Determine if it should be displayed in hours or minutes
+      if (initialAppointmentDuration >= 60 && initialAppointmentDuration % 60 === 0) {
+        // Can be displayed in hours
+        setCustomDuration(initialAppointmentDuration / 60);
+        setCustomTimeUnit("hours");
+      } else {
+        // Display in minutes
+        setCustomDuration(initialAppointmentDuration);
+        setCustomTimeUnit("minutes");
+      }
+    }
+    
     setRepeatWeekly(initialRepeatWeekly);
     console.log('=== AVAILABILITY SCHEDULER INITIALIZED ===');
     console.log('Initial appointment duration:', initialAppointmentDuration);
+    console.log('Duration type:', standardOptions.includes(durationStr) ? 'standard' : 'custom');
     console.log('Initial repeat weekly:', initialRepeatWeekly);
   }, [initialAppointmentDuration, initialRepeatWeekly]);
 
@@ -146,6 +168,13 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
     let durationMinutes = 30; // default
     if (appointmentDuration === "custom") {
       durationMinutes = customTimeUnit === "hours" ? customDuration * 60 : customDuration;
+      
+      // Validate duration is within backend limits (15-480 minutes)
+      if (durationMinutes < 15 || durationMinutes > 480) {
+        console.error('Invalid duration:', durationMinutes, 'minutes. Must be between 15-480 minutes.');
+        alert(`Invalid duration: ${durationMinutes} minutes. Duration must be between 15 minutes and 8 hours (480 minutes).`);
+        return;
+      }
     } else {
       durationMinutes = parseInt(appointmentDuration);
     }
@@ -160,7 +189,13 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
   };
 
   const handleCustomDurationChange = (value: number) => {
-    if (value >= 1 && value <= 24) {
+    // Backend validation: min:15 max:480 minutes
+    // For hours: max 8 hours (480 minutes)
+    // For minutes: max 480 minutes
+    const maxValue = customTimeUnit === "hours" ? 8 : 480;
+    const minValue = customTimeUnit === "hours" ? 1 : 15;
+    
+    if (value >= minValue && value <= maxValue) {
       setCustomDuration(value);
     }
   };
@@ -277,12 +312,12 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
                   <div className="flex-1">
                     <input
                       type="number"
-                      min="1"
-                      max="24"
+                      min={customTimeUnit === "hours" ? "1" : "15"}
+                      max={customTimeUnit === "hours" ? "8" : "480"}
                       value={customDuration}
                       onChange={(e) =>
                         handleCustomDurationChange(
-                          parseInt(e.target.value) || 1,
+                          parseInt(e.target.value) || (customTimeUnit === "hours" ? 1 : 15),
                         )
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -293,9 +328,16 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
                   <div className="flex-1">
                     <select
                       value={customTimeUnit}
-                      onChange={(e) =>
-                        setCustomTimeUnit(e.target.value as "minutes" | "hours")
-                      }
+                      onChange={(e) => {
+                        const newUnit = e.target.value as "minutes" | "hours";
+                        setCustomTimeUnit(newUnit);
+                        // Reset to valid default value for the new unit
+                        if (newUnit === "hours") {
+                          setCustomDuration(1); // 1 hour
+                        } else {
+                          setCustomDuration(30); // 30 minutes
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     >
                       <option value="minutes">Minutes</option>
