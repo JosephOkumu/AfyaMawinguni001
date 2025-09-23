@@ -27,6 +27,9 @@ class NursingProvider extends Model
         'base_rate_per_hour',
         'is_available',
         'average_rating',
+        'availability_schedule',
+        'appointment_duration_minutes',
+        'repeat_weekly',
     ];
 
     /**
@@ -40,6 +43,9 @@ class NursingProvider extends Model
         'base_rate_per_hour' => 'decimal:2',
         'is_available' => 'boolean',
         'average_rating' => 'integer',
+        'availability_schedule' => 'json',
+        'appointment_duration_minutes' => 'integer',
+        'repeat_weekly' => 'boolean',
     ];
 
     /**
