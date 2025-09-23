@@ -95,6 +95,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/nursing-provider/profile', [NursingProviderController::class, 'updateProfile']);
     Route::patch('/nursing-provider/profile', [NursingProviderController::class, 'updateProfile']);
     Route::post('/nursing-provider/upload-image', [NursingProviderController::class, 'uploadProfileImage']);
+    Route::put('/nursing-provider/availability-settings', [NursingProviderController::class, 'updateAvailabilitySettings']);
 
     // Nursing provider booking routes (other routes moved to public section)
 
@@ -149,6 +150,7 @@ Route::get('/lab-providers/{id}/occupied-times', [LabProviderController::class, 
 Route::get('/lab-providers/{id}/fully-booked-dates', [LabAppointmentController::class, 'getFullyBookedDates']);
 Route::get('/nursing-providers/{id}/occupied-dates', [NursingProviderController::class, 'getOccupiedDates']);
 Route::get('/nursing-providers/{id}/occupied-times', [NursingProviderController::class, 'getOccupiedTimes']);
+Route::get('/nursing-providers/{id}/available-time-slots', [NursingProviderController::class, 'getAvailableTimeSlots']);
 
 
 
