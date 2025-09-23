@@ -281,6 +281,15 @@ class NursingProviderController extends Controller
         if ($request->has('base_rate_per_hour')) {
             $providerData['base_rate_per_hour'] = $request->base_rate_per_hour;
         }
+        if ($request->has('availability_schedule')) {
+            $providerData['availability_schedule'] = $request->availability_schedule;
+        }
+        if ($request->has('appointment_duration_minutes')) {
+            $providerData['appointment_duration_minutes'] = $request->appointment_duration_minutes;
+        }
+        if ($request->has('repeat_weekly')) {
+            $providerData['repeat_weekly'] = $request->repeat_weekly;
+        }
 
         if ($isCreating) {
             // Create new nursing provider profile
@@ -522,5 +531,244 @@ class NursingProviderController extends Controller
                 'message' => 'Failed to fetch occupied times: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Update availability settings for the current nursing provider.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateAvailabilitySettings(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        $nursingProvider = NursingProvider::where('user_id', $user->id)->first();
+
+        if (!$nursingProvider) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing provider profile not found'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'availability_schedule' => 'nullable|array',
+            'appointment_duration_minutes' => 'nullable|integer|min:15|max:480',
+            'repeat_weekly' => 'nullable|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $updateData = [];
+            
+            if ($request->has('availability_schedule')) {
+                $updateData['availability_schedule'] = $request->availability_schedule;
+                Log::info('Updating availability schedule', [
+                    'provider_id' => $nursingProvider->id,
+                    'schedule' => $request->availability_schedule
+                ]);
+            }
+            
+            if ($request->has('appointment_duration_minutes')) {
+                $updateData['appointment_duration_minutes'] = $request->appointment_duration_minutes;
+                Log::info('Updating appointment duration', [
+                    'provider_id' => $nursingProvider->id,
+                    'duration_minutes' => $request->appointment_duration_minutes
+                ]);
+            }
+            
+            if ($request->has('repeat_weekly')) {
+                $updateData['repeat_weekly'] = $request->repeat_weekly;
+                Log::info('Updating repeat weekly setting', [
+                    'provider_id' => $nursingProvider->id,
+                    'repeat_weekly' => $request->repeat_weekly
+                ]);
+            }
+
+            if (!empty($updateData)) {
+                $nursingProvider->update($updateData);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Availability settings updated successfully',
+                'data' => [
+                    'availability_schedule' => $nursingProvider->availability_schedule,
+                    'appointment_duration_minutes' => $nursingProvider->appointment_duration_minutes,
+                    'repeat_weekly' => $nursingProvider->repeat_weekly,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to update availability settings', [
+                'provider_id' => $nursingProvider->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update availability settings: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get available time slots for a specific nursing provider on a specific date
+     * based on their availability settings and appointment duration.
+     *
+     * @param  int  $id
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAvailableTimeSlots($id, Request $request)
+    {
+        $nursingProvider = NursingProvider::find($id);
+
+        if (!$nursingProvider) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nursing provider not found'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date|after_or_equal:today'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $date = $request->get('date');
+            $dayOfWeek = strtolower(date('l', strtotime($date)));
+            
+            Log::info('Generating available time slots', [
+                'provider_id' => $id,
+                'date' => $date,
+                'day_of_week' => $dayOfWeek,
+                'appointment_duration' => $nursingProvider->appointment_duration_minutes
+            ]);
+
+            // Get provider's availability schedule
+            $availabilitySchedule = $nursingProvider->availability_schedule;
+            $appointmentDuration = $nursingProvider->appointment_duration_minutes ?? 30;
+            
+            // Default time slots if no custom schedule is set
+            $defaultTimeSlots = [
+                '7:00 AM', '7:30 AM', '8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM',
+                '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
+                '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
+                '4:00 PM', '4:30 PM'
+            ];
+            
+            $availableSlots = [];
+            
+            if ($availabilitySchedule && isset($availabilitySchedule[$dayOfWeek])) {
+                // Use custom availability schedule
+                $daySchedule = $availabilitySchedule[$dayOfWeek];
+                
+                if ($daySchedule['available']) {
+                    $startTime = $daySchedule['start_time'] ?? '07:00';
+                    $endTime = $daySchedule['end_time'] ?? '16:30';
+                    
+                    // Generate time slots based on appointment duration
+                    $availableSlots = $this->generateTimeSlots($startTime, $endTime, $appointmentDuration);
+                }
+            } else {
+                // Use default slots but adjust based on appointment duration
+                if ($appointmentDuration == 30) {
+                    $availableSlots = $defaultTimeSlots;
+                } else {
+                    // Generate slots based on duration (e.g., 60 minutes = hourly slots)
+                    $availableSlots = $this->generateTimeSlots('07:00', '16:30', $appointmentDuration);
+                }
+            }
+            
+            // Get occupied time slots
+            $occupiedTimes = DB::table('nursing_services')
+                ->where('nursing_provider_id', $id)
+                ->whereIn('status', ['scheduled', 'in_progress'])
+                ->where('is_paid', true)
+                ->whereDate('scheduled_datetime', $date)
+                ->select(DB::raw('TIME_FORMAT(scheduled_datetime, "%h:%i %p") as time'))
+                ->pluck('time')
+                ->toArray();
+            
+            // Filter out occupied slots
+            $availableSlots = array_diff($availableSlots, $occupiedTimes);
+            $availableSlots = array_values($availableSlots); // Re-index array
+            
+            Log::info('Available time slots generated', [
+                'provider_id' => $id,
+                'date' => $date,
+                'total_slots' => count($availableSlots),
+                'occupied_slots' => count($occupiedTimes)
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'available_slots' => $availableSlots,
+                    'appointment_duration_minutes' => $appointmentDuration,
+                    'occupied_slots' => $occupiedTimes
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to generate available time slots', [
+                'provider_id' => $id,
+                'date' => $date,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to generate available time slots: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Generate time slots based on start time, end time, and duration
+     *
+     * @param  string  $startTime
+     * @param  string  $endTime
+     * @param  int  $durationMinutes
+     * @return array
+     */
+    private function generateTimeSlots($startTime, $endTime, $durationMinutes)
+    {
+        $slots = [];
+        $current = strtotime($startTime);
+        $end = strtotime($endTime);
+        
+        while ($current < $end) {
+            $slots[] = date('g:i A', $current);
+            $current = strtotime('+' . $durationMinutes . ' minutes', $current);
+        }
+        
+        return $slots;
     }
 }
