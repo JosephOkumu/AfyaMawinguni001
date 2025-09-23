@@ -703,9 +703,8 @@ const HomeNursingDashboard = () => {
         description: data.professionalSummary || "",
         qualifications: "Professional nursing qualifications",
         services_offered: "Home nursing services",
-        base_rate_per_hour: nursingProfile?.base_rate_per_hour || 0,
-        license_number: data.licenseNumber || "",
-        availability: data.availability || "",
+        base_rate_per_hour: nursingProfile?.base_rate_per_hour || 1500,
+        license_number: data.licenseNumber || `NP_${Date.now()}`,
       };
 
       console.log("API data being sent:", apiData);
@@ -715,19 +714,7 @@ const HomeNursingDashboard = () => {
       if (!nursingProfile) {
         // Create new profile if none exists
         console.log("Creating new nursing provider profile...");
-        try {
-          // Try to create via the standard API endpoint
-          const createData = {
-            ...apiData,
-            license_number: `NP_${Date.now()}`, // Generate temporary license number
-          };
-          updatedProfile =
-            await nursingService.updateNursingProviderProfile(createData);
-        } catch (createError) {
-          console.log("Standard create failed, trying update endpoint...");
-          // If that fails, try the update endpoint which should create if not exists
-          updatedProfile = await nursingService.updateProfile(apiData);
-        }
+        updatedProfile = await nursingService.updateProfile(apiData);
       } else {
         // Update existing profile
         console.log("Updating existing nursing provider profile...");
@@ -749,9 +736,22 @@ const HomeNursingDashboard = () => {
       await loadProfile();
     } catch (error: unknown) {
       console.error("Failed to update/create profile:", error);
+      
+      // Extract validation errors if available
+      let errorMessage = "Failed to save profile. Please try again.";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any;
+        if (axiosError.response?.data?.errors) {
+          const validationErrors = Object.values(axiosError.response.data.errors).flat();
+          errorMessage = validationErrors.join(', ');
+        } else if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        }
+      }
+      
       toast({
         title: nursingProfile ? "Update Failed" : "Creation Failed",
-        description: "Failed to save profile. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -1002,11 +1002,14 @@ const HomeNursingDashboard = () => {
                   <Settings className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto" aria-describedby="profile-settings-description">
                 <DialogHeader className="sticky top-0 z-10 bg-white px-6 py-4 border-b flex flex-row justify-between items-center">
                   <DialogTitle className="text-xl font-semibold">
                     Provider Profile Settings
                   </DialogTitle>
+                  <DialogDescription id="profile-settings-description" className="sr-only">
+                    Update your nursing provider profile information including name, contact details, and professional summary.
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="px-6 py-4">
                   <Form {...profileForm}>
