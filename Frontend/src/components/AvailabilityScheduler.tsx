@@ -32,14 +32,18 @@ export interface WeeklySchedule {
 
 interface AvailabilitySchedulerProps {
   currentSchedule?: WeeklySchedule;
-  onSave: (schedule: WeeklySchedule) => void;
+  onSave: (schedule: WeeklySchedule, appointmentDurationMinutes?: number, repeatWeekly?: boolean) => void;
   trigger?: React.ReactNode;
+  initialAppointmentDuration?: number;
+  initialRepeatWeekly?: boolean;
 }
 
 const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
   currentSchedule,
   onSave,
   trigger,
+  initialAppointmentDuration = 30,
+  initialRepeatWeekly = true,
 }) => {
   const [schedule, setSchedule] = useState<WeeklySchedule>({
     Sun: { available: false, times: [] },
@@ -51,20 +55,28 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
     Sat: { available: false, times: [] },
   });
 
-  const [repeatWeekly, setRepeatWeekly] = useState(true);
+  const [repeatWeekly, setRepeatWeekly] = useState(initialRepeatWeekly);
   const [isOpen, setIsOpen] = useState(false);
-  const [appointmentDuration, setAppointmentDuration] = useState("30");
+  const [appointmentDuration, setAppointmentDuration] = useState(initialAppointmentDuration.toString());
   const [customDuration, setCustomDuration] = useState(30);
   const [customTimeUnit, setCustomTimeUnit] = useState<"minutes" | "hours">(
     "minutes",
   );
 
-  // Initialize schedule from props
+  // Initialize schedule and settings from props
   useEffect(() => {
     if (currentSchedule) {
       setSchedule(currentSchedule);
     }
   }, [currentSchedule]);
+
+  useEffect(() => {
+    setAppointmentDuration(initialAppointmentDuration.toString());
+    setRepeatWeekly(initialRepeatWeekly);
+    console.log('=== AVAILABILITY SCHEDULER INITIALIZED ===');
+    console.log('Initial appointment duration:', initialAppointmentDuration);
+    console.log('Initial repeat weekly:', initialRepeatWeekly);
+  }, [initialAppointmentDuration, initialRepeatWeekly]);
 
   const toggleDayAvailability = (day: keyof WeeklySchedule) => {
     setSchedule((prev) => ({
@@ -130,7 +142,20 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
   };
 
   const handleSave = () => {
-    onSave(schedule);
+    // Calculate appointment duration in minutes
+    let durationMinutes = 30; // default
+    if (appointmentDuration === "custom") {
+      durationMinutes = customTimeUnit === "hours" ? customDuration * 60 : customDuration;
+    } else {
+      durationMinutes = parseInt(appointmentDuration);
+    }
+    
+    console.log('=== AVAILABILITY SCHEDULER SAVE ===');
+    console.log('Schedule:', schedule);
+    console.log('Appointment Duration (minutes):', durationMinutes);
+    console.log('Repeat Weekly:', repeatWeekly);
+    
+    onSave(schedule, durationMinutes, repeatWeekly);
     setIsOpen(false);
   };
 

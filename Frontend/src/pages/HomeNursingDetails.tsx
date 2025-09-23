@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import nursingService, {
   NursingProvider,
   NursingServiceOffering,
+  AvailableTimeSlotsResponse,
 } from "@/services/nursingService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
 import usePesapalPayment from "@/hooks/usePesapalPayment";
@@ -370,8 +371,8 @@ const oldNursingProviders = [
   // Add more provider data as needed
 ];
 
-// Available time slots
-const timeSlots = [
+// Default time slots (fallback)
+const defaultTimeSlots = [
   "8:00 AM",
   "8:30 AM",
   "9:00 AM",
@@ -421,6 +422,9 @@ const HomeNursingDetails = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>(defaultTimeSlots);
+  const [appointmentDuration, setAppointmentDuration] = useState<number>(30);
+  const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
 
   // Calendar booking hook
   const {
@@ -529,6 +533,38 @@ const HomeNursingDetails = () => {
       fetchProviderData();
     }
   }, [id, navigate]);
+
+  // Function to fetch dynamic time slots based on provider's availability settings
+  const fetchAvailableTimeSlots = async (selectedDate: Date) => {
+    if (!provider?.id) return;
+    
+    setLoadingTimeSlots(true);
+    try {
+      console.log('=== FETCHING DYNAMIC TIME SLOTS ===');
+      console.log('Provider ID:', provider.id);
+      console.log('Selected Date:', selectedDate.toISOString().split('T')[0]);
+      
+      const response = await nursingService.getAvailableTimeSlots(
+        provider.id,
+        selectedDate.toISOString().split('T')[0]
+      );
+      
+      console.log('Available time slots response:', response);
+      
+      setAvailableTimeSlots(response.available_slots);
+      setAppointmentDuration(response.appointment_duration_minutes);
+      
+      console.log('Updated available slots:', response.available_slots);
+      console.log('Appointment duration:', response.appointment_duration_minutes);
+    } catch (error) {
+      console.error('Failed to fetch available time slots:', error);
+      // Fallback to default time slots
+      setAvailableTimeSlots(defaultTimeSlots);
+      setAppointmentDuration(30);
+    } finally {
+      setLoadingTimeSlots(false);
+    }
+  };
 
   // Filter services based on search term
   const filteredServices =
@@ -1212,6 +1248,7 @@ const HomeNursingDetails = () => {
                       setTimeSlot(null); // Reset time slot when date changes
                       if (selectedDate) {
                         getOccupiedTimesForDate(selectedDate);
+                        fetchAvailableTimeSlots(selectedDate);
                       }
                     }}
                     disabled={(date) => {
@@ -1275,10 +1312,19 @@ const HomeNursingDetails = () => {
                           </p>
                         </div>
                       </div>
+                    ) : loadingTimeSlots ? (
+                      <div className="py-8">
+                        <div className="text-center">
+                          <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-green-500 rounded-full mx-auto mb-2"></div>
+                          <p className="text-sm text-gray-500">
+                            Loading available time slots...
+                          </p>
+                        </div>
+                      </div>
                     ) : (
                       <>
                         <div className="grid grid-cols-3 gap-2">
-                          {timeSlots.map((slot) => {
+                          {availableTimeSlots.map((slot) => {
                             const isOccupied = isTimeOccupied(slot);
                             const isSelected = timeSlot === slot;
                             return (
@@ -1331,7 +1377,7 @@ const HomeNursingDetails = () => {
                             <span>
                               Available slots:{" "}
                               {
-                                timeSlots.filter(
+                                availableTimeSlots.filter(
                                   (slot) => !isTimeOccupied(slot),
                                 ).length
                               }
@@ -1339,7 +1385,7 @@ const HomeNursingDetails = () => {
                             <span>
                               Booked slots:{" "}
                               {
-                                timeSlots.filter((slot) => isTimeOccupied(slot))
+                                availableTimeSlots.filter((slot) => isTimeOccupied(slot))
                                   .length
                               }
                             </span>
@@ -1348,7 +1394,7 @@ const HomeNursingDetails = () => {
                             <div
                               className="bg-red-500 h-2 rounded-full transition-all duration-300"
                               style={{
-                                width: `${(timeSlots.filter((slot) => isTimeOccupied(slot)).length / timeSlots.length) * 100}%`,
+                                width: `${(availableTimeSlots.filter((slot) => isTimeOccupied(slot)).length / availableTimeSlots.length) * 100}%`,
                               }}
                             ></div>
                           </div>

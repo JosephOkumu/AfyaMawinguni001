@@ -14,6 +14,9 @@ export interface NursingProvider {
   base_rate_per_hour: number;
   is_available: boolean;
   average_rating: number;
+  availability_schedule?: AvailabilitySchedule;
+  appointment_duration_minutes?: number;
+  repeat_weekly?: boolean;
   user: {
     id: number;
     name: string;
@@ -21,6 +24,26 @@ export interface NursingProvider {
     phone_number: string;
   };
   nursingServiceOfferings?: NursingServiceOffering[];
+}
+
+export interface AvailabilitySchedule {
+  [key: string]: {
+    available: boolean;
+    start_time: string;
+    end_time: string;
+  };
+}
+
+export interface AvailabilitySettings {
+  availability_schedule?: AvailabilitySchedule;
+  appointment_duration_minutes?: number;
+  repeat_weekly?: boolean;
+}
+
+export interface AvailableTimeSlotsResponse {
+  available_slots: string[];
+  appointment_duration_minutes: number;
+  occupied_slots: string[];
 }
 
 export interface NursingService {
@@ -329,6 +352,51 @@ const nursingService = {
     const response = await api.get<{ data: string[] }>(
       `/nursing-providers/${providerId}/occupied-times?date=${date}`,
     );
+    return response.data.data;
+  },
+
+  // Update availability settings for the current nursing provider
+  updateAvailabilitySettings: async (
+    settings: AvailabilitySettings,
+  ): Promise<AvailabilitySettings> => {
+    console.log('=== UPDATING AVAILABILITY SETTINGS ===');
+    console.log('Settings to update:', settings);
+    console.log('JSON stringified:', JSON.stringify(settings, null, 2));
+    
+    try {
+      const response = await api.put<{ 
+        status: string; 
+        data: AvailabilitySettings 
+      }>('/nursing-provider/availability-settings', settings);
+      
+      console.log('Availability settings updated:', response.data.data);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('API call failed:', error);
+      console.error('Request payload:', settings);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+        console.error('Response headers:', error.response.headers);
+      }
+      throw error;
+    }
+  },
+
+  // Get available time slots for a nursing provider on a specific date
+  getAvailableTimeSlots: async (
+    providerId: number,
+    date: string,
+  ): Promise<AvailableTimeSlotsResponse> => {
+    console.log('=== FETCHING AVAILABLE TIME SLOTS ===');
+    console.log('Provider ID:', providerId);
+    console.log('Date:', date);
+    
+    const response = await api.get<{ data: AvailableTimeSlotsResponse }>(
+      `/nursing-providers/${providerId}/available-time-slots?date=${date}`,
+    );
+    
+    console.log('Available time slots response:', response.data.data);
     return response.data.data;
   },
 };

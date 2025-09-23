@@ -64,6 +64,7 @@ import nursingService, {
   NursingService,
   NursingServiceOffering,
   NursingServiceOfferingCreateData,
+  AvailabilitySchedule,
 } from "@/services/nursingService";
 import { format } from "date-fns";
 import { AppointmentCalendar } from "@/components/calendar";
@@ -133,8 +134,75 @@ const parseScheduleFromString = (scheduleString: string): WeeklySchedule => {
   }
 };
 
+// Removed duplicate function - using the one below
+
+// Helper function to convert 12-hour format to 24-hour format
+const convertTo24Hour = (time12h: string): string => {
+  const [time, modifier] = time12h.split(/([ap]m)/i);
+  let [hours, minutes] = time.split(':');
+  
+  if (hours === '12') {
+    hours = '00';
+  }
+  
+  if (modifier.toLowerCase() === 'pm') {
+    hours = (parseInt(hours, 10) + 12).toString();
+  }
+  
+  return `${hours.padStart(2, '0')}:${minutes || '00'}`;
+};
+
+// Helper function to convert 24-hour format to 12-hour format
+const convertTo12Hour = (time24h: string): string => {
+  const [hours, minutes] = time24h.split(':');
+  const hour = parseInt(hours, 10);
+  const ampm = hour >= 12 ? 'pm' : 'am';
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minutes}${ampm}`;
+};
+
+// Helper function to convert AvailabilitySchedule to WeeklySchedule
+const convertAvailabilityToWeeklySchedule = (availabilitySchedule: AvailabilitySchedule): WeeklySchedule => {
+  const weeklySchedule: WeeklySchedule = {
+    Sun: { available: false, times: [] },
+    Mon: { available: false, times: [] },
+    Tue: { available: false, times: [] },
+    Wed: { available: false, times: [] },
+    Thu: { available: false, times: [] },
+    Fri: { available: false, times: [] },
+    Sat: { available: false, times: [] },
+  };
+
+  Object.entries(availabilitySchedule).forEach(([day, config]) => {
+    const dayKey = day.charAt(0).toUpperCase() + day.slice(1) as keyof WeeklySchedule;
+    if (config.available) {
+      weeklySchedule[dayKey] = {
+        available: true,
+        times: [{
+          start: convertTo12Hour(config.start_time),
+          end: convertTo12Hour(config.end_time),
+        }],
+      };
+    } else {
+      weeklySchedule[dayKey] = { available: false, times: [] };
+    }
+  });
+
+  return weeklySchedule;
+};
+
+// Helper function to format schedule to string for form display
 const formatScheduleToString = (schedule: WeeklySchedule): string => {
-  return JSON.stringify(schedule);
+  const availableDays = Object.entries(schedule)
+    .filter(([_, config]) => config.available)
+    .map(([day, config]) => {
+      if (config.times.length > 0) {
+        const time = config.times[0];
+        return `${day}: ${time.start} - ${time.end}`;
+      }
+      return day;
+    });
+  return availableDays.join(', ');
 };
 
 const getDefaultSchedule = (): WeeklySchedule => ({
@@ -325,6 +393,11 @@ const HomeNursingDashboard = () => {
     null,
   );
   const [profileImage, setProfileImage] = useState<string>("");
+  const [savedAvailabilitySettings, setSavedAvailabilitySettings] = useState<{
+    schedule?: WeeklySchedule;
+    appointmentDuration?: number;
+    repeatWeekly?: boolean;
+  }>({});
   const [isUploading, setIsUploading] = useState(false);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -517,6 +590,24 @@ const HomeNursingDashboard = () => {
       setNursingProfile(profile);
       setProfileImage(profile.logo || "");
 
+      console.log('=== LOADING SAVED AVAILABILITY SETTINGS ===');
+      console.log('Profile availability_schedule:', profile.availability_schedule);
+      console.log('Profile appointment_duration_minutes:', profile.appointment_duration_minutes);
+      console.log('Profile repeat_weekly:', profile.repeat_weekly);
+
+      // Load saved availability settings
+      let savedSchedule: WeeklySchedule | undefined;
+      if (profile.availability_schedule) {
+        savedSchedule = convertAvailabilityToWeeklySchedule(profile.availability_schedule);
+        console.log('Converted saved schedule:', savedSchedule);
+      }
+
+      setSavedAvailabilitySettings({
+        schedule: savedSchedule,
+        appointmentDuration: profile.appointment_duration_minutes || 30,
+        repeatWeekly: profile.repeat_weekly !== undefined ? profile.repeat_weekly : true,
+      });
+
       // Update form with profile data
       profileForm.reset({
         name: profile.user?.name || profile.provider_name || "",
@@ -525,7 +616,7 @@ const HomeNursingDashboard = () => {
         location: profile.location || "Nairobi, Kenya",
         professionalSummary: profile.description || "",
         licenseNumber: profile.license_number || "",
-        availability: "",
+        availability: savedSchedule ? formatScheduleToString(savedSchedule) : "",
       });
     } catch (error: unknown) {
       console.log("Profile loading error:", error);
@@ -1109,13 +1200,72 @@ const HomeNursingDashboard = () => {
                               <FormLabel>Availability</FormLabel>
                               <div className="mt-2">
                                 <AvailabilityScheduler
-                                  currentSchedule={parseScheduleFromString(
+                                  currentSchedule={savedAvailabilitySettings.schedule || parseScheduleFromString(
                                     field.value,
                                   )}
-                                  onSave={(schedule) => {
-                                    const scheduleString =
-                                      formatScheduleToString(schedule);
-                                    field.onChange(scheduleString);
+                                  initialAppointmentDuration={savedAvailabilitySettings.appointmentDuration || 30}
+                                  initialRepeatWeekly={savedAvailabilitySettings.repeatWeekly !== undefined ? savedAvailabilitySettings.repeatWeekly : true}
+                                  onSave={async (schedule, appointmentDurationMinutes, repeatWeekly) => {
+                                    console.log('=== SAVING AVAILABILITY SCHEDULE ===');
+                                    console.log('Schedule:', schedule);
+                                    console.log('Appointment Duration Minutes:', appointmentDurationMinutes);
+                                    console.log('Repeat Weekly:', repeatWeekly);
+                                    
+                                    // Convert the schedule to the backend format
+                                    const availabilitySchedule: AvailabilitySchedule = {};
+                                    
+                                    Object.entries(schedule).forEach(([day, config]) => {
+                                      const dayKey = day.toLowerCase();
+                                      if (config.available && config.times.length > 0) {
+                                        const firstSlot = config.times[0];
+                                        availabilitySchedule[dayKey] = {
+                                          available: true,
+                                          start_time: convertTo24Hour(firstSlot.start),
+                                          end_time: convertTo24Hour(firstSlot.end),
+                                        };
+                                      } else {
+                                        availabilitySchedule[dayKey] = {
+                                          available: false,
+                                          start_time: '09:00',
+                                          end_time: '17:00',
+                                        };
+                                      }
+                                    });
+                                    
+                                    console.log('Converted availability schedule:', availabilitySchedule);
+                                    
+                                    try {
+                                      const updatedSettings = await nursingService.updateAvailabilitySettings({
+                                        availability_schedule: availabilitySchedule,
+                                        appointment_duration_minutes: appointmentDurationMinutes || 30,
+                                        repeat_weekly: repeatWeekly !== undefined ? repeatWeekly : true,
+                                      });
+                                      
+                                      // Update local state with saved settings
+                                      setSavedAvailabilitySettings({
+                                        schedule: schedule,
+                                        appointmentDuration: appointmentDurationMinutes || 30,
+                                        repeatWeekly: repeatWeekly !== undefined ? repeatWeekly : true,
+                                      });
+                                      
+                                      toast({
+                                        title: "Success",
+                                        description: "Availability settings updated successfully",
+                                      });
+                                    } catch (error: any) {
+                                      console.error('Failed to update availability settings:', error);
+                                      console.error('Error details:', {
+                                        message: error.message,
+                                        response: error.response?.data,
+                                        status: error.response?.status,
+                                      });
+                                      
+                                      toast({
+                                        title: "Error",
+                                        description: "Failed to update availability settings. Please try again.",
+                                        variant: "destructive",
+                                      });
+                                    }
                                   }}
                                   trigger={
                                     <Button
