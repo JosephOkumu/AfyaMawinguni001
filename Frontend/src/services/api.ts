@@ -30,20 +30,46 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
+    console.log("🔐 API Request Interceptor:", {
+      url: config.url,
+      method: config.method?.toUpperCase(),
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
+      headers: config.headers
+    });
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error),
+  (error) => {
+    console.error("🚨 Request interceptor error:", error);
+    return Promise.reject(error);
+  },
 );
 
 // Response interceptor to handle common errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log("✅ API Response Success:", {
+      url: response.config.url,
+      status: response.status,
+      dataType: typeof response.data,
+      dataKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : 'not object'
+    });
+    return response;
+  },
   (error) => {
     // Log detailed error information for debugging
-    console.error("API Error:", error);
+    console.error("🚨 API Response Error:", {
+      url: error.config?.url,
+      method: error.config?.method?.toUpperCase(),
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    });
 
     if (error.response) {
       // The request was made and the server responded with a status code

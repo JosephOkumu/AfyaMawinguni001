@@ -48,8 +48,20 @@ export interface DoctorProfileUpdateData {
 const doctorService = {
   // Get all doctors
   getAllDoctors: async (): Promise<Doctor[]> => {
-    const response = await api.get<{ data: Doctor[] }>("/doctors");
-    return response.data.data;
+    console.log("👨‍⚕️ Fetching all doctors...");
+    try {
+      const response = await api.get<{ data: Doctor[] }>("/doctors");
+      console.log("👨‍⚕️ Doctors response:", {
+        status: response.status,
+        dataType: typeof response.data,
+        hasData: !!response.data.data,
+        count: response.data.data?.length || 0
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error("🚨 Error fetching doctors:", error);
+      throw error;
+    }
   },
 
   // Get a specific doctor

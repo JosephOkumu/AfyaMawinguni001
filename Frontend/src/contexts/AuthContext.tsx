@@ -6,12 +6,12 @@ interface User {
   id: number;
   name: string;
   email: string;
-  user_type_id: number;
-  user_type: {
+  user_type_id?: number;
+  user_type?: {
     id: number;
     name: string;
     display_name: string;
-  };
+  } | string;
 }
 
 interface AuthContextType {
@@ -38,24 +38,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const initAuth = async () => {
       try {
+        console.log("🔐 Initializing authentication...");
+        const token = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+        
+        console.log("🔐 Auth check:", {
+          hasToken: !!token,
+          tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
+          hasStoredUser: !!storedUser,
+          isAuthenticatedService: authService.isAuthenticated()
+        });
+        
         // Check for token in localStorage
         if (authService.isAuthenticated()) {
-          const storedUser = authService.getStoredUser();
-          if (storedUser) {
-            setUser(storedUser);
+          const storedUserData = authService.getStoredUser();
+          if (storedUserData) {
+            console.log("🔐 Using stored user data:", storedUserData);
+            setUser(storedUserData);
             setIsAuthenticated(true);
           } else {
             // If token exists but no user, fetch user data
+            console.log("🔐 Fetching user data from API...");
             const userData = await authService.getCurrentUser();
+            console.log("🔐 Fetched user data:", userData);
             setUser(userData);
             setIsAuthenticated(true);
           }
+        } else {
+          console.log("🔐 No valid authentication found");
         }
       } catch (err) {
-        console.error("Authentication initialization error:", err);
+        console.error("🚨 Authentication initialization error:", err);
         // If there's an error fetching user data, clear token
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setIsAuthenticated(false);
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -70,10 +88,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
     try {
       const response = await authService.register(userData);
+      const token = response.access_token || response.token;
       setUser(response.user);
       setIsAuthenticated(true);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
       throw err;

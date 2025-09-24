@@ -126,10 +126,22 @@ export interface NursingServiceOfferingCreateData {
 const nursingService = {
   // Nursing Provider methods
   getAllNursingProviders: async (): Promise<NursingProvider[]> => {
-    const response = await api.get<{ data: NursingProvider[] }>(
-      "/nursing-providers",
-    );
-    return response.data.data;
+    console.log("🏥 Fetching all nursing providers...");
+    try {
+      const response = await api.get<{ data: NursingProvider[] }>(
+        "/nursing-providers",
+      );
+      console.log("🏥 Nursing providers response:", {
+        status: response.status,
+        dataType: typeof response.data,
+        hasData: !!response.data.data,
+        count: response.data.data?.length || 0
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error("🚨 Error fetching nursing providers:", error);
+      throw error;
+    }
   },
 
   getNursingProvider: async (id: number): Promise<NursingProvider> => {

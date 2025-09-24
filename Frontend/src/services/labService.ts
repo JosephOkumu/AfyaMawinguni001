@@ -96,8 +96,20 @@ export interface LabTestCreateData {
 const labService = {
   // Lab Provider methods
   getAllLabProviders: async (): Promise<LabProvider[]> => {
-    const response = await api.get<{ data: LabProvider[] }>("/lab-providers");
-    return response.data.data;
+    console.log("🧪 Fetching all lab providers...");
+    try {
+      const response = await api.get<{ data: LabProvider[] }>("/lab-providers");
+      console.log("🧪 Lab providers response:", {
+        status: response.status,
+        dataType: typeof response.data,
+        hasData: !!response.data.data,
+        count: response.data.data?.length || 0
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error("🚨 Error fetching lab providers:", error);
+      throw error;
+    }
   },
 
   getLabProvider: async (id: number): Promise<LabProvider> => {

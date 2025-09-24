@@ -118,7 +118,17 @@ const LabProviderDetails = () => {
 
     // Try to parse as JSON first
     const hours = safeJsonParse(hoursData);
-    if (Array.isArray(hours)) {
+    if (hours && typeof hours === 'object') {
+      // Handle JSON object format like {"monday": "9:00 AM - 5:00 PM", ...}
+      if (!Array.isArray(hours)) {
+        return Object.entries(hours).map(([day, time], index) => (
+          <div key={index} className="flex justify-between text-sm">
+            <span className="capitalize">{day}</span>
+            <span>{String(time)}</span>
+          </div>
+        ));
+      }
+      // Handle array format
       return hours.map(
         (hour: { day: string; hours: string }, index: number) => (
           <div key={index} className="flex justify-between text-sm">
@@ -127,17 +137,10 @@ const LabProviderDetails = () => {
           </div>
         ),
       );
-    } else if (typeof hours === "object" && hours !== null) {
-      return Object.entries(hours).map(([day, time], index) => (
-        <div key={index} className="flex justify-between text-sm">
-          <span>{day}</span>
-          <span>{String(time)}</span>
-        </div>
-      ));
-    } else {
-      // If JSON parsing fails, treat as plain text
-      return <p className="text-gray-700 text-sm">{hoursData}</p>;
     }
+    
+    // If JSON parsing fails, treat as plain text
+    return <p className="text-gray-700 text-sm">{hoursData}</p>;
   };
 
   // Helper function to render certifications

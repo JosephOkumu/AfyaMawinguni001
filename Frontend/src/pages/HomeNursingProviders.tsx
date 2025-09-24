@@ -43,7 +43,7 @@ const NursingProviderCard = ({
   onClick: (provider: NursingProviderWithServices) => void;
 }) => {
   // Function to render star ratings
-  const renderStars = (rating) => {
+  const renderStars = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
@@ -123,7 +123,7 @@ const NursingProviderCard = ({
 
 const HomeNursingProviders = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [selectedLocation, setSelectedLocation] = useState("");
   const [ratingFilter, setRatingFilter] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
@@ -132,6 +132,7 @@ const HomeNursingProviders = () => {
   >([]);
   const [loading, setLoading] = useState(true);
   const [locations, setLocations] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Generate user initials
   const getUserInitials = (name: string) => {
@@ -155,14 +156,23 @@ const HomeNursingProviders = () => {
 
   // Fetch nursing providers on component mount
   useEffect(() => {
+    console.log("🏥 HomeNursingProviders component mounted");
+    
+    if (!isAuthenticated) {
+      console.log("🚨 User not authenticated, redirecting to login");
+      navigate('/login');
+      return;
+    }
+
     const fetchNursingProviders = async () => {
       try {
         setLoading(true);
-        console.log("Fetching nursing providers...");
+        setError(null);
+        console.log("🏥 Fetching nursing providers...");
         const providers = await nursingService.getAllNursingProviders();
-        console.log("Fetched providers:", providers);
+        console.log("🏥 Fetched providers:", providers);
         console.log(
-          "Provider IDs and names:",
+          "🏥 Provider IDs and names:",
           providers.map((p) => ({
             id: p.id,
             name: p.provider_name || p.user?.name,
@@ -223,24 +233,27 @@ const HomeNursingProviders = () => {
           ...new Set([...serviceLocations, ...providerLocations]),
         ];
 
-        // Add default locations if none exist
-        if (uniqueLocations.length === 0) {
-          uniqueLocations.push("Nairobi", "Mombasa", "Kisumu", "Nakuru");
-        }
         setLocations(uniqueLocations);
-        console.log("Available locations:", uniqueLocations);
-      } catch (error) {
-        console.error("Error fetching nursing providers:", error);
-        // Set empty state on error
-        setNursingProviders([]);
-        setLocations(["Nairobi", "Mombasa", "Kisumu", "Nakuru"]);
+        console.log("🏥 Providers set successfully:", providersWithServices.length);
+      } catch (error: any) {
+        console.error("🚨 Error fetching nursing providers:", error);
+        
+        if (error.response?.status === 401) {
+          console.log("🚨 Authentication error, clearing token and redirecting to login");
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+          return;
+        }
+        
+        setError(error.response?.data?.message || error.message || "Failed to load nursing providers. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchNursingProviders();
-  }, []);
+  }, [isAuthenticated, navigate]);
 
   // Apply filters to nursing providers list
   const filteredProviders = nursingProviders.filter((provider) => {
