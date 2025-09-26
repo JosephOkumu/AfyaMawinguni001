@@ -139,30 +139,33 @@ const parseScheduleFromString = (scheduleString: string): WeeklySchedule => {
 // Helper function to convert 12-hour format to 24-hour format
 const convertTo24Hour = (time12h: string): string => {
   const [time, modifier] = time12h.split(/([ap]m)/i);
-  let [hours, minutes] = time.split(':');
-  
-  if (hours === '12') {
-    hours = '00';
+  let [hours] = time.split(":");
+  const minutes = time.split(":")[1];
+
+  if (hours === "12") {
+    hours = "00";
   }
-  
-  if (modifier.toLowerCase() === 'pm') {
+
+  if (modifier.toLowerCase() === "pm") {
     hours = (parseInt(hours, 10) + 12).toString();
   }
-  
-  return `${hours.padStart(2, '0')}:${minutes || '00'}`;
+
+  return `${hours.padStart(2, "0")}:${minutes || "00"}`;
 };
 
 // Helper function to convert 24-hour format to 12-hour format
 const convertTo12Hour = (time24h: string): string => {
-  const [hours, minutes] = time24h.split(':');
+  const [hours, minutes] = time24h.split(":");
   const hour = parseInt(hours, 10);
-  const ampm = hour >= 12 ? 'pm' : 'am';
+  const ampm = hour >= 12 ? "pm" : "am";
   const hour12 = hour % 12 || 12;
   return `${hour12}:${minutes}${ampm}`;
 };
 
 // Helper function to convert AvailabilitySchedule to WeeklySchedule
-const convertAvailabilityToWeeklySchedule = (availabilitySchedule: AvailabilitySchedule): WeeklySchedule => {
+const convertAvailabilityToWeeklySchedule = (
+  availabilitySchedule: AvailabilitySchedule,
+): WeeklySchedule => {
   const weeklySchedule: WeeklySchedule = {
     Sun: { available: false, times: [] },
     Mon: { available: false, times: [] },
@@ -174,14 +177,17 @@ const convertAvailabilityToWeeklySchedule = (availabilitySchedule: AvailabilityS
   };
 
   Object.entries(availabilitySchedule).forEach(([day, config]) => {
-    const dayKey = day.charAt(0).toUpperCase() + day.slice(1) as keyof WeeklySchedule;
+    const dayKey = (day.charAt(0).toUpperCase() +
+      day.slice(1)) as keyof WeeklySchedule;
     if (config.available) {
       weeklySchedule[dayKey] = {
         available: true,
-        times: [{
-          start: convertTo12Hour(config.start_time),
-          end: convertTo12Hour(config.end_time),
-        }],
+        times: [
+          {
+            start: convertTo12Hour(config.start_time),
+            end: convertTo12Hour(config.end_time),
+          },
+        ],
       };
     } else {
       weeklySchedule[dayKey] = { available: false, times: [] };
@@ -202,7 +208,7 @@ const formatScheduleToString = (schedule: WeeklySchedule): string => {
       }
       return day;
     });
-  return availableDays.join(', ');
+  return availableDays.join(", ");
 };
 
 const getDefaultSchedule = (): WeeklySchedule => ({
@@ -365,6 +371,17 @@ const mockServices = [
     image: "https://randomuser.me/api/portraits/women/55.jpg",
   },
 ];
+
+interface AxiosErrorType {
+  message: string;
+  response?: {
+    status: number;
+    data: {
+      errors?: Record<string, string[]>;
+      message?: string;
+    };
+  };
+}
 
 const HomeNursingDashboard = () => {
   const [services, setServices] = useState<NursingServiceOffering[]>([]);
@@ -590,22 +607,31 @@ const HomeNursingDashboard = () => {
       setNursingProfile(profile);
       setProfileImage(profile.logo || "");
 
-      console.log('=== LOADING SAVED AVAILABILITY SETTINGS ===');
-      console.log('Profile availability_schedule:', profile.availability_schedule);
-      console.log('Profile appointment_duration_minutes:', profile.appointment_duration_minutes);
-      console.log('Profile repeat_weekly:', profile.repeat_weekly);
+      console.log("=== LOADING SAVED AVAILABILITY SETTINGS ===");
+      console.log(
+        "Profile availability_schedule:",
+        profile.availability_schedule,
+      );
+      console.log(
+        "Profile appointment_duration_minutes:",
+        profile.appointment_duration_minutes,
+      );
+      console.log("Profile repeat_weekly:", profile.repeat_weekly);
 
       // Load saved availability settings
       let savedSchedule: WeeklySchedule | undefined;
       if (profile.availability_schedule) {
-        savedSchedule = convertAvailabilityToWeeklySchedule(profile.availability_schedule);
-        console.log('Converted saved schedule:', savedSchedule);
+        savedSchedule = convertAvailabilityToWeeklySchedule(
+          profile.availability_schedule,
+        );
+        console.log("Converted saved schedule:", savedSchedule);
       }
 
       setSavedAvailabilitySettings({
         schedule: savedSchedule,
         appointmentDuration: profile.appointment_duration_minutes || 30,
-        repeatWeekly: profile.repeat_weekly !== undefined ? profile.repeat_weekly : true,
+        repeatWeekly:
+          profile.repeat_weekly !== undefined ? profile.repeat_weekly : true,
       });
 
       // Update form with profile data
@@ -616,7 +642,9 @@ const HomeNursingDashboard = () => {
         location: profile.location || "Nairobi, Kenya",
         professionalSummary: profile.description || "",
         licenseNumber: profile.license_number || "",
-        availability: savedSchedule ? formatScheduleToString(savedSchedule) : "",
+        availability: savedSchedule
+          ? formatScheduleToString(savedSchedule)
+          : "",
       });
     } catch (error: unknown) {
       console.log("Profile loading error:", error);
@@ -828,19 +856,21 @@ const HomeNursingDashboard = () => {
       await loadProfile();
     } catch (error: unknown) {
       console.error("Failed to update/create profile:", error);
-      
+
       // Extract validation errors if available
       let errorMessage = "Failed to save profile. Please try again.";
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as any;
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as AxiosErrorType;
         if (axiosError.response?.data?.errors) {
-          const validationErrors = Object.values(axiosError.response.data.errors).flat();
-          errorMessage = validationErrors.join(', ');
+          const validationErrors = Object.values(
+            axiosError.response.data.errors,
+          ).flat();
+          errorMessage = validationErrors.join(", ");
         } else if (axiosError.response?.data?.message) {
           errorMessage = axiosError.response.data.message;
         }
       }
-      
+
       toast({
         title: nursingProfile ? "Update Failed" : "Creation Failed",
         description: errorMessage,
@@ -1094,13 +1124,20 @@ const HomeNursingDashboard = () => {
                   <Settings className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto" aria-describedby="profile-settings-description">
+              <DialogContent
+                className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto"
+                aria-describedby="profile-settings-description"
+              >
                 <DialogHeader className="sticky top-0 z-10 bg-white px-6 py-4 border-b flex flex-row justify-between items-center">
                   <DialogTitle className="text-xl font-semibold">
                     Provider Profile Settings
                   </DialogTitle>
-                  <DialogDescription id="profile-settings-description" className="sr-only">
-                    Update your nursing provider profile information including name, contact details, and professional summary.
+                  <DialogDescription
+                    id="profile-settings-description"
+                    className="sr-only"
+                  >
+                    Update your nursing provider profile information including
+                    name, contact details, and professional summary.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="px-6 py-4">
@@ -1200,69 +1237,147 @@ const HomeNursingDashboard = () => {
                               <FormLabel>Availability</FormLabel>
                               <div className="mt-2">
                                 <AvailabilityScheduler
-                                  currentSchedule={savedAvailabilitySettings.schedule || parseScheduleFromString(
-                                    field.value,
-                                  )}
-                                  initialAppointmentDuration={savedAvailabilitySettings.appointmentDuration || 30}
-                                  initialRepeatWeekly={savedAvailabilitySettings.repeatWeekly !== undefined ? savedAvailabilitySettings.repeatWeekly : true}
-                                  onSave={async (schedule, appointmentDurationMinutes, repeatWeekly) => {
-                                    console.log('=== SAVING AVAILABILITY SCHEDULE ===');
-                                    console.log('Schedule:', schedule);
-                                    console.log('Appointment Duration Minutes:', appointmentDurationMinutes);
-                                    console.log('Repeat Weekly:', repeatWeekly);
-                                    
+                                  currentSchedule={
+                                    savedAvailabilitySettings.schedule ||
+                                    parseScheduleFromString(field.value)
+                                  }
+                                  initialAppointmentDuration={
+                                    savedAvailabilitySettings.appointmentDuration ||
+                                    30
+                                  }
+                                  initialRepeatWeekly={
+                                    savedAvailabilitySettings.repeatWeekly !==
+                                    undefined
+                                      ? savedAvailabilitySettings.repeatWeekly
+                                      : true
+                                  }
+                                  onSave={async (
+                                    schedule,
+                                    appointmentDurationMinutes,
+                                    repeatWeekly,
+                                  ) => {
+                                    console.log(
+                                      "=== SAVING AVAILABILITY SCHEDULE ===",
+                                    );
+                                    console.log("Schedule:", schedule);
+                                    console.log(
+                                      "Appointment Duration Minutes:",
+                                      appointmentDurationMinutes,
+                                    );
+                                    console.log("Repeat Weekly:", repeatWeekly);
+
                                     // Convert the schedule to the backend format
-                                    const availabilitySchedule: AvailabilitySchedule = {};
-                                    
-                                    Object.entries(schedule).forEach(([day, config]) => {
-                                      const dayKey = day.toLowerCase();
-                                      if (config.available && config.times.length > 0) {
-                                        const firstSlot = config.times[0];
-                                        availabilitySchedule[dayKey] = {
-                                          available: true,
-                                          start_time: convertTo24Hour(firstSlot.start),
-                                          end_time: convertTo24Hour(firstSlot.end),
-                                        };
-                                      } else {
-                                        availabilitySchedule[dayKey] = {
-                                          available: false,
-                                          start_time: '09:00',
-                                          end_time: '17:00',
-                                        };
-                                      }
-                                    });
-                                    
-                                    console.log('Converted availability schedule:', availabilitySchedule);
-                                    
+                                    const availabilitySchedule: AvailabilitySchedule =
+                                      {};
+
+                                    Object.entries(schedule).forEach(
+                                      ([day, config]) => {
+                                        const dayKey = day.toLowerCase();
+                                        if (
+                                          config.available &&
+                                          config.times.length > 0
+                                        ) {
+                                          // Find the earliest start time and latest end time for this day
+                                          let earliestStart =
+                                            config.times[0].start;
+                                          let latestEnd = config.times[0].end;
+
+                                          config.times.forEach((timeSlot) => {
+                                            const startTime24 = convertTo24Hour(
+                                              timeSlot.start,
+                                            );
+                                            const endTime24 = convertTo24Hour(
+                                              timeSlot.end,
+                                            );
+                                            const currentEarliestStart24 =
+                                              convertTo24Hour(earliestStart);
+                                            const currentLatestEnd24 =
+                                              convertTo24Hour(latestEnd);
+
+                                            // Compare times in 24-hour format
+                                            if (
+                                              startTime24 <
+                                              currentEarliestStart24
+                                            ) {
+                                              earliestStart = timeSlot.start;
+                                            }
+                                            if (
+                                              endTime24 > currentLatestEnd24
+                                            ) {
+                                              latestEnd = timeSlot.end;
+                                            }
+                                          });
+
+                                          availabilitySchedule[dayKey] = {
+                                            available: true,
+                                            start_time:
+                                              convertTo24Hour(earliestStart),
+                                            end_time:
+                                              convertTo24Hour(latestEnd),
+                                          };
+                                        } else {
+                                          availabilitySchedule[dayKey] = {
+                                            available: false,
+                                            start_time: "09:00",
+                                            end_time: "17:00",
+                                          };
+                                        }
+                                      },
+                                    );
+
+                                    console.log(
+                                      "Converted availability schedule:",
+                                      availabilitySchedule,
+                                    );
+
                                     try {
-                                      const updatedSettings = await nursingService.updateAvailabilitySettings({
-                                        availability_schedule: availabilitySchedule,
-                                        appointment_duration_minutes: appointmentDurationMinutes || 30,
-                                        repeat_weekly: repeatWeekly !== undefined ? repeatWeekly : true,
-                                      });
-                                      
+                                      const updatedSettings =
+                                        await nursingService.updateAvailabilitySettings(
+                                          {
+                                            availability_schedule:
+                                              availabilitySchedule,
+                                            appointment_duration_minutes:
+                                              appointmentDurationMinutes || 30,
+                                            repeat_weekly:
+                                              repeatWeekly !== undefined
+                                                ? repeatWeekly
+                                                : true,
+                                          },
+                                        );
+
                                       // Update local state with saved settings
                                       setSavedAvailabilitySettings({
                                         schedule: schedule,
-                                        appointmentDuration: appointmentDurationMinutes || 30,
-                                        repeatWeekly: repeatWeekly !== undefined ? repeatWeekly : true,
+                                        appointmentDuration:
+                                          appointmentDurationMinutes || 30,
+                                        repeatWeekly:
+                                          repeatWeekly !== undefined
+                                            ? repeatWeekly
+                                            : true,
                                       });
-                                      
+
                                       toast({
                                         title: "Success",
-                                        description: "Availability settings updated successfully",
+                                        description:
+                                          "Availability settings updated successfully",
                                       });
-                                    } catch (error: any) {
-                                      console.error('Failed to update availability settings:', error);
-                                      console.error('Error details:', {
-                                        message: error.message,
-                                        response: error.response?.data,
-                                        status: error.response?.status,
+                                    } catch (error: unknown) {
+                                      console.error(
+                                        "Failed to update availability settings:",
+                                        error,
+                                      );
+                                      const axiosError =
+                                        error as AxiosErrorType;
+                                      console.error("Error details:", {
+                                        message: axiosError.message,
+                                        response: axiosError.response?.data,
+                                        status: axiosError.response?.status,
                                       });
-                                      
+
                                       toast({
                                         title: "Error",
-                                        description: "Failed to update availability settings. Please try again.",
+                                        description:
+                                          "Failed to update availability settings. Please try again.",
                                         variant: "destructive",
                                       });
                                     }
