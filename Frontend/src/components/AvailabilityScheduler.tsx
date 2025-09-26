@@ -69,7 +69,7 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
     "minutes",
   );
 
-  // Initialize schedule and settings from props
+  // Initialize component state based on props
   useEffect(() => {
     if (currentSchedule) {
       setSchedule(currentSchedule);
@@ -113,12 +113,26 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
   }, [initialAppointmentDuration, initialRepeatWeekly]);
 
   const toggleDayAvailability = (day: keyof WeeklySchedule) => {
+    // Define different default times for each day
+    const defaultTimes: Record<
+      keyof WeeklySchedule,
+      { start: string; end: string }
+    > = {
+      Sun: { start: "10:00am", end: "4:00pm" },
+      Mon: { start: "8:00am", end: "6:00pm" },
+      Tue: { start: "8:00am", end: "6:00pm" },
+      Wed: { start: "8:00am", end: "6:00pm" },
+      Thu: { start: "8:00am", end: "6:00pm" },
+      Fri: { start: "8:00am", end: "5:00pm" },
+      Sat: { start: "9:00am", end: "3:00pm" },
+    };
+
     setSchedule((prev) => ({
       ...prev,
       [day]: {
         ...prev[day],
         available: !prev[day].available,
-        times: !prev[day].available ? [{ start: "9:00am", end: "5:00pm" }] : [],
+        times: !prev[day].available ? [defaultTimes[day]] : [],
       },
     }));
   };

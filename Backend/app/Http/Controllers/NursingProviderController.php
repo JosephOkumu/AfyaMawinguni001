@@ -575,7 +575,7 @@ class NursingProviderController extends Controller
 
         try {
             $updateData = [];
-            
+
             if ($request->has('availability_schedule')) {
                 $updateData['availability_schedule'] = $request->availability_schedule;
                 Log::info('Updating availability schedule', [
@@ -583,7 +583,7 @@ class NursingProviderController extends Controller
                     'schedule' => $request->availability_schedule
                 ]);
             }
-            
+
             if ($request->has('appointment_duration_minutes')) {
                 $updateData['appointment_duration_minutes'] = $request->appointment_duration_minutes;
                 Log::info('Updating appointment duration', [
@@ -591,7 +591,7 @@ class NursingProviderController extends Controller
                     'duration_minutes' => $request->appointment_duration_minutes
                 ]);
             }
-            
+
             if ($request->has('repeat_weekly')) {
                 $updateData['repeat_weekly'] = $request->repeat_weekly;
                 Log::info('Updating repeat weekly setting', [
@@ -662,7 +662,7 @@ class NursingProviderController extends Controller
         try {
             $date = $request->get('date');
             $dayOfWeek = strtolower(substr(date('l', strtotime($date)), 0, 3));
-            
+
             Log::info('Generating available time slots', [
                 'provider_id' => $id,
                 'date' => $date,
@@ -673,18 +673,18 @@ class NursingProviderController extends Controller
             // Get provider's availability schedule
             $availabilitySchedule = $nursingProvider->availability_schedule;
             $appointmentDuration = $nursingProvider->appointment_duration_minutes ?? 30;
-            
+
             Log::info('Dumping availability schedule for debugging', [
                 'provider_id' => $id,
                 'availability_schedule' => $availabilitySchedule
             ]);
 
             $availableSlots = [];
-            
+
             if ($availabilitySchedule && array_key_exists($dayOfWeek, $availabilitySchedule)) {
                 // Use custom availability schedule
                 $daySchedule = $availabilitySchedule[$dayOfWeek];
-                
+
                 Log::info('Processing day schedule', [
                     'provider_id' => $id,
                     'day_of_week' => $dayOfWeek,
@@ -694,12 +694,12 @@ class NursingProviderController extends Controller
                 if ($daySchedule['available']) {
                     $startTime = $daySchedule['start_time'];
                     $endTime = $daySchedule['end_time'];
-                    
+
                     // Generate time slots based on appointment duration
                     $availableSlots = $this->generateTimeSlots($startTime, $endTime, $appointmentDuration);
                 }
             }
-            
+
             // Get occupied time slots
             $occupiedTimes = DB::table('nursing_services')
                 ->where('nursing_provider_id', $id)
@@ -709,11 +709,11 @@ class NursingProviderController extends Controller
                 ->select(DB::raw('TIME_FORMAT(scheduled_datetime, "%h:%i %p") as time'))
                 ->pluck('time')
                 ->toArray();
-            
+
             // Filter out occupied slots
             $availableSlots = array_diff($availableSlots, $occupiedTimes);
             $availableSlots = array_values($availableSlots); // Re-index array
-            
+
             Log::info('Available time slots generated', [
                 'provider_id' => $id,
                 'date' => $date,
@@ -744,7 +744,7 @@ class NursingProviderController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Generate time slots based on start time, end time, and duration
      *
@@ -766,7 +766,7 @@ class NursingProviderController extends Controller
             $slots[] = date('g:i A', $current);
             $current = strtotime('+' . $durationMinutes . ' minutes', $current);
         }
-        
+
         return $slots;
     }
 }

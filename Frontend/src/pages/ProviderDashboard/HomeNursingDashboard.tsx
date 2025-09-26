@@ -1273,6 +1273,10 @@ const HomeNursingDashboard = () => {
                                     Object.entries(schedule).forEach(
                                       ([day, config]) => {
                                         const dayKey = day.toLowerCase();
+                                        console.log(
+                                          `Processing day: ${day} -> ${dayKey}`,
+                                          config,
+                                        );
                                         if (
                                           config.available &&
                                           config.times.length > 0
