@@ -661,7 +661,7 @@ class NursingProviderController extends Controller
 
         try {
             $date = $request->get('date');
-            $dayOfWeek = strtolower(date('l', strtotime($date)));
+            $dayOfWeek = strtolower(substr(date('l', strtotime($date)), 0, 3));
             
             Log::info('Generating available time slots', [
                 'provider_id' => $id,
@@ -674,34 +674,29 @@ class NursingProviderController extends Controller
             $availabilitySchedule = $nursingProvider->availability_schedule;
             $appointmentDuration = $nursingProvider->appointment_duration_minutes ?? 30;
             
-            // Default time slots if no custom schedule is set
-            $defaultTimeSlots = [
-                '7:00 AM', '7:30 AM', '8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM',
-                '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
-                '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
-                '4:00 PM', '4:30 PM'
-            ];
-            
+            Log::info('Dumping availability schedule for debugging', [
+                'provider_id' => $id,
+                'availability_schedule' => $availabilitySchedule
+            ]);
+
             $availableSlots = [];
             
-            if ($availabilitySchedule && isset($availabilitySchedule[$dayOfWeek])) {
+            if ($availabilitySchedule && array_key_exists($dayOfWeek, $availabilitySchedule)) {
                 // Use custom availability schedule
                 $daySchedule = $availabilitySchedule[$dayOfWeek];
                 
+                Log::info('Processing day schedule', [
+                    'provider_id' => $id,
+                    'day_of_week' => $dayOfWeek,
+                    'day_schedule' => $daySchedule
+                ]);
+
                 if ($daySchedule['available']) {
-                    $startTime = $daySchedule['start_time'] ?? '07:00';
-                    $endTime = $daySchedule['end_time'] ?? '16:30';
+                    $startTime = $daySchedule['start_time'];
+                    $endTime = $daySchedule['end_time'];
                     
                     // Generate time slots based on appointment duration
                     $availableSlots = $this->generateTimeSlots($startTime, $endTime, $appointmentDuration);
-                }
-            } else {
-                // Use default slots but adjust based on appointment duration
-                if ($appointmentDuration == 30) {
-                    $availableSlots = $defaultTimeSlots;
-                } else {
-                    // Generate slots based on duration (e.g., 60 minutes = hourly slots)
-                    $availableSlots = $this->generateTimeSlots('07:00', '16:30', $appointmentDuration);
                 }
             }
             
@@ -763,8 +758,11 @@ class NursingProviderController extends Controller
         $slots = [];
         $current = strtotime($startTime);
         $end = strtotime($endTime);
-        
-        while ($current < $end) {
+
+        // Calculate the last possible start time
+        $last_start_time = $end - ($durationMinutes * 60);
+
+        while ($current <= $last_start_time) {
             $slots[] = date('g:i A', $current);
             $current = strtotime('+' . $durationMinutes . ' minutes', $current);
         }
