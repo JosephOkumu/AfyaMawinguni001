@@ -756,20 +756,16 @@ class NursingProviderController extends Controller
                 ->pluck('time')
                 ->toArray();
 
-            // The frontend sends date with +1 day offset for day-of-week availability schedule
-            // So we need to subtract 1 day to get the actual user-selected date for unavailable sessions
-            $actualUserSelectedDate = date('Y-m-d', strtotime($date . ' -1 day'));
-
-            // Get unavailable sessions for the actual user-selected date only
-            $unavailableSessions = NursingProviderUnavailableSession::forProviderAndDate($id, $actualUserSelectedDate)->get();
+            // The frontend sends a date with a +1 day offset for availability checks.
+            // We now use this date directly to fetch unavailability, aligning both checks.
+            $unavailableSessions = NursingProviderUnavailableSession::forProviderAndDate($id, $date)->get();
             $unavailableTimes = [];
 
             Log::info('Processing unavailable sessions for available slots', [
                 'provider_id' => $id,
-                'frontend_sent_date' => $date,
-                'actual_user_selected_date' => $actualUserSelectedDate,
+                'date_for_unavailable_check' => $date,
                 'unavailable_sessions_count' => $unavailableSessions->count(),
-                'note' => 'Subtracting 1 day to match actual user selection due to frontend offset'
+                'note' => 'Using the date directly as received from the frontend for unavailability checks.'
             ]);
 
             foreach ($unavailableSessions as $session) {
