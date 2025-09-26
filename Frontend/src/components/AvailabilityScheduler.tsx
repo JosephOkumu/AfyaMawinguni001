@@ -32,7 +32,11 @@ export interface WeeklySchedule {
 
 interface AvailabilitySchedulerProps {
   currentSchedule?: WeeklySchedule;
-  onSave: (schedule: WeeklySchedule, appointmentDurationMinutes?: number, repeatWeekly?: boolean) => void;
+  onSave: (
+    schedule: WeeklySchedule,
+    appointmentDurationMinutes?: number,
+    repeatWeekly?: boolean,
+  ) => void;
   trigger?: React.ReactNode;
   initialAppointmentDuration?: number;
   initialRepeatWeekly?: boolean;
@@ -57,7 +61,9 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
 
   const [repeatWeekly, setRepeatWeekly] = useState(initialRepeatWeekly);
   const [isOpen, setIsOpen] = useState(false);
-  const [appointmentDuration, setAppointmentDuration] = useState(initialAppointmentDuration.toString());
+  const [appointmentDuration, setAppointmentDuration] = useState(
+    initialAppointmentDuration.toString(),
+  );
   const [customDuration, setCustomDuration] = useState(30);
   const [customTimeUnit, setCustomTimeUnit] = useState<"minutes" | "hours">(
     "minutes",
@@ -74,15 +80,18 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
     // Check if the initial duration is a standard option or custom
     const standardOptions = ["15", "30", "45", "60", "90", "120"];
     const durationStr = initialAppointmentDuration.toString();
-    
+
     if (standardOptions.includes(durationStr)) {
       setAppointmentDuration(durationStr);
     } else {
       // It's a custom duration
       setAppointmentDuration("custom");
-      
+
       // Determine if it should be displayed in hours or minutes
-      if (initialAppointmentDuration >= 60 && initialAppointmentDuration % 60 === 0) {
+      if (
+        initialAppointmentDuration >= 60 &&
+        initialAppointmentDuration % 60 === 0
+      ) {
         // Can be displayed in hours
         setCustomDuration(initialAppointmentDuration / 60);
         setCustomTimeUnit("hours");
@@ -92,12 +101,15 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
         setCustomTimeUnit("minutes");
       }
     }
-    
+
     setRepeatWeekly(initialRepeatWeekly);
-    console.log('=== AVAILABILITY SCHEDULER INITIALIZED ===');
-    console.log('Initial appointment duration:', initialAppointmentDuration);
-    console.log('Duration type:', standardOptions.includes(durationStr) ? 'standard' : 'custom');
-    console.log('Initial repeat weekly:', initialRepeatWeekly);
+    console.log("=== AVAILABILITY SCHEDULER INITIALIZED ===");
+    console.log("Initial appointment duration:", initialAppointmentDuration);
+    console.log(
+      "Duration type:",
+      standardOptions.includes(durationStr) ? "standard" : "custom",
+    );
+    console.log("Initial repeat weekly:", initialRepeatWeekly);
   }, [initialAppointmentDuration, initialRepeatWeekly]);
 
   const toggleDayAvailability = (day: keyof WeeklySchedule) => {
@@ -167,23 +179,30 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
     // Calculate appointment duration in minutes
     let durationMinutes = 30; // default
     if (appointmentDuration === "custom") {
-      durationMinutes = customTimeUnit === "hours" ? customDuration * 60 : customDuration;
-      
+      durationMinutes =
+        customTimeUnit === "hours" ? customDuration * 60 : customDuration;
+
       // Validate duration is within backend limits (15-480 minutes)
       if (durationMinutes < 15 || durationMinutes > 480) {
-        console.error('Invalid duration:', durationMinutes, 'minutes. Must be between 15-480 minutes.');
-        alert(`Invalid duration: ${durationMinutes} minutes. Duration must be between 15 minutes and 8 hours (480 minutes).`);
+        console.error(
+          "Invalid duration:",
+          durationMinutes,
+          "minutes. Must be between 15-480 minutes.",
+        );
+        alert(
+          `Invalid duration: ${durationMinutes} minutes. Duration must be between 15 minutes and 8 hours (480 minutes).`,
+        );
         return;
       }
     } else {
       durationMinutes = parseInt(appointmentDuration);
     }
-    
-    console.log('=== AVAILABILITY SCHEDULER SAVE ===');
-    console.log('Schedule:', schedule);
-    console.log('Appointment Duration (minutes):', durationMinutes);
-    console.log('Repeat Weekly:', repeatWeekly);
-    
+
+    console.log("=== AVAILABILITY SCHEDULER SAVE ===");
+    console.log("Schedule:", schedule);
+    console.log("Appointment Duration (minutes):", durationMinutes);
+    console.log("Repeat Weekly:", repeatWeekly);
+
     onSave(schedule, durationMinutes, repeatWeekly);
     setIsOpen(false);
   };
@@ -194,7 +213,7 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
     // For minutes: max 480 minutes
     const maxValue = customTimeUnit === "hours" ? 8 : 480;
     const minValue = customTimeUnit === "hours" ? 1 : 15;
-    
+
     if (value >= minValue && value <= maxValue) {
       setCustomDuration(value);
     }
@@ -317,7 +336,8 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
                       value={customDuration}
                       onChange={(e) =>
                         handleCustomDurationChange(
-                          parseInt(e.target.value) || (customTimeUnit === "hours" ? 1 : 15),
+                          parseInt(e.target.value) ||
+                            (customTimeUnit === "hours" ? 1 : 15),
                         )
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -372,103 +392,67 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <div>
-                    {config.times.map((timeSlot, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        {/* Day name (only show on first time slot) */}
-                        <div className="w-10 text-sm font-medium text-gray-700">
-                          {index === 0 ? day : ""}
+                  <div className="flex items-center gap-3">
+                    {/* Day name */}
+                    <div className="w-10 text-sm font-medium text-gray-700">
+                      {day}
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-1">
+                      {/* Start time */}
+                      <select
+                        value={config.times[0]?.start || "9:00am"}
+                        onChange={(e) =>
+                          updateTime(
+                            day as keyof WeeklySchedule,
+                            0,
+                            "start",
+                            e.target.value,
+                          )
+                        }
+                        className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        {timeOptions.map((time) => (
+                          <option key={time} value={time}>
+                            {time}
+                          </option>
+                        ))}
+                      </select>
+
+                      <span className="text-gray-400">–</span>
+
+                      {/* End time */}
+                      <select
+                        value={config.times[0]?.end || "5:00pm"}
+                        onChange={(e) =>
+                          updateTime(
+                            day as keyof WeeklySchedule,
+                            0,
+                            "end",
+                            e.target.value,
+                          )
+                        }
+                        className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        {timeOptions.map((time) => (
+                          <option key={time} value={time}>
+                            {time}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Remove day availability button */}
+                      <button
+                        onClick={() =>
+                          toggleDayAvailability(day as keyof WeeklySchedule)
+                        }
+                        className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="w-4 h-4 rounded-full border border-gray-400 flex items-center justify-center hover:border-red-500 relative">
+                          <div className="w-2 h-0.5 bg-gray-400 hover:bg-red-500"></div>
                         </div>
-
-                        <div className="flex items-center gap-2 flex-1">
-                          {/* Start time */}
-                          <select
-                            value={timeSlot.start}
-                            onChange={(e) =>
-                              updateTime(
-                                day as keyof WeeklySchedule,
-                                index,
-                                "start",
-                                e.target.value,
-                              )
-                            }
-                            className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          >
-                            {timeOptions.map((time) => (
-                              <option key={time} value={time}>
-                                {time}
-                              </option>
-                            ))}
-                          </select>
-
-                          <span className="text-gray-400">–</span>
-
-                          {/* End time */}
-                          <select
-                            value={timeSlot.end}
-                            onChange={(e) =>
-                              updateTime(
-                                day as keyof WeeklySchedule,
-                                index,
-                                "end",
-                                e.target.value,
-                              )
-                            }
-                            className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          >
-                            {timeOptions.map((time) => (
-                              <option key={time} value={time}>
-                                {time}
-                              </option>
-                            ))}
-                          </select>
-
-                          {/* Remove time slot button */}
-                          <button
-                            onClick={() =>
-                              removeTimeSlot(day as keyof WeeklySchedule, index)
-                            }
-                            className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="w-4 h-4 rounded-full border border-gray-400 flex items-center justify-center hover:border-red-500 relative">
-                              <div className="w-2 h-0.5 bg-gray-400 hover:bg-red-500"></div>
-                            </div>
-                          </button>
-
-                          {/* Add time slot button (only show on last item) */}
-                          {index === config.times.length - 1 && (
-                            <button
-                              onClick={() =>
-                                addTimeSlot(day as keyof WeeklySchedule)
-                              }
-                              className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-colors"
-                            >
-                              <Plus className="w-3 h-3 text-gray-400 hover:text-blue-500" />
-                            </button>
-                          )}
-
-                          {/* Copy times button */}
-                          <button className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-100 transition-colors">
-                            <Calendar className="w-3 h-3 text-gray-400" />
-                          </button>
-                        </div>
-
-                        {/* Toggle availability button for available days (only show on first time slot) */}
-                        {index === 0 && (
-                          <button
-                            onClick={() =>
-                              toggleDayAvailability(day as keyof WeeklySchedule)
-                            }
-                            className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-                            title="Mark as unavailable"
-                          >
-                            <div className="w-4 h-4 rounded-full border border-gray-400 flex items-center justify-center hover:border-red-500 relative">
-                              <div className="w-2 h-0.5 bg-gray-400 hover:bg-red-500"></div>
-                            </div>
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
