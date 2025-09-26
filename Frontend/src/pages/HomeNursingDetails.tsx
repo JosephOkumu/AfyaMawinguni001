@@ -544,9 +544,13 @@ const HomeNursingDetails = () => {
       console.log('Provider ID:', provider.id);
       console.log('Selected Date:', selectedDate.toISOString().split('T')[0]);
       
+      // Apply day offset correction - add one day to fix the mapping issue
+      const adjustedDate = new Date(selectedDate);
+      adjustedDate.setDate(adjustedDate.getDate() + 1);
+      
       const response = await nursingService.getAvailableTimeSlots(
         provider.id,
-        selectedDate.toISOString().split('T')[0]
+        adjustedDate.toISOString().split('T')[0]
       );
       
       console.log('Available time slots response:', response);
