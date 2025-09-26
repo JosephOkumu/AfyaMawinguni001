@@ -44,6 +44,26 @@ export interface AvailableTimeSlotsResponse {
   available_slots: string[];
   appointment_duration_minutes: number;
   occupied_slots: string[];
+  unavailable_slots?: string[];
+  unavailable_sessions?: UnavailableSession[];
+}
+
+export interface UnavailableSession {
+  id: number;
+  nursing_provider_id: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  reason?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UnavailableSessionCreateData {
+  date: string;
+  start_time: string;
+  end_time: string;
+  reason?: string;
 }
 
 export interface NursingService {
@@ -135,7 +155,7 @@ const nursingService = {
         status: response.status,
         dataType: typeof response.data,
         hasData: !!response.data.data,
-        count: response.data.data?.length || 0
+        count: response.data.data?.length || 0,
       });
       return response.data.data;
     } catch (error) {
@@ -371,25 +391,28 @@ const nursingService = {
   updateAvailabilitySettings: async (
     settings: AvailabilitySettings,
   ): Promise<AvailabilitySettings> => {
-    console.log('=== UPDATING AVAILABILITY SETTINGS ===');
-    console.log('Settings to update:', settings);
-    console.log('JSON stringified:', JSON.stringify(settings, null, 2));
-    
+    console.log("=== UPDATING AVAILABILITY SETTINGS ===");
+    console.log("Settings to update:", settings);
+    console.log("JSON stringified:", JSON.stringify(settings, null, 2));
+
     try {
-      const response = await api.put<{ 
-        status: string; 
-        data: AvailabilitySettings 
-      }>('/nursing-provider/availability-settings', settings);
-      
-      console.log('Availability settings updated:', response.data.data);
+      const response = await api.put<{
+        status: string;
+        data: AvailabilitySettings;
+      }>("/nursing-provider/availability-settings", settings);
+
+      console.log("Availability settings updated:", response.data.data);
       return response.data.data;
-    } catch (error: any) {
-      console.error('API call failed:', error);
-      console.error('Request payload:', settings);
-      if (error.response) {
-        console.error('Response status:', error.response.status);
-        console.error('Response data:', error.response.data);
-        console.error('Response headers:', error.response.headers);
+    } catch (error: unknown) {
+      console.error("API call failed:", error);
+      console.error("Request payload:", settings);
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { status?: number; data?: unknown; headers?: unknown };
+        };
+        console.error("Response status:", axiosError.response?.status);
+        console.error("Response data:", axiosError.response?.data);
+        console.error("Response headers:", axiosError.response?.headers);
       }
       throw error;
     }
@@ -400,15 +423,70 @@ const nursingService = {
     providerId: number,
     date: string,
   ): Promise<AvailableTimeSlotsResponse> => {
-    console.log('=== FETCHING AVAILABLE TIME SLOTS ===');
-    console.log('Provider ID:', providerId);
-    console.log('Date:', date);
-    
+    console.log("=== FETCHING AVAILABLE TIME SLOTS ===");
+    console.log("Provider ID:", providerId);
+    console.log("Date:", date);
+
     const response = await api.get<{ data: AvailableTimeSlotsResponse }>(
       `/nursing-providers/${providerId}/available-time-slots?date=${date}`,
     );
-    
-    console.log('Available time slots response:', response.data.data);
+
+    console.log("Available time slots response:", response.data.data);
+    return response.data.data;
+  },
+
+  // Unavailable Sessions methods
+  getUnavailableSessions: async (): Promise<UnavailableSession[]> => {
+    console.log("=== FETCHING UNAVAILABLE SESSIONS ===");
+    const response = await api.get<{ data: UnavailableSession[] }>(
+      "/nursing-provider/unavailable-sessions",
+    );
+    console.log("Unavailable sessions response:", response.data.data);
+    return response.data.data;
+  },
+
+  createUnavailableSession: async (
+    sessionData: UnavailableSessionCreateData,
+  ): Promise<UnavailableSession> => {
+    console.log("=== CREATING UNAVAILABLE SESSION ===");
+    console.log("Session data:", sessionData);
+    const response = await api.post<{ data: UnavailableSession }>(
+      "/nursing-provider/unavailable-sessions",
+      sessionData,
+    );
+    console.log("Created unavailable session:", response.data.data);
+    return response.data.data;
+  },
+
+  deleteUnavailableSession: async (sessionId: number): Promise<void> => {
+    console.log("=== DELETING UNAVAILABLE SESSION ===");
+    console.log("Session ID:", sessionId);
+    await api.delete(`/nursing-provider/unavailable-sessions/${sessionId}`);
+    console.log("Unavailable session deleted successfully");
+  },
+
+  getProviderUnavailableSessions: async (
+    providerId: number,
+    params?: {
+      date?: string;
+      start_date?: string;
+      end_date?: string;
+    },
+  ): Promise<UnavailableSession[]> => {
+    console.log("=== FETCHING PROVIDER UNAVAILABLE SESSIONS (PUBLIC) ===");
+    console.log("Provider ID:", providerId);
+    console.log("Params:", params);
+
+    const queryParams = new URLSearchParams();
+    if (params?.date) queryParams.append("date", params.date);
+    if (params?.start_date) queryParams.append("start_date", params.start_date);
+    if (params?.end_date) queryParams.append("end_date", params.end_date);
+
+    const response = await api.get<{ data: UnavailableSession[] }>(
+      `/nursing-providers/${providerId}/unavailable-sessions?${queryParams.toString()}`,
+    );
+
+    console.log("Provider unavailable sessions response:", response.data.data);
     return response.data.data;
   },
 };

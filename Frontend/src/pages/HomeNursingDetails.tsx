@@ -21,6 +21,7 @@ import nursingService, {
   NursingProvider,
   NursingServiceOffering,
   AvailableTimeSlotsResponse,
+  UnavailableSession,
 } from "@/services/nursingService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
 import usePesapalPayment from "@/hooks/usePesapalPayment";
@@ -422,9 +423,18 @@ const HomeNursingDetails = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>(defaultTimeSlots);
+  const [availableTimeSlots, setAvailableTimeSlots] =
+    useState<string[]>(defaultTimeSlots);
   const [appointmentDuration, setAppointmentDuration] = useState<number>(30);
   const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
+  const [unavailableSessions, setUnavailableSessions] = useState<
+    UnavailableSession[]
+  >([]);
+  const [loadingUnavailableSessions, setLoadingUnavailableSessions] =
+    useState(false);
+  const [backendUnavailableSlots, setBackendUnavailableSlots] = useState<
+    string[]
+  >([]);
 
   // Calendar booking hook
   const {
@@ -534,34 +544,85 @@ const HomeNursingDetails = () => {
     }
   }, [id, navigate]);
 
+  // Function to fetch unavailable sessions for the selected date
+  const fetchUnavailableSessions = async (selectedDate: Date) => {
+    if (!provider?.id) return;
+
+    setLoadingUnavailableSessions(true);
+    try {
+      console.log("=== FETCHING UNAVAILABLE SESSIONS ===");
+      console.log("Provider ID:", provider.id);
+      console.log("Selected Date:", selectedDate.toISOString().split("T")[0]);
+
+      const sessions = await nursingService.getProviderUnavailableSessions(
+        provider.id,
+        { date: selectedDate.toISOString().split("T")[0] },
+      );
+
+      console.log("Unavailable sessions response:", sessions);
+      setUnavailableSessions(sessions);
+
+      console.log("=== UNAVAILABLE SESSIONS DEBUG ===");
+      console.log(
+        `Found ${sessions.length} unavailable sessions for date ${selectedDate.toISOString().split("T")[0]}`,
+      );
+      sessions.forEach((session) => {
+        console.log(
+          `📅 Session: ${session.date} from ${session.start_time} to ${session.end_time}`,
+        );
+        console.log(`💭 Reason: ${session.reason || "No reason provided"}`);
+      });
+    } catch (error) {
+      console.error("Failed to fetch unavailable sessions:", error);
+      setUnavailableSessions([]);
+    } finally {
+      setLoadingUnavailableSessions(false);
+    }
+  };
+
+  // Function to check if a time slot is unavailable (now using backend response)
+  const isTimeUnavailable = (timeSlot: string): boolean => {
+    return backendUnavailableSlots.includes(timeSlot);
+  };
+
   // Function to fetch dynamic time slots based on provider's availability settings
   const fetchAvailableTimeSlots = async (selectedDate: Date) => {
     if (!provider?.id) return;
-    
+
     setLoadingTimeSlots(true);
     try {
-      console.log('=== FETCHING DYNAMIC TIME SLOTS ===');
-      console.log('Provider ID:', provider.id);
-      console.log('Selected Date:', selectedDate.toISOString().split('T')[0]);
-      
-      // Apply day offset correction - add one day to fix the mapping issue
+      console.log("=== FETCHING DYNAMIC TIME SLOTS ===");
+      console.log("Provider ID:", provider.id);
+      console.log("Selected Date:", selectedDate.toISOString().split("T")[0]);
+
+      // Apply day offset correction for availability schedule - add one day to fix day-of-week mapping issue
       const adjustedDate = new Date(selectedDate);
       adjustedDate.setDate(adjustedDate.getDate() + 1);
-      
+
       const response = await nursingService.getAvailableTimeSlots(
         provider.id,
-        adjustedDate.toISOString().split('T')[0]
+        adjustedDate.toISOString().split("T")[0],
       );
-      
-      console.log('Available time slots response:', response);
-      
+
+      console.log("Available time slots response:", response);
+
       setAvailableTimeSlots(response.available_slots);
       setAppointmentDuration(response.appointment_duration_minutes);
-      
-      console.log('Updated available slots:', response.available_slots);
-      console.log('Appointment duration:', response.appointment_duration_minutes);
+
+      // Set backend unavailable slots for gray styling (these come from the adjusted date for day-of-week schedule)
+      setBackendUnavailableSlots(response.unavailable_slots || []);
+
+      // Also fetch unavailable sessions for this date (for modal display) - use actual date, not adjusted
+      await fetchUnavailableSessions(selectedDate);
+
+      // Then trigger occupation times fetch - use actual date, not adjusted
+      await getOccupiedTimesForDate(selectedDate);
+
+      console.log(
+        `🔄 Loaded: ${unavailableSessions.length} sessions, ${response.unavailable_slots?.length || 0} unavailable slots`,
+      );
     } catch (error) {
-      console.error('Failed to fetch available time slots:', error);
+      console.error("Failed to fetch available time slots:", error);
       // Fallback to default time slots
       setAvailableTimeSlots(defaultTimeSlots);
       setAppointmentDuration(30);
@@ -651,6 +712,11 @@ const HomeNursingDetails = () => {
   };
 
   const handleTimeSlotSelection = (slot) => {
+    // Don't allow selection of unavailable slots
+    if (isTimeUnavailable(slot)) {
+      console.log("Cannot select unavailable time slot:", slot);
+      return;
+    }
     setTimeSlot(slot);
   };
 
@@ -1247,12 +1313,11 @@ const HomeNursingDetails = () => {
                   <Calendar
                     mode="single"
                     selected={date}
-                    onSelect={(selectedDate) => {
+                    onSelect={async (selectedDate) => {
                       setDate(selectedDate);
                       setTimeSlot(null); // Reset time slot when date changes
                       if (selectedDate) {
-                        getOccupiedTimesForDate(selectedDate);
-                        fetchAvailableTimeSlots(selectedDate);
+                        await fetchAvailableTimeSlots(selectedDate);
                       }
                     }}
                     disabled={(date) => {
@@ -1316,12 +1381,14 @@ const HomeNursingDetails = () => {
                           </p>
                         </div>
                       </div>
-                    ) : loadingTimeSlots ? (
+                    ) : loadingTimeSlots || loadingUnavailableSessions ? (
                       <div className="py-8">
                         <div className="text-center">
                           <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-green-500 rounded-full mx-auto mb-2"></div>
                           <p className="text-sm text-gray-500">
-                            Loading available time slots...
+                            {loadingTimeSlots
+                              ? "Loading available time slots..."
+                              : "Loading unavailable sessions..."}
                           </p>
                         </div>
                       </div>
@@ -1330,26 +1397,33 @@ const HomeNursingDetails = () => {
                         <div className="grid grid-cols-3 gap-2">
                           {availableTimeSlots.map((slot) => {
                             const isOccupied = isTimeOccupied(slot);
+                            const isUnavailable = isTimeUnavailable(slot);
                             const isSelected = timeSlot === slot;
+                            const isDisabled = isOccupied || isUnavailable;
+
                             return (
                               <div
                                 key={slot}
                                 className={`py-2 px-1 text-center text-sm rounded-md border transition-all duration-200 ${
                                   isOccupied
                                     ? "bg-red-100 text-red-700 border-red-300 cursor-not-allowed opacity-75"
-                                    : isSelected
-                                      ? "bg-green-500 text-white border-green-500 cursor-pointer shadow-md transform scale-105"
-                                      : "border-gray-200 hover:border-green-300 hover:bg-green-50 cursor-pointer hover:shadow-sm"
+                                    : isUnavailable
+                                      ? "bg-gray-100 text-gray-700 border-gray-300 cursor-not-allowed opacity-75"
+                                      : isSelected
+                                        ? "bg-green-500 text-white border-green-500 cursor-pointer shadow-md transform scale-105"
+                                        : "border-gray-200 hover:border-green-300 hover:bg-green-50 cursor-pointer hover:shadow-sm"
                                 }`}
                                 onClick={() =>
-                                  !isOccupied && handleTimeSlotSelection(slot)
+                                  !isDisabled && handleTimeSlotSelection(slot)
                                 }
                                 title={
                                   isOccupied
                                     ? "This time slot is already booked for nursing services"
-                                    : isSelected
-                                      ? "Selected time slot"
-                                      : "Click to select this time slot"
+                                    : isUnavailable
+                                      ? "This time slot is unavailable due to provider's schedule"
+                                      : isSelected
+                                        ? "Selected time slot"
+                                        : "Click to select this time slot"
                                 }
                               >
                                 <div className="font-medium">{slot}</div>
@@ -1359,7 +1433,13 @@ const HomeNursingDetails = () => {
                                     Booked
                                   </div>
                                 )}
-                                {!isOccupied && !isSelected && (
+                                {isUnavailable && (
+                                  <div className="text-xs mt-0.5 flex items-center justify-center gap-1">
+                                    <X className="h-3 w-3" />
+                                    Unavailable
+                                  </div>
+                                )}
+                                {!isDisabled && !isSelected && (
                                   <div className="text-xs mt-0.5 text-green-600">
                                     Available
                                   </div>
@@ -1377,22 +1457,45 @@ const HomeNursingDetails = () => {
 
                         {/* Time slots summary */}
                         <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                          <div className="flex justify-between items-center text-xs text-gray-600">
+                          <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-2">
                             <span>
                               Available slots:{" "}
                               {
                                 availableTimeSlots.filter(
-                                  (slot) => !isTimeOccupied(slot),
+                                  (slot) =>
+                                    !isTimeOccupied(slot) &&
+                                    !backendUnavailableSlots.includes(slot),
                                 ).length
                               }
                             </span>
                             <span>
                               Booked slots:{" "}
                               {
-                                availableTimeSlots.filter((slot) => isTimeOccupied(slot))
-                                  .length
+                                availableTimeSlots.filter((slot) =>
+                                  isTimeOccupied(slot),
+                                ).length
                               }
                             </span>
+                            <span>
+                              Unavailable slots:{" "}
+                              {backendUnavailableSlots.length}
+                            </span>
+                          </div>
+
+                          {/* Legend */}
+                          <div className="flex justify-between items-center text-xs text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <div className="w-3 h-3 bg-green-500 rounded"></div>
+                              <span>Available</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <div className="w-3 h-3 bg-red-500 rounded"></div>
+                              <span>Booked</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <div className="w-3 h-3 bg-gray-500 rounded"></div>
+                              <span>Unavailable</span>
+                            </div>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                             <div

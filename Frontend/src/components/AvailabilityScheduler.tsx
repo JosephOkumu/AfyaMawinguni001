@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Clock, Plus, X, Calendar, Save } from "lucide-react";
+import { Clock, Plus, X, Calendar, Save, CalendarX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,6 +9,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+import UnavailabilityModal from "@/components/UnavailabilityModal";
 
 export interface TimeSlot {
   start: string;
@@ -68,6 +69,7 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
   const [customTimeUnit, setCustomTimeUnit] = useState<"minutes" | "hours">(
     "minutes",
   );
+  const [showUnavailabilityModal, setShowUnavailabilityModal] = useState(false);
 
   // Initialize component state based on props
   useEffect(() => {
@@ -473,6 +475,18 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
             ))}
           </div>
 
+          {/* Unavailability Button */}
+          <div className="border-t pt-4">
+            <Button
+              onClick={() => setShowUnavailabilityModal(true)}
+              variant="outline"
+              className="w-full flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+            >
+              <CalendarX className="w-4 h-4" />
+              Set Unavailability
+            </Button>
+          </div>
+
           {/* Action Buttons */}
           <div className="flex justify-end gap-3">
             <DialogClose asChild>
@@ -485,6 +499,20 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
           </div>
         </div>
       </DialogContent>
+
+      {/* Unavailability Modal */}
+      <UnavailabilityModal
+        isOpen={showUnavailabilityModal}
+        onClose={() => setShowUnavailabilityModal(false)}
+        onSessionCreated={(session) => {
+          console.log("New unavailable session created:", session);
+          // You can add additional logic here if needed
+        }}
+        onSessionDeleted={(sessionId) => {
+          console.log("Unavailable session deleted:", sessionId);
+          // You can add additional logic here if needed
+        }}
+      />
     </Dialog>
   );
 };

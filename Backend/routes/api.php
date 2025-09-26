@@ -11,6 +11,7 @@ use App\Http\Controllers\LabTestServiceController;
 use App\Http\Controllers\NursingProviderController;
 use App\Http\Controllers\NursingServiceController;
 use App\Http\Controllers\NursingServiceOfferingController;
+use App\Http\Controllers\NursingProviderUnavailableSessionController;
 use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\MedicineOrderController;
@@ -97,6 +98,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/nursing-provider/upload-image', [NursingProviderController::class, 'uploadProfileImage']);
     Route::put('/nursing-provider/availability-settings', [NursingProviderController::class, 'updateAvailabilitySettings']);
 
+    // Nursing Provider Unavailable Sessions routes
+    Route::get('/nursing-provider/unavailable-sessions', [NursingProviderUnavailableSessionController::class, 'index']);
+    Route::post('/nursing-provider/unavailable-sessions', [NursingProviderUnavailableSessionController::class, 'store']);
+    Route::delete('/nursing-provider/unavailable-sessions/{id}', [NursingProviderUnavailableSessionController::class, 'destroy']);
+
     // Nursing provider booking routes (other routes moved to public section)
 
     // Nursing Service Offerings routes (for providers to manage their services)
@@ -151,6 +157,7 @@ Route::get('/lab-providers/{id}/fully-booked-dates', [LabAppointmentController::
 Route::get('/nursing-providers/{id}/occupied-dates', [NursingProviderController::class, 'getOccupiedDates']);
 Route::get('/nursing-providers/{id}/occupied-times', [NursingProviderController::class, 'getOccupiedTimes']);
 Route::get('/nursing-providers/{id}/available-time-slots', [NursingProviderController::class, 'getAvailableTimeSlots']);
+Route::get('/nursing-providers/{id}/unavailable-sessions', [NursingProviderUnavailableSessionController::class, 'getByProvider']);
 
 
 

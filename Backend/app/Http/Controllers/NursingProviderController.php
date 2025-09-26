@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\NursingProvider;
+use App\Models\NursingProviderUnavailableSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -507,15 +508,50 @@ class NursingProviderController extends Controller
                 ->pluck('time')
                 ->toArray();
 
+            // Get unavailable sessions for this date and convert to occupied time slots
+            $unavailableSessions = NursingProviderUnavailableSession::forProviderAndDate($id, $date)->get();
+            $unavailableTimes = [];
+
+            Log::info('Processing unavailable sessions for occupied times', [
+                'provider_id' => $id,
+                'date' => $date,
+                'unavailable_sessions_count' => $unavailableSessions->count()
+            ]);
+
+            foreach ($unavailableSessions as $session) {
+                // Generate time slots that fall within the unavailable session
+                $sessionStart = strtotime($session->start_time);
+                $sessionEnd = strtotime($session->end_time);
+                $appointmentDuration = $nursingProvider->appointment_duration_minutes ?? 30;
+
+                $current = $sessionStart;
+                while ($current < $sessionEnd) {
+                    $timeSlot = date('g:i A', $current);
+                    $unavailableTimes[] = $timeSlot;
+                    $current = strtotime('+' . $appointmentDuration . ' minutes', $current);
+                }
+            }
+
+            // Only return booked appointment times, not unavailable sessions
+            // Unavailable sessions are handled separately in the frontend
+            sort($occupiedTimes);
+
             Log::info('Occupied times fetched successfully', [
                 'provider_id' => $id,
                 'date' => $date,
-                'times_count' => count($occupiedTimes)
+                'appointment_times_count' => count($occupiedTimes),
+                'unavailable_times_count' => count($unavailableTimes),
+                'note' => 'Only returning booked appointments, not unavailable sessions'
             ]);
 
             return response()->json([
                 'status' => 'success',
-                'data' => $occupiedTimes
+                'data' => $occupiedTimes, // Only booked appointments (RED)
+                'debug' => [
+                    'appointment_occupied' => $occupiedTimes,
+                    'unavailable_occupied' => $unavailableTimes,
+                    'unavailable_sessions' => $unavailableSessions->toArray()
+                ]
             ]);
 
         } catch (\Exception $e) {
@@ -663,11 +699,21 @@ class NursingProviderController extends Controller
             $date = $request->get('date');
             $dayOfWeek = strtolower(substr(date('l', strtotime($date)), 0, 3));
 
+            // Debug day-of-week calculation
+            $fullDayName = date('l', strtotime($date));
+            $timestamp = strtotime($date);
+            $carbonDate = \Carbon\Carbon::parse($date);
+            $carbonDayOfWeek = strtolower(substr($carbonDate->format('l'), 0, 3));
+
             Log::info('Generating available time slots', [
                 'provider_id' => $id,
                 'date' => $date,
                 'day_of_week' => $dayOfWeek,
-                'appointment_duration' => $nursingProvider->appointment_duration_minutes
+                'full_day_name' => $fullDayName,
+                'timestamp' => $timestamp,
+                'carbon_day_of_week' => $carbonDayOfWeek,
+                'appointment_duration' => $nursingProvider->appointment_duration_minutes,
+                'debug_note' => 'Checking day-of-week calculation consistency'
             ]);
 
             // Get provider's availability schedule
@@ -700,7 +746,7 @@ class NursingProviderController extends Controller
                 }
             }
 
-            // Get occupied time slots
+            // Get occupied time slots from appointments
             $occupiedTimes = DB::table('nursing_services')
                 ->where('nursing_provider_id', $id)
                 ->whereIn('status', ['scheduled', 'in_progress'])
@@ -710,23 +756,64 @@ class NursingProviderController extends Controller
                 ->pluck('time')
                 ->toArray();
 
-            // Filter out occupied slots
-            $availableSlots = array_diff($availableSlots, $occupiedTimes);
-            $availableSlots = array_values($availableSlots); // Re-index array
+            // Get unavailable sessions for BOTH the requested date AND the previous day
+            // This accounts for the +1 day offset used in frontend for day-of-week scheduling
+            $requestedDate = $date;
+            $previousDate = date('Y-m-d', strtotime($date . ' -1 day'));
+
+            // Get sessions for both dates to handle the offset issue
+            $unavailableSessionsRequested = NursingProviderUnavailableSession::forProviderAndDate($id, $requestedDate)->get();
+            $unavailableSessionsPrevious = NursingProviderUnavailableSession::forProviderAndDate($id, $previousDate)->get();
+
+            // Combine both sets of sessions
+            $allUnavailableSessions = $unavailableSessionsRequested->merge($unavailableSessionsPrevious);
+            $unavailableTimes = [];
+
+            Log::info('Processing unavailable sessions for available slots', [
+                'provider_id' => $id,
+                'requested_date' => $requestedDate,
+                'previous_date' => $previousDate,
+                'requested_date_sessions' => $unavailableSessionsRequested->count(),
+                'previous_date_sessions' => $unavailableSessionsPrevious->count(),
+                'total_sessions' => $allUnavailableSessions->count()
+            ]);
+
+            foreach ($allUnavailableSessions as $session) {
+                // Check which time slots overlap with the unavailable session
+                foreach ($availableSlots as $slot) {
+                    $slotTime = strtotime($slot);
+                    $slotEndTime = $slotTime + ($appointmentDuration * 60);
+                    $sessionStart = strtotime($session->start_time);
+                    $sessionEnd = strtotime($session->end_time);
+
+                    // If slot overlaps with unavailable session, mark it as unavailable
+                    if ($slotTime < $sessionEnd && $slotEndTime > $sessionStart) {
+                        $unavailableTimes[] = $slot;
+                    }
+                }
+            }
+
+            // Keep all time slots for display - don't remove any
+            // Frontend will handle styling based on occupied_slots and unavailable_slots arrays
+            $allTimeSlots = $availableSlots; // Keep original generated slots
 
             Log::info('Available time slots generated', [
                 'provider_id' => $id,
                 'date' => $date,
-                'total_slots' => count($availableSlots),
-                'occupied_slots' => count($occupiedTimes)
+                'all_time_slots' => count($allTimeSlots),
+                'appointment_occupied_slots' => count($occupiedTimes),
+                'unavailable_slots' => count($unavailableTimes),
+                'truly_available_slots' => count($allTimeSlots) - count($occupiedTimes) - count($unavailableTimes)
             ]);
 
             return response()->json([
                 'status' => 'success',
                 'data' => [
-                    'available_slots' => $availableSlots,
+                    'available_slots' => $allTimeSlots, // All possible time slots
                     'appointment_duration_minutes' => $appointmentDuration,
-                    'occupied_slots' => $occupiedTimes
+                    'occupied_slots' => $occupiedTimes, // Booked appointments (red)
+                    'unavailable_slots' => $unavailableTimes, // Unavailable sessions (gray)
+                    'unavailable_sessions' => $allUnavailableSessions->toArray()
                 ]
             ]);
 

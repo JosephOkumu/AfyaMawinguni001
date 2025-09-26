@@ -71,4 +71,12 @@ class NursingProvider extends Model
     {
         return $this->hasMany(NursingServiceOffering::class);
     }
+
+    /**
+     * Get the unavailable sessions for the nursing provider.
+     */
+    public function unavailableSessions()
+    {
+        return $this->hasMany(NursingProviderUnavailableSession::class);
+    }
 }
