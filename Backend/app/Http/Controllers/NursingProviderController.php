@@ -756,29 +756,23 @@ class NursingProviderController extends Controller
                 ->pluck('time')
                 ->toArray();
 
-            // Get unavailable sessions for BOTH the requested date AND the previous day
-            // This accounts for the +1 day offset used in frontend for day-of-week scheduling
-            $requestedDate = $date;
-            $previousDate = date('Y-m-d', strtotime($date . ' -1 day'));
+            // The frontend sends date with +1 day offset for day-of-week availability schedule
+            // So we need to subtract 1 day to get the actual user-selected date for unavailable sessions
+            $actualUserSelectedDate = date('Y-m-d', strtotime($date . ' -1 day'));
 
-            // Get sessions for both dates to handle the offset issue
-            $unavailableSessionsRequested = NursingProviderUnavailableSession::forProviderAndDate($id, $requestedDate)->get();
-            $unavailableSessionsPrevious = NursingProviderUnavailableSession::forProviderAndDate($id, $previousDate)->get();
-
-            // Combine both sets of sessions
-            $allUnavailableSessions = $unavailableSessionsRequested->merge($unavailableSessionsPrevious);
+            // Get unavailable sessions for the actual user-selected date only
+            $unavailableSessions = NursingProviderUnavailableSession::forProviderAndDate($id, $actualUserSelectedDate)->get();
             $unavailableTimes = [];
 
             Log::info('Processing unavailable sessions for available slots', [
                 'provider_id' => $id,
-                'requested_date' => $requestedDate,
-                'previous_date' => $previousDate,
-                'requested_date_sessions' => $unavailableSessionsRequested->count(),
-                'previous_date_sessions' => $unavailableSessionsPrevious->count(),
-                'total_sessions' => $allUnavailableSessions->count()
+                'frontend_sent_date' => $date,
+                'actual_user_selected_date' => $actualUserSelectedDate,
+                'unavailable_sessions_count' => $unavailableSessions->count(),
+                'note' => 'Subtracting 1 day to match actual user selection due to frontend offset'
             ]);
 
-            foreach ($allUnavailableSessions as $session) {
+            foreach ($unavailableSessions as $session) {
                 // Check which time slots overlap with the unavailable session
                 foreach ($availableSlots as $slot) {
                     $slotTime = strtotime($slot);
@@ -813,7 +807,7 @@ class NursingProviderController extends Controller
                     'appointment_duration_minutes' => $appointmentDuration,
                     'occupied_slots' => $occupiedTimes, // Booked appointments (red)
                     'unavailable_slots' => $unavailableTimes, // Unavailable sessions (gray)
-                    'unavailable_sessions' => $allUnavailableSessions->toArray()
+                    'unavailable_sessions' => $unavailableSessions->toArray()
                 ]
             ]);
 
