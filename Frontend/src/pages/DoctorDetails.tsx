@@ -45,7 +45,7 @@ import {
   X,
   Check,
 } from "lucide-react";
-import doctorService, { Doctor } from "@/services/doctorService";
+import doctorService, { TimeSlot as DoctorTimeSlot, Doctor } from "@/services/doctorService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
 import usePesapalPayment from "@/hooks/usePesapalPayment";
 import appointmentService from "@/services/appointmentService";
@@ -91,29 +91,12 @@ const dummyFAQ = [
   },
 ];
 
-// Available time slots
-const timeSlots = [
-  "8:00 AM",
-  "8:30 AM",
-  "9:00 AM",
-  "9:30 AM",
-  "10:00 AM",
-  "10:30 AM",
-  "11:00 AM",
-  "11:30 AM",
-  "12:00 PM",
-  "12:30 PM",
-  "1:00 PM",
-  "1:30 PM",
-  "2:00 PM",
-  "2:30 PM",
-  "3:00 PM",
-  "3:30 PM",
-  "4:00 PM",
-  "4:30 PM",
-  "5:00 PM",
-  "5:30 PM",
-];
+// Interface for dynamic time slots
+interface TimeSlot {
+  time: string;
+  available: boolean;
+  status: 'available' | 'booked' | 'unavailable';
+}
 
 const DoctorDetails = () => {
   const { id } = useParams();
@@ -135,6 +118,8 @@ const DoctorDetails = () => {
   const [consultationType, setConsultationType] = useState("physical");
   const [date, setDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState(null);
+  const [dynamicTimeSlots, setDynamicTimeSlots] = useState<DoctorTimeSlot[]>([]);
+  const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -207,6 +192,79 @@ const DoctorDetails = () => {
       fetchDoctor();
     }
   }, [id, navigate]);
+
+  // Function to fetch dynamic time slots for a selected date
+  const fetchDynamicTimeSlots = async (selectedDate: Date) => {
+    if (!doctor?.id) return;
+
+    setLoadingTimeSlots(true);
+    try {
+      // Apply the same +1 day offset used by the availability system to ensure consistency
+      const adjustedDate = new Date(selectedDate);
+      adjustedDate.setDate(adjustedDate.getDate() + 1);
+      
+      const dateString = adjustedDate.toISOString().split('T')[0];
+      
+      console.log('FETCHING DYNAMIC TIME SLOTS:', {
+        doctor_id: doctor.id,
+        original_date: selectedDate.toISOString().split('T')[0],
+        adjusted_date: dateString,
+        day_of_week: adjustedDate.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase()
+      });
+
+      const response = await doctorService.getAvailableTimeSlots(doctor.id, dateString);
+      
+      console.log('RECEIVED DYNAMIC TIME SLOTS:', {
+        available_slots_count: response.available_slots.length,
+        available_slots: response.available_slots,
+        appointment_duration: response.appointment_duration_minutes,
+        occupied_slots: response.occupied_slots,
+        unavailable_slots: response.unavailable_slots
+      });
+
+      // Convert to TimeSlot format for the UI
+      const allTimeSlots: DoctorTimeSlot[] = [];
+      
+      // Add available slots
+      response.available_slots.forEach(time => {
+        allTimeSlots.push({
+          time,
+          available: true,
+          status: 'available'
+        });
+      });
+      
+      // Add occupied/booked slots
+      response.occupied_slots.forEach(time => {
+        allTimeSlots.push({
+          time,
+          available: false,
+          status: 'booked'
+        });
+      });
+      
+      // Add unavailable slots
+      response.unavailable_slots?.forEach(time => {
+        allTimeSlots.push({
+          time,
+          available: false,
+          status: 'unavailable'
+        });
+      });
+
+      setDynamicTimeSlots(allTimeSlots);
+    } catch (error) {
+      console.error('Error fetching dynamic time slots:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load available time slots. Please try again.",
+        variant: "destructive",
+      });
+      setDynamicTimeSlots([]);
+    } finally {
+      setLoadingTimeSlots(false);
+    }
+  };
 
   // Function to render star ratings
   const renderStars = (rating) => {
@@ -368,12 +426,12 @@ const DoctorDetails = () => {
   }
 
   // Calculate consultation fee based on selected type
-  const consultationFee =
+  const consultationFee = doctor ? 
     Number(
       consultationType === "physical"
         ? doctor.physical_consultation_fee || doctor.default_consultation_fee
         : doctor.online_consultation_fee || doctor.default_consultation_fee,
-    ) || 0;
+    ) || 0 : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
@@ -458,6 +516,7 @@ const DoctorDetails = () => {
         </div>
 
         {/* Doctor Profile Section */}
+        {doctor && (
         <Card className="mb-6 overflow-hidden border-0 shadow-md">
           <div className="bg-gradient-to-r from-blue-500/90 to-teal-500/90 text-white p-8">
             <div className="flex flex-col md:flex-row gap-6">
@@ -465,11 +524,11 @@ const DoctorDetails = () => {
                 <Avatar className="h-28 w-28 border-4 border-white/30 shadow-lg">
                   <AvatarImage
                     src={doctor.profile_image || defaultDoctorImage}
-                    alt={doctor.user.name}
+                    alt={doctor.user?.name}
                   />
                   <AvatarFallback>
-                    {doctor.user.name
-                      .split(" ")
+                    {doctor.user?.name
+                      ?.split(" ")
                       .map((n) => n[0])
                       .join("")}
                   </AvatarFallback>
@@ -480,7 +539,7 @@ const DoctorDetails = () => {
                 <div className="flex flex-col md:flex-row justify-between md:items-start">
                   <div>
                     <h1 className="text-3xl font-bold mb-2">
-                      {doctor.user.name}
+                      {doctor.user?.name}
                     </h1>
                     <p className="text-lg opacity-90 mb-2">
                       {doctor.specialty}
@@ -549,8 +608,10 @@ const DoctorDetails = () => {
             </div>
           </div>
         </Card>
+        )}
 
         {/* Doctor Information Tabs */}
+        {doctor && (
         <Card className="border-0 shadow-md overflow-hidden mb-6">
           <CardContent className="p-6">
             <Tabs defaultValue="about">
@@ -664,6 +725,7 @@ const DoctorDetails = () => {
             </Tabs>
           </CardContent>
         </Card>
+        )}
 
         {/* Booking Section - Now vertically aligned */}
         <Card className="border-0 shadow-md overflow-hidden mb-6">
@@ -744,6 +806,7 @@ const DoctorDetails = () => {
                       setTimeSlot(null); // Reset time slot when date changes
                       if (selectedDate) {
                         getOccupiedTimesForDate(selectedDate);
+                        fetchDynamicTimeSlots(selectedDate);
                       }
                     }}
                     disabled={(date) => {
@@ -801,48 +864,66 @@ const DoctorDetails = () => {
                   </div>
                 ) : (
                   <div className="border rounded-md p-3 shadow-sm bg-white overflow-y-auto h-[250px]">
-                    {bookingsLoading ? (
+                    {loadingTimeSlots ? (
                       <div className="flex items-center justify-center h-full">
                         <div className="text-center">
                           <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-blue-500 rounded-full mx-auto mb-2"></div>
                           <p className="text-sm text-gray-500">
-                            Loading time slots...
+                            Loading available time slots...
                           </p>
+                        </div>
+                      </div>
+                    ) : dynamicTimeSlots.length === 0 ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center text-gray-500">
+                          <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No available time slots for this date</p>
+                          <p className="text-xs mt-1">Doctor may not be available on this day</p>
                         </div>
                       </div>
                     ) : (
                       <>
                         <div className="grid grid-cols-3 gap-2">
-                          {timeSlots.map((slot) => {
-                            const isOccupied = isTimeOccupied(slot);
-                            const isSelected = timeSlot === slot;
+                          {dynamicTimeSlots.map((slot) => {
+                            const isSelected = timeSlot === slot.time;
+                            const isUnavailable = slot.status === 'booked' || slot.status === 'unavailable';
                             return (
                               <div
-                                key={slot}
+                                key={slot.time}
                                 className={`py-2 px-1 text-center text-sm rounded-md border transition-all duration-200 ${
-                                  isOccupied
-                                    ? "bg-red-100 text-red-700 border-red-300 cursor-not-allowed opacity-75"
+                                  isUnavailable
+                                    ? slot.status === 'booked'
+                                      ? "bg-red-100 text-red-700 border-red-300 cursor-not-allowed opacity-75"
+                                      : "bg-gray-100 text-gray-700 border-gray-300 cursor-not-allowed opacity-75"
                                     : isSelected
                                       ? "bg-green-500 text-white border-green-500 cursor-pointer shadow-md transform scale-105"
                                       : "border-gray-200 hover:border-green-300 hover:bg-green-50 cursor-pointer hover:shadow-sm"
                                 }`}
-                                onClick={() => !isOccupied && setTimeSlot(slot)}
+                                onClick={() => slot.available && setTimeSlot(slot.time)}
                                 title={
-                                  isOccupied
+                                  slot.status === 'booked'
                                     ? "This time slot is already booked"
-                                    : isSelected
-                                      ? "Selected time slot"
-                                      : "Click to select this time slot"
+                                    : slot.status === 'unavailable'
+                                      ? "Doctor is unavailable at this time"
+                                      : isSelected
+                                        ? "Selected time slot"
+                                        : "Click to select this time slot"
                                 }
                               >
-                                <div className="font-medium">{slot}</div>
-                                {isOccupied && (
+                                <div className="font-medium">{slot.time}</div>
+                                {slot.status === 'booked' && (
                                   <div className="text-xs mt-0.5 flex items-center justify-center gap-1">
                                     <X className="h-3 w-3" />
                                     Booked
                                   </div>
                                 )}
-                                {!isOccupied && !isSelected && (
+                                {slot.status === 'unavailable' && (
+                                  <div className="text-xs mt-0.5 flex items-center justify-center gap-1">
+                                    <X className="h-3 w-3" />
+                                    Unavailable
+                                  </div>
+                                )}
+                                {slot.available && !isSelected && (
                                   <div className="text-xs mt-0.5 text-green-600">
                                     Available
                                   </div>
@@ -863,25 +944,22 @@ const DoctorDetails = () => {
                           <div className="flex justify-between items-center text-xs text-gray-600">
                             <span>
                               Available slots:{" "}
-                              {
-                                timeSlots.filter(
-                                  (slot) => !isTimeOccupied(slot),
-                                ).length
-                              }
+                              {dynamicTimeSlots.filter(slot => slot.available).length}
                             </span>
                             <span>
                               Booked slots:{" "}
-                              {
-                                timeSlots.filter((slot) => isTimeOccupied(slot))
-                                  .length
-                              }
+                              {dynamicTimeSlots.filter(slot => slot.status === 'booked').length}
+                            </span>
+                            <span>
+                              Unavailable slots:{" "}
+                              {dynamicTimeSlots.filter(slot => slot.status === 'unavailable').length}
                             </span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                             <div
                               className="bg-red-500 h-2 rounded-full transition-all duration-300"
                               style={{
-                                width: `${(timeSlots.filter((slot) => isTimeOccupied(slot)).length / timeSlots.length) * 100}%`,
+                                width: `${(dynamicTimeSlots.filter(slot => !slot.available).length / dynamicTimeSlots.length) * 100}%`,
                               }}
                             ></div>
                           </div>
