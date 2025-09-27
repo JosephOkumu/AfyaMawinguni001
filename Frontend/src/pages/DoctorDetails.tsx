@@ -104,9 +104,20 @@ const DoctorDetails = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
-  // Generate user initials
-  const getUserInitials = (name: string) => {
-    if (!name) return "U";
+  // Helper function to convert 12-hour time format to 24-hour for sorting
+  const convertTo24Hour = (time12h: string): string => {
+    const [time, modifier] = time12h.split(' ');
+    let [hours, minutes] = time.split(':');
+    if (hours === '12') {
+      hours = '00';
+    }
+    if (modifier === 'PM') {
+      hours = (parseInt(hours, 10) + 12).toString();
+    }
+    return `${hours.padStart(2, '0')}:${minutes}`;
+  };
+
+  const getInitials = (name: string) => {
     const names = name.trim().split(" ");
     if (names.length === 1) return names[0].charAt(0).toUpperCase();
     return (
@@ -252,7 +263,15 @@ const DoctorDetails = () => {
         });
       });
 
-      setDynamicTimeSlots(allTimeSlots);
+      // Sort all timeslots by time to maintain chronological order
+      const sortedTimeSlots = allTimeSlots.sort((a, b) => {
+        // Convert time strings to comparable format (24-hour)
+        const timeA = convertTo24Hour(a.time);
+        const timeB = convertTo24Hour(b.time);
+        return timeA.localeCompare(timeB);
+      });
+
+      setDynamicTimeSlots(sortedTimeSlots);
     } catch (error) {
       console.error('Error fetching dynamic time slots:', error);
       toast({
@@ -492,7 +511,7 @@ const DoctorDetails = () => {
               </div>
               <Avatar className="h-9 w-9 border-2 border-secondary-green/20">
                 <AvatarFallback className="bg-secondary-green/10 text-secondary-green font-semibold">
-                  {getUserInitials(user?.name || "")}
+                  {getInitials(user?.name || "")}
                 </AvatarFallback>
               </Avatar>
             </div>
