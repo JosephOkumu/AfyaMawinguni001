@@ -507,6 +507,373 @@ class DoctorController extends Controller
     }
 
     /**
+     * Update availability settings for the authenticated doctor
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateAvailabilitySettings(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $doctor = Doctor::where('user_id', $user->id)->first();
+
+        if (!$doctor) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Doctor profile not found'
+            ], 404);
+        }
+
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'availability_schedule' => 'required|json',
+            'appointment_duration_minutes' => 'required|integer|min:15|max:480',
+            'repeat_weekly' => 'required|boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            // Parse and validate the availability schedule
+            $schedule = json_decode($request->availability_schedule, true);
+            
+            if (!$schedule) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid availability schedule format'
+                ], 422);
+            }
+
+            // Validate schedule structure
+            $validDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+            foreach ($schedule as $day => $daySchedule) {
+                if (!in_array($day, $validDays)) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => "Invalid day: $day"
+                    ], 422);
+                }
+
+                if (isset($daySchedule['available']) && $daySchedule['available']) {
+                    if (!isset($daySchedule['start_time']) || !isset($daySchedule['end_time'])) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => "Missing start_time or end_time for $day"
+                        ], 422);
+                    }
+                }
+            }
+
+            // Update the doctor's availability settings
+            $updateData = [
+                'availability_schedule' => $request->availability_schedule,
+                'appointment_duration_minutes' => $request->appointment_duration_minutes,
+                'repeat_weekly' => $request->repeat_weekly
+            ];
+
+            $doctor->update($updateData);
+
+            Log::info('Doctor availability settings updated:', [
+                'doctor_id' => $doctor->id,
+                'user_id' => $user->id,
+                'schedule' => $schedule,
+                'duration' => $request->appointment_duration_minutes,
+                'repeat_weekly' => $request->repeat_weekly
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Availability settings updated successfully',
+                'data' => [
+                    'availability_schedule' => $doctor->availability_schedule,
+                    'appointment_duration_minutes' => $doctor->appointment_duration_minutes,
+                    'repeat_weekly' => $doctor->repeat_weekly,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to update doctor availability settings:', [
+                'error' => $e->getMessage(),
+                'doctor_id' => $doctor->id,
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update availability settings: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get available time slots for a specific doctor on a specific date
+     *
+     * @param  int  $id
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAvailableTimeSlots($id, Request $request)
+    {
+        $doctor = Doctor::find($id);
+
+        if (!$doctor) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Doctor not found'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date|after_or_equal:today'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $date = $request->get('date');
+            $dateObj = new \DateTime($date);
+            $dayOfWeek = strtolower($dateObj->format('D')); // mon, tue, wed, etc.
+
+            Log::info('Doctor availability data:', [
+                'doctor_id' => $id,
+                'date' => $date,
+                'day_of_week' => $dayOfWeek,
+                'availability_schedule' => $doctor->availability_schedule,
+                'appointment_duration_minutes' => $doctor->appointment_duration_minutes
+            ]);
+
+            // Check if doctor has custom availability schedule
+            if ($doctor->availability_schedule) {
+                // Parse the JSON string if it's still a string
+                $schedule = is_string($doctor->availability_schedule) 
+                    ? json_decode($doctor->availability_schedule, true) 
+                    : $doctor->availability_schedule;
+                
+                Log::info('Parsed availability schedule:', [
+                    'doctor_id' => $id,
+                    'raw_schedule' => $doctor->availability_schedule,
+                    'parsed_schedule' => $schedule,
+                    'looking_for_day' => $dayOfWeek
+                ]);
+                
+                if ($schedule && isset($schedule[$dayOfWeek])) {
+                    $daySchedule = $schedule[$dayOfWeek];
+                    
+                    // Check if doctor is available on this day
+                    if (!isset($daySchedule['available']) || !$daySchedule['available']) {
+                        Log::info('Doctor not available on this day:', [
+                            'doctor_id' => $id,
+                            'day' => $dayOfWeek,
+                            'day_schedule' => $daySchedule
+                        ]);
+                        
+                        return response()->json([
+                            'status' => 'success',
+                            'data' => []
+                        ]);
+                    }
+
+                    // Generate custom timeslots based on doctor's schedule
+                    $startTime = $daySchedule['start_time'];
+                    $endTime = $daySchedule['end_time'];
+                    $duration = $doctor->appointment_duration_minutes ?: 30;
+
+                    Log::info('Using custom availability schedule:', [
+                        'doctor_id' => $id,
+                        'day' => $dayOfWeek,
+                        'start_time' => $startTime,
+                        'end_time' => $endTime,
+                        'duration' => $duration
+                    ]);
+
+                    $timeSlots = $this->generateCustomTimeSlots($startTime, $endTime, $duration);
+                    
+                    Log::info('Generated custom timeslots:', [
+                        'doctor_id' => $id,
+                        'timeslots' => $timeSlots
+                    ]);
+                } else {
+                    // Fallback to default schedule if day not found in custom schedule
+                    Log::info('Day not found in custom schedule, using default:', [
+                        'doctor_id' => $id,
+                        'day' => $dayOfWeek,
+                        'schedule' => $schedule
+                    ]);
+                    
+                    $timeSlots = $this->getDefaultTimeSlots();
+                }
+            } else {
+                // Use default time slots if no custom schedule
+                Log::info('No custom schedule found, using default timeslots:', [
+                    'doctor_id' => $id
+                ]);
+                
+                $timeSlots = $this->getDefaultTimeSlots();
+            }
+
+            // Get booked appointments for this date
+            $bookedTimes = DB::table('appointments')
+                ->where('doctor_id', $id)
+                ->where('status', 'confirmed')
+                ->where('is_paid', true)
+                ->whereDate('appointment_datetime', $date)
+                ->select(DB::raw('TIME_FORMAT(appointment_datetime, "%h:%i %p") as time'))
+                ->pluck('time')
+                ->toArray();
+
+            // Get unavailable sessions for this date
+            $unavailableTimes = DB::table('unavailable_sessions')
+                ->where('doctor_id', $id)
+                ->whereDate('date', $date)
+                ->get()
+                ->map(function ($session) {
+                    // Convert start and end times to generate all affected slots
+                    $startTime = \DateTime::createFromFormat('H:i:s', $session->start_time);
+                    $endTime = \DateTime::createFromFormat('H:i:s', $session->end_time);
+                    
+                    $affectedSlots = [];
+                    $current = clone $startTime;
+                    
+                    while ($current < $endTime) {
+                        $affectedSlots[] = $current->format('g:i A');
+                        $current->add(new \DateInterval('PT30M')); // Add 30 minutes
+                    }
+                    
+                    return $affectedSlots;
+                })
+                ->flatten()
+                ->toArray();
+
+            // Mark slots as booked or unavailable
+            $availableSlots = array_map(function ($slot) use ($bookedTimes, $unavailableTimes) {
+                $isBooked = in_array($slot, $bookedTimes);
+                $isUnavailable = in_array($slot, $unavailableTimes);
+                
+                return [
+                    'time' => $slot,
+                    'available' => !$isBooked && !$isUnavailable,
+                    'status' => $isBooked ? 'booked' : ($isUnavailable ? 'unavailable' : 'available')
+                ];
+            }, $timeSlots);
+
+            // Include appointment duration in response
+            $appointmentDuration = $doctor->appointment_duration_minutes ?: 30;
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $availableSlots,
+                'appointment_duration_minutes' => $appointmentDuration
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch available time slots for doctor:', [
+                'error' => $e->getMessage(),
+                'doctor_id' => $id,
+                'date' => $request->get('date')
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch available time slots: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate custom time slots based on start and end time
+     *
+     * @param  string  $startTime
+     * @param  string  $endTime
+     * @param  int  $durationMinutes
+     * @return array
+     */
+    private function generateCustomTimeSlots($startTime, $endTime, $durationMinutes = 30)
+    {
+        $slots = [];
+        
+        try {
+            // Convert times to DateTime objects
+            $start = \DateTime::createFromFormat('H:i', $startTime);
+            $end = \DateTime::createFromFormat('H:i', $endTime);
+            
+            if (!$start || !$end) {
+                Log::error('Invalid time format:', [
+                    'start_time' => $startTime,
+                    'end_time' => $endTime
+                ]);
+                return $this->getDefaultTimeSlots();
+            }
+
+            $current = clone $start;
+            $interval = new \DateInterval('PT' . $durationMinutes . 'M');
+
+            // Generate slots until we reach the end time minus appointment duration
+            $lastSlotStart = clone $end;
+            $lastSlotStart->sub($interval);
+
+            while ($current <= $lastSlotStart) {
+                $slots[] = $current->format('g:i A');
+                $current->add($interval);
+            }
+
+            Log::info('Generated custom time slots:', [
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'duration' => $durationMinutes,
+                'slots_count' => count($slots),
+                'slots' => $slots
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error generating custom time slots:', [
+                'error' => $e->getMessage(),
+                'start_time' => $startTime,
+                'end_time' => $endTime
+            ]);
+            
+            // Fallback to default slots
+            return $this->getDefaultTimeSlots();
+        }
+
+        return $slots;
+    }
+
+    /**
+     * Get default time slots for doctors
+     *
+     * @return array
+     */
+    private function getDefaultTimeSlots()
+    {
+        return [
+            '7:00 AM', '7:30 AM', '8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM',
+            '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
+            '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
+            '4:00 PM', '4:30 PM'
+        ];
+    }
+
+    /**
      * Remove the specified doctor from storage.
      *
      * @param  int  $id
