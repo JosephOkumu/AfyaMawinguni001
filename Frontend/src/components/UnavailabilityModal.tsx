@@ -147,8 +147,12 @@ const UnavailabilityModal: React.FC<UnavailabilityModalProps> = ({
     try {
       console.log("=== CREATING UNAVAILABLE SESSION ===");
 
+      // Apply the same +1 day offset used by the availability system to ensure consistency
+      const adjustedDateForStorage = new Date(selectedDate!);
+      adjustedDateForStorage.setDate(adjustedDateForStorage.getDate() + 1);
+
       const sessionData: UnavailableSessionCreateData = {
-        date: selectedDate!.toISOString().split("T")[0], // Format as YYYY-MM-DD
+        date: adjustedDateForStorage.toISOString().split("T")[0], // Format as YYYY-MM-DD with +1 day offset
         start_time: startTime,
         end_time: endTime,
         reason: reason.trim() || undefined,
