@@ -859,6 +859,200 @@ class DoctorController extends Controller
     }
 
     /**
+     * Create an unavailable session for the doctor
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function createUnavailableSession(Request $request)
+    {
+        try {
+            $request->validate([
+                'date' => 'required|date|after_or_equal:today',
+                'start_time' => 'required|date_format:H:i',
+                'end_time' => 'required|date_format:H:i|after:start_time',
+                'reason' => 'nullable|string|max:255',
+            ]);
+
+            $user = auth()->user();
+            $doctor = $user->doctor ?? \App\Models\Doctor::where('user_id', $user->id)->first();
+            if (!$doctor) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Doctor profile not found'
+                ], 404);
+            }
+
+            // Check for overlapping sessions
+            $existingSession = DB::table('unavailable_sessions')
+                ->where('doctor_id', $doctor->id)
+                ->whereDate('date', $request->date)
+                ->where(function ($query) use ($request) {
+                    $query->whereBetween('start_time', [$request->start_time, $request->end_time])
+                          ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
+                          ->orWhere(function ($q) use ($request) {
+                              $q->where('start_time', '<=', $request->start_time)
+                                ->where('end_time', '>=', $request->end_time);
+                          });
+                })
+                ->first();
+
+            if ($existingSession) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'This time period overlaps with an existing unavailable session'
+                ], 422);
+            }
+
+            $session = DB::table('unavailable_sessions')->insertGetId([
+                'doctor_id' => $doctor->id,
+                'date' => $request->date,
+                'start_time' => $request->start_time,
+                'end_time' => $request->end_time,
+                'reason' => $request->reason,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $createdSession = DB::table('unavailable_sessions')->find($session);
+
+            Log::info('Created unavailable session for doctor:', [
+                'doctor_id' => $doctor->id,
+                'session' => $createdSession
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Unavailable session created successfully',
+                'data' => $createdSession
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Failed to create unavailable session for doctor:', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create unavailable session'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get unavailable sessions for the doctor
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUnavailableSessions()
+    {
+        try {
+            $user = auth()->user();
+            $doctor = $user->doctor ?? \App\Models\Doctor::where('user_id', $user->id)->first();
+            if (!$doctor) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Doctor profile not found'
+                ], 404);
+            }
+
+            $sessions = DB::table('unavailable_sessions')
+                ->where('doctor_id', $doctor->id)
+                ->whereDate('date', '>=', now()->toDateString())
+                ->orderBy('date', 'asc')
+                ->orderBy('start_time', 'asc')
+                ->get();
+
+            Log::info('Retrieved unavailable sessions for doctor:', [
+                'doctor_id' => $doctor->id,
+                'sessions_count' => $sessions->count()
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $sessions
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to get unavailable sessions for doctor:', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve unavailable sessions'
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete an unavailable session for the doctor
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deleteUnavailableSession($id)
+    {
+        try {
+            $user = auth()->user();
+            $doctor = $user->doctor ?? \App\Models\Doctor::where('user_id', $user->id)->first();
+            if (!$doctor) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Doctor profile not found'
+                ], 404);
+            }
+
+            $session = DB::table('unavailable_sessions')
+                ->where('id', $id)
+                ->where('doctor_id', $doctor->id)
+                ->first();
+
+            if (!$session) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unavailable session not found'
+                ], 404);
+            }
+
+            DB::table('unavailable_sessions')
+                ->where('id', $id)
+                ->where('doctor_id', $doctor->id)
+                ->delete();
+
+            Log::info('Deleted unavailable session for doctor:', [
+                'doctor_id' => $doctor->id,
+                'session_id' => $id
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Unavailable session deleted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to delete unavailable session for doctor:', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+                'session_id' => $id
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete unavailable session'
+            ], 500);
+        }
+    }
+
+    /**
      * Get default time slots for doctors
      *
      * @return array
