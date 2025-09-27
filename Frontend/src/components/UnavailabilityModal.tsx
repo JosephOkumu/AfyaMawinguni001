@@ -246,7 +246,7 @@ const UnavailabilityModal: React.FC<UnavailabilityModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <Calendar className="w-5 h-5 text-red-600" />
@@ -280,7 +280,7 @@ const UnavailabilityModal: React.FC<UnavailabilityModalProps> = ({
             {/* Date Selection */}
             <div className="space-y-2">
               <Label>Select Date</Label>
-              <div className="border rounded-md p-3">
+              <div className="border rounded-md p-3 inline-block">
                 <CalendarComponent
                   mode="single"
                   selected={selectedDate}
@@ -356,7 +356,6 @@ const UnavailabilityModal: React.FC<UnavailabilityModalProps> = ({
             <Button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full"
             >
               <Plus className="w-4 h-4 mr-2" />
               {loading ? "Adding..." : "Add Unavailable Period"}
@@ -382,7 +381,7 @@ const UnavailabilityModal: React.FC<UnavailabilityModalProps> = ({
                     key={session.id}
                     className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
                   >
-                    <div className="flex-1">
+                    <div className="flex-grow">
                       <div className="font-medium">
                         {formatDate(session.date)}
                       </div>
