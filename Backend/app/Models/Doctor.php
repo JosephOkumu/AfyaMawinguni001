@@ -33,6 +33,9 @@ class Doctor extends Model
         'accepts_insurance',
         'consultation_modes',
         'availability',
+        'availability_schedule',
+        'appointment_duration_minutes',
+        'repeat_weekly',
         'is_available_for_consultation',
         'average_rating',
     ];
@@ -44,13 +47,16 @@ class Doctor extends Model
      */
     protected $casts = [
         'availability' => 'json',
+        'availability_schedule' => 'json',
         'consultation_modes' => 'json',
         'is_available_for_consultation' => 'boolean',
         'accepts_insurance' => 'boolean',
+        'repeat_weekly' => 'boolean',
         'default_consultation_fee' => 'decimal:2',
         'physical_consultation_fee' => 'decimal:2',
         'online_consultation_fee' => 'decimal:2',
         'average_rating' => 'integer',
+        'appointment_duration_minutes' => 'integer',
     ];
 
     /**
