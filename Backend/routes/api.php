@@ -52,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/doctor/profile', [DoctorController::class, 'profile']);
     Route::patch('/doctor/profile', [DoctorController::class, 'updateProfile']);
     Route::post('/doctor/upload-image', [DoctorController::class, 'uploadProfileImage']);
+    Route::put('/doctor/availability-settings', [DoctorController::class, 'updateAvailabilitySettings']);
 
     // Doctor booking routes (booking availability moved to public section)
 
@@ -151,6 +152,7 @@ Route::get('/doctors/{id}', [DoctorController::class, 'show']);
 // Public routes for booking availability (no auth required for viewing)
 Route::get('/doctors/{id}/occupied-dates', [DoctorController::class, 'getOccupiedDates']);
 Route::get('/doctors/{id}/occupied-times', [DoctorController::class, 'getOccupiedTimes']);
+Route::get('/doctors/{id}/available-time-slots', [DoctorController::class, 'getAvailableTimeSlots']);
 Route::get('/lab-providers/{id}/occupied-dates', [LabProviderController::class, 'getOccupiedDates']);
 Route::get('/lab-providers/{id}/occupied-times', [LabProviderController::class, 'getOccupiedTimes']);
 Route::get('/lab-providers/{id}/fully-booked-dates', [LabAppointmentController::class, 'getFullyBookedDates']);
