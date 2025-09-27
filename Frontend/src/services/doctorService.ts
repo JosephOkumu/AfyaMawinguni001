@@ -200,6 +200,60 @@ const doctorService = {
       unavailable_slots: unavailableSlots
     };
   },
+
+  // Unavailable Sessions Management
+  createUnavailableSession: async (sessionData: UnavailableSessionCreateData): Promise<UnavailableSession> => {
+    console.log("=== CREATING DOCTOR UNAVAILABLE SESSION ===");
+    console.log("Session data:", sessionData);
+
+    const response = await api.post<{
+      status: string;
+      message: string;
+      data: UnavailableSession;
+    }>('/doctor/unavailable-sessions', sessionData);
+
+    console.log("Created session response:", response.data);
+    return response.data.data;
+  },
+
+  getUnavailableSessions: async (): Promise<UnavailableSession[]> => {
+    console.log("=== FETCHING DOCTOR UNAVAILABLE SESSIONS ===");
+
+    const response = await api.get<{
+      status: string;
+      data: UnavailableSession[];
+    }>('/doctor/unavailable-sessions');
+
+    console.log("Unavailable sessions response:", response.data);
+    return response.data.data;
+  },
+
+  deleteUnavailableSession: async (sessionId: number): Promise<void> => {
+    console.log("=== DELETING DOCTOR UNAVAILABLE SESSION ===");
+    console.log("Session ID:", sessionId);
+
+    await api.delete(`/doctor/unavailable-sessions/${sessionId}`);
+    console.log("Session deleted successfully");
+  },
 };
+
+// Types for unavailable sessions
+export interface UnavailableSession {
+  id: number;
+  doctor_id: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  reason?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UnavailableSessionCreateData {
+  date: string;
+  start_time: string;
+  end_time: string;
+  reason?: string;
+}
 
 export default doctorService;
