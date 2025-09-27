@@ -297,12 +297,6 @@ const UnavailabilityModal: React.FC<UnavailabilityModalProps> = ({
                   className="rounded-md"
                 />
               </div>
-              {selectedDate && (
-                <p className="text-sm text-gray-600">
-                  Selected:{" "}
-                  {formatDate(selectedDate.toISOString().split("T")[0])}
-                </p>
-              )}
             </div>
 
             {/* Time Selection */}
