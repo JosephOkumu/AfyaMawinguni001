@@ -49,12 +49,15 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
     Route::get('/doctor/profile', [DoctorController::class, 'profile']);
-    Route::get('/doctor/profile', [DoctorController::class, 'profile']);
+    Route::put('/doctor/profile', [DoctorController::class, 'updateProfile']);
     Route::patch('/doctor/profile', [DoctorController::class, 'updateProfile']);
     Route::post('/doctor/upload-image', [DoctorController::class, 'uploadProfileImage']);
     Route::put('/doctor/availability-settings', [DoctorController::class, 'updateAvailabilitySettings']);
 
-    // Doctor booking routes (booking availability moved to public section)
+    // Doctor Unavailable Sessions routes
+    Route::get('/doctor/unavailable-sessions', [DoctorController::class, 'getUnavailableSessions']);
+    Route::post('/doctor/unavailable-sessions', [DoctorController::class, 'createUnavailableSession']);
+    Route::delete('/doctor/unavailable-sessions/{id}', [DoctorController::class, 'deleteUnavailableSession']);
 
     // Appointment routes
     Route::apiResource('appointments', AppointmentController::class);
