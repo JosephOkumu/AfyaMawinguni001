@@ -45,6 +45,33 @@ export interface DoctorProfileUpdateData {
   consultationModes?: string[];
 }
 
+export interface AvailabilitySchedule {
+  [key: string]: {
+    available: boolean;
+    start_time?: string;
+    end_time?: string;
+  };
+}
+
+export interface DoctorAvailabilitySettings {
+  availability_schedule: string;
+  appointment_duration_minutes: number;
+  repeat_weekly: boolean;
+}
+
+export interface TimeSlot {
+  time: string;
+  available: boolean;
+  status: 'available' | 'booked' | 'unavailable';
+}
+
+export interface DoctorAvailableTimeSlotsResponse {
+  available_slots: string[];
+  appointment_duration_minutes: number;
+  occupied_slots: string[];
+  unavailable_slots?: string[];
+}
+
 const doctorService = {
   // Get all doctors
   getAllDoctors: async (): Promise<Doctor[]> => {
@@ -130,6 +157,48 @@ const doctorService = {
       params: { search: query },
     });
     return response.data.data;
+  },
+
+  // Update availability settings for the current doctor
+  updateAvailabilitySettings: async (settings: DoctorAvailabilitySettings): Promise<DoctorAvailabilitySettings> => {
+    console.log("=== DOCTOR AVAILABILITY SETTINGS UPDATE ===");
+    console.log("Settings to update:", settings);
+
+    const response = await api.put<{
+      status: string;
+      data: DoctorAvailabilitySettings;
+    }>("/doctor/availability-settings", settings);
+
+    console.log("Availability settings update response:", response.data);
+    return response.data.data;
+  },
+
+  // Get available time slots for a specific doctor on a specific date
+  getAvailableTimeSlots: async (doctorId: number, date: string): Promise<DoctorAvailableTimeSlotsResponse> => {
+    console.log("=== FETCHING DOCTOR AVAILABLE TIME SLOTS ===");
+    console.log("Doctor ID:", doctorId);
+    console.log("Date:", date);
+
+    const response = await api.get<{
+      status: string;
+      data: TimeSlot[];
+      appointment_duration_minutes?: number;
+    }>(`/doctors/${doctorId}/available-time-slots?date=${date}`);
+
+    console.log("Doctor available time slots response:", response.data);
+    
+    // Convert backend TimeSlot[] format to match nursing service format
+    const timeSlots = response.data.data;
+    const availableSlots = timeSlots.filter(slot => slot.available).map(slot => slot.time);
+    const occupiedSlots = timeSlots.filter(slot => slot.status === 'booked').map(slot => slot.time);
+    const unavailableSlots = timeSlots.filter(slot => slot.status === 'unavailable').map(slot => slot.time);
+
+    return {
+      available_slots: availableSlots,
+      appointment_duration_minutes: response.data.appointment_duration_minutes || 30,
+      occupied_slots: occupiedSlots,
+      unavailable_slots: unavailableSlots
+    };
   },
 };
 
