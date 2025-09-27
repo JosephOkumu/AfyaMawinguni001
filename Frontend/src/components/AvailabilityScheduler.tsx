@@ -476,11 +476,11 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
           </div>
 
           {/* Unavailability Button */}
-          <div className="border-t pt-4">
+          <div className="border-t pt-4 mb-6">
             <Button
               onClick={() => setShowUnavailabilityModal(true)}
               variant="outline"
-              className="w-full flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+              className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
             >
               <CalendarX className="w-4 h-4" />
               Set Unavailability
@@ -488,7 +488,7 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-start items-center gap-3">
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
