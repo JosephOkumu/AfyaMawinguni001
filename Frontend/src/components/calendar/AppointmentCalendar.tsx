@@ -518,8 +518,8 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                   <Button variant="outline" size="sm" className="flex-1">
                     Reschedule
                   </Button>
-                ) : selectedAppointment.status === "scheduled" ? (
-                  // Actions for scheduled appointments (need confirmation)
+                ) : selectedAppointment.status === "pending" ? (
+                  // Actions for pending appointments (need confirmation)
                   <>
                     <Button
                       size="sm"
@@ -550,7 +550,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                     </Button>
                   </>
                 ) : (
-                  // Actions for confirmed appointments
+                  // Actions for scheduled appointments (already confirmed)
                   <>
                     {selectedAppointment.type === "virtual" ? (
                       // Virtual appointment: Start Call, Reschedule, Cancel

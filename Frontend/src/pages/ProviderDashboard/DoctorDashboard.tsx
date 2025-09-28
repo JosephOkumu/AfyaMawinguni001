@@ -1068,7 +1068,7 @@ const DoctorDashboard = () => {
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
           appointment.id === appointmentId
-            ? { ...appointment, status: "confirmed" as const }
+            ? { ...appointment, status: "scheduled" as const }
             : appointment,
         ),
       );
