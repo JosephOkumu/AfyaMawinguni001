@@ -182,13 +182,13 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   const getAppointmentModeColor = (appointment: Appointment) => {
     const isVirtual = appointment.type === "virtual";
     return isVirtual
-      ? "bg-green-100 text-green-800"
+      ? "bg-blue-100 text-blue-800"
       : "bg-orange-100 text-orange-800";
   };
 
   const getAppointmentModeText = (appointment: Appointment) => {
     const isVirtual = appointment.type === "virtual";
-    return isVirtual ? "Video Call" : "Physical Visit";
+    return isVirtual ? "Online" : "Physical Visit";
   };
 
   const getAppointmentTime = (appointment: Appointment) => {
@@ -558,9 +558,15 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                         <Button
                           size="sm"
                           className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          onClick={() => {
+                            if (onAppointmentComplete) {
+                              onAppointmentComplete(selectedAppointment.id);
+                              setShowAppointmentDetails(false);
+                            }
+                          }}
                         >
                           <Video className="h-4 w-4 mr-2" />
-                          Start Video Call
+                          Start Call
                         </Button>
                         <Button variant="outline" size="sm" className="flex-1">
                           Reschedule

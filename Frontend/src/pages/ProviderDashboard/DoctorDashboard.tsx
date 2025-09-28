@@ -66,6 +66,7 @@ import {
   CheckCircle,
   Settings,
   X,
+  Video,
 } from "lucide-react";
 import AvailabilityScheduler, {
   WeeklySchedule,
@@ -1899,19 +1900,19 @@ const DoctorDashboard = () => {
                                   variant="outline"
                                   className={
                                     appointment.type === "virtual"
-                                      ? "border-purple-200 text-purple-700 bg-purple-50"
+                                      ? "border-blue-200 text-blue-700 bg-blue-50"
                                       : "border-green-200 text-green-700 bg-green-50"
                                   }
                                 >
                                   <div className="flex items-center gap-1">
                                     {appointment.type === "virtual" ? (
-                                      <Activity className="h-3 w-3" />
+                                      <Video className="h-3 w-3" />
                                     ) : (
                                       <MapPin className="h-3 w-3" />
                                     )}
                                     <span>
                                       {appointment.type === "virtual"
-                                        ? "Virtual"
+                                        ? "Online"
                                         : "In Person"}
                                     </span>
                                   </div>
@@ -2035,19 +2036,19 @@ const DoctorDashboard = () => {
                                   variant="outline"
                                   className={
                                     appointment.type === "virtual"
-                                      ? "border-purple-200 text-purple-700 bg-purple-50"
+                                      ? "border-blue-200 text-blue-700 bg-blue-50"
                                       : "border-green-200 text-green-700 bg-green-50"
                                   }
                                 >
                                   <div className="flex items-center gap-1">
                                     {appointment.type === "virtual" ? (
-                                      <Activity className="h-3 w-3" />
+                                      <Video className="h-3 w-3" />
                                     ) : (
                                       <MapPin className="h-3 w-3" />
                                     )}
                                     <span>
                                       {appointment.type === "virtual"
-                                        ? "Virtual"
+                                        ? "Online"
                                         : "In Person"}
                                     </span>
                                   </div>

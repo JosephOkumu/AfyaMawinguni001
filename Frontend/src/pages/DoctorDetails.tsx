@@ -1135,14 +1135,25 @@ const DoctorDetails = () => {
                 Booking Successful!
               </h2>
               <p className="text-gray-600 mb-6">
-                Your appointment with {doctor.user.name} has been scheduled for{" "}
+                Your {consultationType === "online" ? "online" : "physical"} consultation with {doctor.user.name} has been scheduled for{" "}
                 {date?.toLocaleDateString("en-GB")} at {timeSlot}.
               </p>
+              {consultationType === "online" && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Video className="h-5 w-5 text-blue-600" />
+                    <span className="font-medium text-blue-800">Online Consultation</span>
+                  </div>
+                  <p className="text-sm text-blue-700">
+                    You'll receive a call link before your appointment time.
+                  </p>
+                </div>
+              )}
               <Button
                 className="w-full"
                 onClick={() => navigate("/patient-dashboard/appointments")}
               >
-                View My Appointments
+                View Appointments
               </Button>
             </CardContent>
           </Card>
