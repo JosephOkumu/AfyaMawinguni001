@@ -803,10 +803,10 @@ const DoctorDashboard = () => {
 
       const updatedProfile = await doctorService.updateProfile(apiData);
 
-      // Update local state
+      // Update local state with the response data that includes updated user info
       setDoctorProfile({
         ...doctorProfile,
-        ...apiData,
+        ...updatedProfile,
       });
 
       toast({
@@ -1181,10 +1181,7 @@ const DoctorDashboard = () => {
               </span>
               <Avatar className="h-8 w-8 border border-secondary-green/20">
                 <AvatarImage
-                  src={
-                    doctorProfile.profile_image ||
-                    "https://randomuser.me/api/portraits/men/45.jpg"
-                  }
+                  src={doctorProfile.profile_image || undefined}
                   alt="Doctor Profile"
                 />
                 <AvatarFallback>
