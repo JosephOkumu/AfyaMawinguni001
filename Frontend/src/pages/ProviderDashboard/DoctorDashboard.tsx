@@ -1049,6 +1049,29 @@ const DoctorDashboard = () => {
     );
   };
 
+  // Helper function to get pending appointments count
+  const getPendingCount = () => {
+    return appointments.filter(appointment => appointment.status === "pending").length;
+  };
+
+  // Helper function to get completed appointments count
+  const getCompletedCount = () => {
+    return appointments.filter(appointment => appointment.status === "completed").length;
+  };
+
+  // Helper function to calculate total revenue from paid appointments with 2 decimal places
+  const getTotalRevenue = () => {
+    const total = appointments
+      .filter(appointment => appointment.is_paid && appointment.fee)
+      .reduce((sum, appointment) => sum + (Number(appointment.fee) || 0), 0);
+    return Number(total).toFixed(2);
+  };
+
+  // Helper function to get active services count (doctors have 1 service)
+  const getActiveServicesCount = () => {
+    return 1; // Doctors only have one service to offer
+  };
+
   // Helper function to format appointment date and time
   const getAppointmentDateTime = (appointment: Appointment) => {
     const date = new Date(appointment.appointment_datetime);
@@ -1739,7 +1762,7 @@ const DoctorDashboard = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-semibold text-white/80">Pending</p>
-                  <p className="text-2xl font-bold">24</p>
+                  <p className="text-2xl font-bold">{getPendingCount()}</p>
                 </div>
               </div>
             </div>
@@ -1754,7 +1777,7 @@ const DoctorDashboard = () => {
                   <p className="text-sm font-semibold text-white/80">
                     Completed
                   </p>
-                  <p className="text-2xl font-bold">15</p>
+                  <p className="text-2xl font-bold">{getCompletedCount()}</p>
                 </div>
               </div>
             </div>
@@ -1769,7 +1792,7 @@ const DoctorDashboard = () => {
                   <p className="text-sm font-semibold text-white/80">
                     Active Services
                   </p>
-                  <p className="text-2xl font-bold">{services.length}</p>
+                  <p className="text-2xl font-bold">{getActiveServicesCount()}</p>
                 </div>
               </div>
             </div>
@@ -1784,7 +1807,7 @@ const DoctorDashboard = () => {
                   <p className="text-sm font-semibold text-white/80">
                     Total Revenue (KES)
                   </p>
-                  <p className="text-2xl font-bold">125,000</p>
+                  <p className="text-2xl font-bold">{getTotalRevenue()}</p>
                 </div>
               </div>
             </div>
