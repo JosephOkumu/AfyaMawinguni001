@@ -9,6 +9,7 @@ export interface Appointment {
   doctor_id: number;
   appointment_datetime: string;
   status:
+    | "pending"
     | "scheduled"
     | "confirmed"
     | "completed"

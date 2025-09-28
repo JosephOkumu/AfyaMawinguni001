@@ -91,7 +91,7 @@ class AppointmentController extends Controller
 
         // Set default values for remaining fields
         $data = $request->all();
-        $data['status'] = 'scheduled';
+        $data['status'] = 'pending';
         $data['is_paid'] = $request->input('is_paid', false);
 
         // Generate meeting link for virtual appointments
@@ -144,7 +144,7 @@ class AppointmentController extends Controller
             'patient_id' => 'exists:users,id',
             'doctor_id' => 'exists:doctors,id',
             'appointment_datetime' => 'date|after:now',
-            'status' => 'in:scheduled,completed,cancelled,rescheduled,no_show',
+            'status' => 'in:pending,confirmed,scheduled,completed,cancelled,rescheduled,no_show',
             'type' => 'in:in_person,virtual',
             'reason_for_visit' => 'nullable|string',
             'symptoms' => 'nullable|string',
@@ -212,7 +212,7 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Confirm an appointment (change status from scheduled to confirmed).
+     * Confirm an appointment (change status from pending to scheduled).
      *
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
@@ -229,14 +229,14 @@ class AppointmentController extends Controller
         }
 
         // Check if appointment can be confirmed
-        if ($appointment->status !== 'scheduled') {
+        if ($appointment->status !== 'pending') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Only scheduled appointments can be confirmed'
+                'message' => 'Only pending appointments can be confirmed'
             ], 422);
         }
 
-        $appointment->status = 'confirmed';
+        $appointment->status = 'scheduled';
         $appointment->save();
 
         return response()->json([
@@ -247,7 +247,7 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Reject an appointment (change status from scheduled to cancelled).
+     * Reject an appointment (change status from pending to cancelled).
      *
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
@@ -264,10 +264,10 @@ class AppointmentController extends Controller
         }
 
         // Check if appointment can be rejected
-        if ($appointment->status !== 'scheduled') {
+        if ($appointment->status !== 'pending') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Only scheduled appointments can be rejected'
+                'message' => 'Only pending appointments can be rejected'
             ], 422);
         }
 
@@ -282,7 +282,7 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Complete an appointment (change status from confirmed to completed).
+     * Complete an appointment (change status from scheduled to completed).
      *
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
@@ -299,10 +299,10 @@ class AppointmentController extends Controller
         }
 
         // Check if appointment can be completed
-        if ($appointment->status !== 'confirmed') {
+        if ($appointment->status !== 'scheduled') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Only confirmed appointments can be completed'
+                'message' => 'Only scheduled appointments can be completed'
             ], 422);
         }
 

@@ -1042,10 +1042,10 @@ const DoctorDashboard = () => {
       );
   };
 
-  // Helper function to get confirmed appointments
+  // Helper function to get scheduled appointments (confirmed by doctor)
   const getConfirmedAppointments = () => {
     return appointments.filter(
-      (appointment) => appointment.status === "confirmed",
+      (appointment) => appointment.status === "scheduled",
     );
   };
 
@@ -1154,7 +1154,7 @@ const DoctorDashboard = () => {
   // Helper function to get pending appointments
   const getPendingAppointments = () => {
     return appointments
-      .filter((appointment) => appointment.status === "scheduled")
+      .filter((appointment) => appointment.status === "pending")
       .sort(
         (a, b) =>
           new Date(a.appointment_datetime).getTime() -
