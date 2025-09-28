@@ -200,7 +200,7 @@ const AppointmentsSection = () => {
     switch (status) {
       case "confirmed":
       case "scheduled":
-        return "text-green-600 bg-green-100";
+        return "text-black bg-green-100";
       case "pending":
         return "text-blue-600 bg-blue-100";
       case "completed":
