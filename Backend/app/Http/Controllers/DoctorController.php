@@ -170,7 +170,7 @@ class DoctorController extends Controller
                 'user_id' => $user->id,
                 'specialty' => 'General Practitioner',
                 'license_number' => 'DOC-' . $user->id . '-' . date('Y'),
-                'default_consultation_fee' => 2500.00,
+                'consultation_fee' => 2500.00,
                 'is_available_for_consultation' => true,
                 'average_rating' => 0
             ]);
@@ -276,7 +276,7 @@ class DoctorController extends Controller
         }
         if ($request->has('physicalPrice')) {
             $updateData['physical_consultation_fee'] = $request->physicalPrice;
-            $updateData['default_consultation_fee'] = $request->physicalPrice;
+            $updateData['consultation_fee'] = $request->physicalPrice;
         }
         if ($request->has('onlinePrice')) {
             $updateData['online_consultation_fee'] = $request->onlinePrice;
