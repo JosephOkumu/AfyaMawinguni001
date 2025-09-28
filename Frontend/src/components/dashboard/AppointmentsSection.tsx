@@ -9,7 +9,6 @@ import {
   TestTube,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import appointmentService, {
   Appointment,
@@ -334,63 +333,60 @@ const AppointmentsSection = () => {
   const upcomingAppointments = getUpcomingAppointments();
   const pastAppointments = getPastAppointments();
 
+  const allAppointments = [...getUpcomingAppointments(), ...getPastAppointments()].sort((a, b) => {
+    const dateA = new Date(
+      "scheduled_datetime" in a
+        ? a.scheduled_datetime
+        : a.appointment_datetime,
+    );
+    const dateB = new Date(
+      "scheduled_datetime" in b
+        ? b.scheduled_datetime
+        : b.appointment_datetime,
+    );
+    return dateB.getTime() - dateA.getTime();
+  });
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
-      <Tabs defaultValue="upcoming">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-[var(--dark)]">
-            My Appointments
-          </h2>
-          <TabsList>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-            <TabsTrigger value="past">Past</TabsTrigger>
-          </TabsList>
-        </div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-[var(--dark)]">
+          My Appointments
+        </h2>
+      </div>
 
-        <TabsContent value="upcoming" className="space-y-4">
-          {upcomingAppointments.length === 0 ? (
-            <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No upcoming appointments
-              </h3>
-              <p className="text-gray-500">
-                You don't have any upcoming appointments scheduled.
-              </p>
-            </div>
-          ) : (
-            upcomingAppointments.map((appointment) =>
-              renderAppointmentCard(appointment, true),
-            )
-          )}
-
-          <div className="flex justify-center">
-            <Link to="/patient-dashboard">
-              <Button className="bg-primary-blue hover:bg-primary-blue/90">
-                <Home className="h-4 w-4 mr-2" /> Go back to Home
-              </Button>
-            </Link>
+      <div className="space-y-4">
+        {allAppointments.length === 0 ? (
+          <div className="text-center py-8">
+            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No appointments
+            </h3>
+            <p className="text-gray-500">
+              You don't have any appointments scheduled.
+            </p>
           </div>
-        </TabsContent>
+        ) : (
+          allAppointments.map((appointment) => {
+            const now = new Date();
+            const appointmentDate = new Date(
+              "scheduled_datetime" in appointment
+                ? appointment.scheduled_datetime
+                : appointment.appointment_datetime,
+            );
+            const isUpcoming = appointmentDate > now && appointment.status !== "cancelled";
+            return renderAppointmentCard(appointment, isUpcoming);
+          })
+        )}
 
-        <TabsContent value="past" className="space-y-4">
-          {pastAppointments.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No past appointments
-              </h3>
-              <p className="text-gray-500">
-                You don't have any past appointments to view.
-              </p>
-            </div>
-          ) : (
-            pastAppointments.map((appointment) =>
-              renderAppointmentCard(appointment, false),
-            )
-          )}
-        </TabsContent>
-      </Tabs>
+        <div className="flex justify-center">
+          <Link to="/patient-dashboard">
+            <Button className="bg-primary-blue hover:bg-primary-blue/90">
+              <Home className="h-4 w-4 mr-2" /> Go back to Home
+            </Button>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };
