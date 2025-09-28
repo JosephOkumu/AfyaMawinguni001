@@ -199,8 +199,8 @@ const AppointmentsSection = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "text-green-600 bg-green-100";
       case "scheduled":
+        return "text-green-600 bg-green-100";
       case "pending":
         return "text-blue-600 bg-blue-100";
       case "completed":
@@ -213,7 +213,7 @@ const AppointmentsSection = () => {
   };
 
   const getDisplayStatus = (status: string) => {
-    const displayStatus = status === "scheduled" ? "pending" : status;
+    const displayStatus = status === "scheduled" ? "confirmed" : status;
     return displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
   };
 
