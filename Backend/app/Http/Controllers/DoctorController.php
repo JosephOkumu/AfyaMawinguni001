@@ -734,10 +734,10 @@ class DoctorController extends Controller
             // Get booked appointments for this date
             $bookedTimes = DB::table('appointments')
                 ->where('doctor_id', $id)
-                ->where('status', 'confirmed')
+                ->whereIn('status', ['scheduled', 'confirmed', 'completed'])
                 ->where('is_paid', true)
                 ->whereDate('appointment_datetime', $date)
-                ->select(DB::raw('TIME_FORMAT(appointment_datetime, "%h:%i %p") as time'))
+                ->select(DB::raw('TIME_FORMAT(appointment_datetime, "%l:%i %p") as time'))
                 ->pluck('time')
                 ->toArray();
 
