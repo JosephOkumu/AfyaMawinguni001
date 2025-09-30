@@ -285,13 +285,17 @@ const AppointmentsSection = () => {
               </Button>
             </>
           ) : (
-            <Button variant="outline" size="sm" className="text-xs">
-              {"doctor_id" in appointment
-                ? "View Report"
-                : "lab_provider_id" in appointment
-                  ? "View Results"
-                  : "View Care Notes"}
-            </Button>
+            <>
+              {appointment.status !== "completed" && (
+                <Button variant="outline" size="sm" className="text-xs">
+                  {"doctor_id" in appointment
+                    ? "View Report"
+                    : "lab_provider_id" in appointment
+                      ? "View Results"
+                      : "View Care Notes"}
+                </Button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -374,7 +378,7 @@ const AppointmentsSection = () => {
                 ? appointment.scheduled_datetime
                 : appointment.appointment_datetime,
             );
-            const isUpcoming = appointmentDate > now && appointment.status !== "cancelled";
+            const isUpcoming = appointmentDate > now && appointment.status !== "cancelled" && appointment.status !== "completed";
             return renderAppointmentCard(appointment, isUpcoming);
           })
         )}
