@@ -18,6 +18,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import FilterPopover from "@/components/ui/FilterPopover";
 import doctorService, { Doctor } from "@/services/doctorService";
+import reviewService from "@/services/reviewService";
 
 const defaultDoctorImage =
   "/lovable-uploads/a05b3053-380f-4711-b032-bc48d1c082f0.png";
@@ -25,9 +26,11 @@ const defaultDoctorImage =
 const DoctorCard = ({
   doctor,
   onClick,
+  doctorRatings,
 }: {
   doctor: Doctor;
   onClick: (doctor: Doctor) => void;
+  doctorRatings: {[key: number]: {average_rating: number, total_reviews: number}};
 }) => {
   // Function to render star ratings
   const renderStars = (rating) => {
@@ -71,10 +74,6 @@ const DoctorCard = ({
           alt={doctor.user.name}
           className="w-full h-48 object-cover object-center"
         />
-        <Badge className="absolute top-2 right-2 bg-green-500 hover:bg-green-600">
-          KES{" "}
-          {doctor.physical_consultation_fee || doctor.default_consultation_fee}
-        </Badge>
       </div>
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg text-primary-blue">
@@ -89,10 +88,10 @@ const DoctorCard = ({
 
         <div className="flex items-center mb-3">
           <div className="flex mr-1">
-            {renderStars(doctor.average_rating || 4.5)}
+            {renderStars(doctorRatings[doctor.id]?.average_rating || 0)}
           </div>
           <span className="text-sm text-gray-600">
-            ({doctor.average_rating || 4.5})
+            ({doctorRatings[doctor.id]?.average_rating || 0})
           </span>
         </div>
 
@@ -117,14 +116,44 @@ const DoctorConsultation = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [doctorRatings, setDoctorRatings] = useState<{[key: number]: {average_rating: number, total_reviews: number}}>({});
 
-  // Fetch doctors from backend
+  // Fetch doctors and their ratings from backend
   useEffect(() => {
-    const fetchDoctors = async () => {
+    const fetchDoctorsAndRatings = async () => {
       try {
         setLoading(true);
         const doctorsData = await doctorService.getAllDoctors();
         setDoctors(doctorsData);
+        
+        // Fetch ratings for each doctor
+        const ratingsPromises = doctorsData.map(async (doctor) => {
+          try {
+            const reviewsData = await reviewService.getDoctorReviews(doctor.id);
+            return {
+              doctorId: doctor.id,
+              average_rating: reviewsData.average_rating,
+              total_reviews: reviewsData.total_reviews
+            };
+          } catch (error) {
+            return {
+              doctorId: doctor.id,
+              average_rating: 0,
+              total_reviews: 0
+            };
+          }
+        });
+        
+        const ratingsResults = await Promise.all(ratingsPromises);
+        const ratingsMap = ratingsResults.reduce((acc, rating) => {
+          acc[rating.doctorId] = {
+            average_rating: rating.average_rating,
+            total_reviews: rating.total_reviews
+          };
+          return acc;
+        }, {} as {[key: number]: {average_rating: number, total_reviews: number}});
+        
+        setDoctorRatings(ratingsMap);
         setError(null);
       } catch (err) {
         console.error("Error fetching doctors:", err);
@@ -134,7 +163,7 @@ const DoctorConsultation = () => {
       }
     };
 
-    fetchDoctors();
+    fetchDoctorsAndRatings();
   }, []);
 
   // Generate user initials
@@ -164,7 +193,7 @@ const DoctorConsultation = () => {
 
   // Apply filters to doctors list
   const filteredDoctors = doctors.filter((doctor) => {
-    const rating = doctor.average_rating || 4.5;
+    const rating = doctorRatings[doctor.id]?.average_rating || 0;
     return (
       (selectedLocation === "" || doctor.location === selectedLocation) &&
       rating >= ratingFilter &&
@@ -325,6 +354,7 @@ const DoctorConsultation = () => {
                 key={doctor.id}
                 doctor={doctor}
                 onClick={handleDoctorSelect}
+                doctorRatings={doctorRatings}
               />
             ))}
 
