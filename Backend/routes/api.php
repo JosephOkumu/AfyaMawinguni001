@@ -184,3 +184,9 @@ Route::prefix('payments/pesapal')->group(function () {
         Route::get('/status-by-tracking/{orderTrackingId}', [PaymentController::class, 'getPesapalPaymentStatusByTrackingId']);
     });
 });
+
+// Review routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store']);
+    Route::get('/doctors/{doctorId}/reviews', [App\Http\Controllers\ReviewController::class, 'getDoctorReviews']);
+});
