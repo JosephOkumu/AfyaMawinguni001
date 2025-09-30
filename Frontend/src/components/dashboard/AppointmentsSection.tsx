@@ -7,6 +7,8 @@ import {
   FileText,
   Home,
   TestTube,
+  Star,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -29,6 +31,10 @@ const AppointmentsSection = () => {
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | LabAppointment | NursingAppointment | null>(null);
+  const [rating, setRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -286,7 +292,18 @@ const AppointmentsSection = () => {
             </>
           ) : (
             <>
-              {appointment.status !== "completed" && (
+              {appointment.status === "completed" ? (
+                <Button 
+                  size="sm" 
+                  className="text-xs bg-primary-blue hover:bg-secondary-green hover:text-white text-white border border-gray-300"
+                  onClick={() => {
+                    setSelectedAppointment(appointment);
+                    setShowReviewModal(true);
+                  }}
+                >
+                  Review
+                </Button>
+              ) : (
                 <Button variant="outline" size="sm" className="text-xs">
                   {"doctor_id" in appointment
                     ? "View Report"
@@ -391,6 +408,92 @@ const AppointmentsSection = () => {
           </Link>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {showReviewModal && selectedAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Rate Your Experience</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowReviewModal(false);
+                  setSelectedAppointment(null);
+                  setRating(0);
+                  setReviewText("");
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Star Rating */}
+            <div className="mb-4">
+              <p className="text-sm font-medium mb-2">Rating</p>
+              <div className="flex space-x-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className="focus:outline-none"
+                  >
+                    <Star
+                      className={`h-6 w-6 ${
+                        star <= rating
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Review Text */}
+            <div className="mb-4">
+              <p className="text-sm font-medium mb-2">Review (Optional)</p>
+              <textarea
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                placeholder="Share your experience..."
+                className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={4}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowReviewModal(false);
+                  setSelectedAppointment(null);
+                  setRating(0);
+                  setReviewText("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  // TODO: Submit review logic
+                  console.log("Rating:", rating, "Review:", reviewText);
+                  setShowReviewModal(false);
+                  setSelectedAppointment(null);
+                  setRating(0);
+                  setReviewText("");
+                }}
+                disabled={rating === 0}
+                className="bg-primary-blue hover:bg-primary-blue/90"
+              >
+                Submit Review
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
