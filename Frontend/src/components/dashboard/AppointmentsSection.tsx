@@ -17,6 +17,7 @@ import appointmentService, {
   LabAppointment,
   NursingAppointment,
 } from "@/services/appointmentService";
+import reviewService from "@/services/reviewService";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 
@@ -35,6 +36,7 @@ const AppointmentsSection = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | LabAppointment | NursingAppointment | null>(null);
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -477,18 +479,35 @@ const AppointmentsSection = () => {
                 Cancel
               </Button>
               <Button
-                onClick={() => {
-                  // TODO: Submit review logic
-                  console.log("Rating:", rating, "Review:", reviewText);
-                  setShowReviewModal(false);
-                  setSelectedAppointment(null);
-                  setRating(0);
-                  setReviewText("");
+                onClick={async () => {
+                  if (!selectedAppointment || !("doctor_id" in selectedAppointment)) return;
+                  
+                  setIsSubmittingReview(true);
+                  try {
+                    await reviewService.submitReview({
+                      appointment_id: selectedAppointment.id,
+                      rating: rating,
+                      review_text: reviewText || undefined
+                    });
+                    
+                    // Close modal and reset form
+                    setShowReviewModal(false);
+                    setSelectedAppointment(null);
+                    setRating(0);
+                    setReviewText("");
+                    
+                    // Show success message (optional)
+                    alert("Review submitted successfully!");
+                  } catch (error: any) {
+                    alert(error.message || "Failed to submit review");
+                  } finally {
+                    setIsSubmittingReview(false);
+                  }
                 }}
-                disabled={rating === 0}
+                disabled={rating === 0 || isSubmittingReview}
                 className="bg-primary-blue hover:bg-primary-blue/90"
               >
-                Submit Review
+                {isSubmittingReview ? "Submitting..." : "Submit Review"}
               </Button>
             </div>
           </div>
