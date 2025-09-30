@@ -524,13 +524,12 @@ const DoctorDetails = () => {
         {/* Back Button */}
         <div className="mb-4">
           <Button
-            variant="ghost"
             size="sm"
-            className="flex items-center text-gray-600"
+            className="flex items-center text-xs font-semibold bg-primary-blue hover:bg-secondary-green hover:text-white text-white border border-gray-300"
             onClick={() => navigate("/patient-dashboard/consultation")}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Doctors
+            Back
           </Button>
         </div>
 
