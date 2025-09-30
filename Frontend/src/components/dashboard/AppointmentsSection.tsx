@@ -37,6 +37,7 @@ const AppointmentsSection = () => {
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [hasAlreadyReviewed, setHasAlreadyReviewed] = useState(false);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -298,8 +299,19 @@ const AppointmentsSection = () => {
                 <Button 
                   size="sm" 
                   className="text-xs bg-primary-blue hover:bg-secondary-green hover:text-white text-white border border-gray-300"
-                  onClick={() => {
+                  onClick={async () => {
                     setSelectedAppointment(appointment);
+                    
+                    // Check if user has already reviewed this doctor
+                    if ("doctor_id" in appointment) {
+                      try {
+                        const reviewsData = await reviewService.getDoctorReviews(appointment.doctor_id);
+                        setHasAlreadyReviewed(reviewsData.current_user_reviewed);
+                      } catch (error) {
+                        setHasAlreadyReviewed(false);
+                      }
+                    }
+                    
                     setShowReviewModal(true);
                   }}
                 >
@@ -425,6 +437,7 @@ const AppointmentsSection = () => {
                   setSelectedAppointment(null);
                   setRating(0);
                   setReviewText("");
+                  setHasAlreadyReviewed(false);
                 }}
               >
                 <X className="h-4 w-4" />
@@ -434,23 +447,29 @@ const AppointmentsSection = () => {
             {/* Star Rating */}
             <div className="mb-4">
               <p className="text-sm font-medium mb-2">Rating</p>
-              <div className="flex space-x-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    className="focus:outline-none"
-                  >
-                    <Star
-                      className={`h-6 w-6 ${
-                        star <= rating
-                          ? "text-yellow-400 fill-yellow-400"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
+              {hasAlreadyReviewed ? (
+                <div className="text-red-600 text-sm font-medium">
+                  You have already reviewed this doctor. Only one review per doctor is allowed.
+                </div>
+              ) : (
+                <div className="flex space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setRating(star)}
+                      className="focus:outline-none"
+                    >
+                      <Star
+                        className={`h-6 w-6 ${
+                          star <= rating
+                            ? "text-yellow-400 fill-yellow-400"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Review Text */}
@@ -459,9 +478,14 @@ const AppointmentsSection = () => {
               <textarea
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
-                placeholder="Share your experience..."
-                className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={hasAlreadyReviewed ? "Review already submitted" : "Share your experience..."}
+                className={`w-full p-3 border rounded-lg resize-none focus:outline-none ${
+                  hasAlreadyReviewed 
+                    ? "border-red-300 bg-red-50 text-red-400 cursor-not-allowed" 
+                    : "border-gray-300 focus:ring-2 focus:ring-blue-500"
+                }`}
                 rows={4}
+                disabled={hasAlreadyReviewed}
               />
             </div>
 
@@ -474,6 +498,7 @@ const AppointmentsSection = () => {
                   setSelectedAppointment(null);
                   setRating(0);
                   setReviewText("");
+                  setHasAlreadyReviewed(false);
                 }}
               >
                 Cancel
@@ -495,6 +520,7 @@ const AppointmentsSection = () => {
                     setSelectedAppointment(null);
                     setRating(0);
                     setReviewText("");
+                    setHasAlreadyReviewed(false);
                     
                     // Show success message (optional)
                     alert("Review submitted successfully!");
@@ -504,10 +530,19 @@ const AppointmentsSection = () => {
                     setIsSubmittingReview(false);
                   }
                 }}
-                disabled={rating === 0 || isSubmittingReview}
-                className="bg-primary-blue hover:bg-primary-blue/90"
+                disabled={rating === 0 || isSubmittingReview || hasAlreadyReviewed}
+                className={`${
+                  hasAlreadyReviewed 
+                    ? "bg-gray-400 cursor-not-allowed" 
+                    : "bg-primary-blue hover:bg-primary-blue/90"
+                }`}
               >
-                {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                {hasAlreadyReviewed 
+                  ? "Already Reviewed" 
+                  : isSubmittingReview 
+                    ? "Submitting..." 
+                    : "Submit Review"
+                }
               </Button>
             </div>
           </div>

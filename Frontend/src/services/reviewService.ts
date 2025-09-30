@@ -18,6 +18,7 @@ export interface DoctorReviewsResponse {
   reviews: Review[];
   average_rating: number;
   total_reviews: number;
+  current_user_reviewed: boolean;
 }
 
 class ReviewService {
@@ -38,6 +39,7 @@ class ReviewService {
       throw new Error(error.response?.data?.error || 'Failed to fetch reviews');
     }
   }
+
 }
 
 export default new ReviewService();

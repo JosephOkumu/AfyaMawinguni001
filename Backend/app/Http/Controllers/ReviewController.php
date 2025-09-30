@@ -60,6 +60,14 @@ class ReviewController extends Controller
         $averageRating = $reviews->avg('rating');
         $totalReviews = $reviews->count();
 
+        // Check if current authenticated user has already reviewed this doctor
+        $currentUserReviewed = false;
+        if (Auth::check()) {
+            $currentUserReviewed = Review::where('doctor_id', $doctorId)
+                ->where('patient_id', Auth::id())
+                ->exists();
+        }
+
         return response()->json([
             'reviews' => $reviews->map(function ($review) {
                 return [
@@ -71,7 +79,8 @@ class ReviewController extends Controller
                 ];
             }),
             'average_rating' => $averageRating ? round($averageRating, 1) : 0,
-            'total_reviews' => $totalReviews
+            'total_reviews' => $totalReviews,
+            'current_user_reviewed' => $currentUserReviewed
         ]);
     }
 }
