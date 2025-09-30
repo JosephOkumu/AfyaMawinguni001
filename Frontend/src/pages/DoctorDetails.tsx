@@ -735,7 +735,7 @@ const DoctorDetails = () => {
           <CardContent className="p-6">
             {/* Select Consultation Type */}
             <div className="mb-6">
-              <Label className="mb-2 block font-medium">
+              <Label className="mb-4 block text-xl font-bold text-gray-800 border-b-2 border-green-500 pb-2">
                 Select Consultation Type
               </Label>
               <RadioGroup
@@ -745,21 +745,21 @@ const DoctorDetails = () => {
               >
                 {doctor.online_consultation_fee && (
                   <div
-                    className={`border rounded-lg p-4 flex items-center space-x-2 ${
+                    className={`border-2 rounded-lg p-4 flex items-center space-x-2 transition-all duration-200 hover:shadow-md ${
                       consultationType === "online"
-                        ? "bg-blue-50 border-blue-500"
-                        : ""
+                        ? "bg-blue-50 border-blue-500 shadow-md"
+                        : "border-gray-300 hover:border-blue-300"
                     }`}
                   >
                     <RadioGroupItem value="online" id="online" />
                     <Label
                       htmlFor="online"
-                      className="flex items-center cursor-pointer"
+                      className="flex items-center cursor-pointer w-full"
                     >
-                      <Video className="h-5 w-5 mr-2 text-blue-500" />
+                      <Video className="h-6 w-6 mr-3 text-blue-500" />
                       <div>
-                        <div>Online Consultation</div>
-                        <div className="text-sm text-gray-500">
+                        <div className="font-semibold text-lg text-gray-800">Online Consultation</div>
+                        <div className="text-sm font-medium text-blue-600">
                           KES {doctor.online_consultation_fee}
                         </div>
                       </div>
@@ -767,21 +767,21 @@ const DoctorDetails = () => {
                   </div>
                 )}
                 <div
-                  className={`border rounded-lg p-4 flex items-center space-x-2 ${
+                  className={`border-2 rounded-lg p-4 flex items-center space-x-2 transition-all duration-200 hover:shadow-md ${
                     consultationType === "physical"
-                      ? "bg-green-50 border-green-500"
-                      : ""
+                      ? "bg-green-50 border-green-500 shadow-md"
+                      : "border-gray-300 hover:border-green-300"
                   }`}
                 >
                   <RadioGroupItem value="physical" id="physical" />
                   <Label
                     htmlFor="physical"
-                    className="flex items-center cursor-pointer"
+                    className="flex items-center cursor-pointer w-full"
                   >
-                    <UserRound className="h-5 w-5 mr-2 text-green-500" />
+                    <UserRound className="h-6 w-6 mr-3 text-green-500" />
                     <div>
-                      <div>Physical Consultation</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="font-semibold text-lg text-gray-800">Physical Consultation</div>
+                      <div className="text-sm font-medium text-green-600">
                         KES{" "}
                         {doctor.physical_consultation_fee ||
                           doctor.default_consultation_fee}
