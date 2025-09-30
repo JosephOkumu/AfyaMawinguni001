@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import reviewService, { Review, DoctorReviewsResponse } from "@/services/reviewService";
 import {
   Search,
   Bell,
@@ -126,6 +127,7 @@ const DoctorDetails = () => {
   };
 
   const [doctor, setDoctor] = useState<Doctor | null>(null);
+  const [reviewsData, setReviewsData] = useState<DoctorReviewsResponse | null>(null);
   const [consultationType, setConsultationType] = useState("physical");
   const [date, setDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState(null);
@@ -179,13 +181,18 @@ const DoctorDetails = () => {
     },
   });
 
-  // Fetch doctor by ID when component mounts
+  // Fetch doctor and reviews when component mounts
   useEffect(() => {
-    const fetchDoctor = async () => {
+    const fetchDoctorAndReviews = async () => {
       try {
         setLoading(true);
         const doctorData = await doctorService.getDoctor(parseInt(id!));
         setDoctor(doctorData);
+        
+        // Fetch reviews for this doctor
+        const reviews = await reviewService.getDoctorReviews(parseInt(id!));
+        setReviewsData(reviews);
+        
         setError(null);
       } catch (err) {
         console.error("Error fetching doctor:", err);
@@ -200,7 +207,7 @@ const DoctorDetails = () => {
     };
 
     if (id) {
-      fetchDoctor();
+      fetchDoctorAndReviews();
     }
   }, [id, navigate]);
 
@@ -566,13 +573,13 @@ const DoctorDetails = () => {
 
                   <div className="flex items-center mt-3 md:mt-0">
                     <div className="flex mr-2">
-                      {renderStars(doctor.average_rating || 4.5)}
+                      {renderStars(reviewsData?.average_rating || 0)}
                     </div>
                     <Badge
                       variant="outline"
                       className="bg-white/20 border-white/30 text-white p-1"
                     >
-                      {doctor.average_rating || 4.5} / 5
+                      {reviewsData?.average_rating || 0} / 5
                     </Badge>
                   </div>
                 </div>
@@ -699,32 +706,38 @@ const DoctorDetails = () => {
                 <div className="space-y-4">
                   <div className="flex items-center mb-4">
                     <div className="flex mr-2">
-                      {renderStars(doctor.average_rating || 4.5)}
+                      {renderStars(reviewsData?.average_rating || 0)}
                     </div>
                     <span className="text-lg font-bold">
-                      {doctor.average_rating || 4.5}/5
+                      {reviewsData?.average_rating || 0}/5
                     </span>
                     <span className="text-gray-500 ml-2">
-                      ({dummyReviews.length} reviews)
+                      ({reviewsData?.total_reviews || 0} reviews)
                     </span>
                   </div>
 
-                  {dummyReviews.map((review) => (
-                    <Card key={review.id} className="border-0 shadow-sm">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between mb-2">
-                          <h4 className="font-medium">{review.patientName}</h4>
-                          <span className="text-gray-500 text-sm">
-                            {review.date}
+                  {reviewsData?.reviews && reviewsData.reviews.length > 0 ? (
+                    reviewsData.reviews.map((review) => (
+                      <Card key={review.id} className="border-0 shadow-sm">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between mb-2">
+                            <h4 className="font-medium">{review.patient_name}</h4>
+                            <span className="text-gray-500 text-sm">
+                              {review.created_at}
                           </span>
                         </div>
                         <div className="flex mb-2">
                           {renderStars(review.rating)}
                         </div>
-                        <p className="text-gray-700">{review.comment}</p>
+                        <p className="text-gray-700">{review.review_text}</p>
                       </CardContent>
                     </Card>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No reviews yet. Be the first to leave a review!</p>
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 
