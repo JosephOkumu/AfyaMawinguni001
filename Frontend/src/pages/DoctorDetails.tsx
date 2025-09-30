@@ -71,26 +71,16 @@ const dummyReviews = [
     comment:
       "Professional and knowledgeable doctor. The consultation was very helpful.",
   },
+  {
+    id: 3,
+    patientName: "John D.",
+    rating: 5,
+    date: "January 10, 2025",
+    comment:
+      "Very satisfied with the service. The doctor was very friendly and explained everything clearly.",
+  },
 ];
 
-// Dummy FAQ data - will be replaced later
-const dummyFAQ = [
-  {
-    question: "What should I bring to my appointment?",
-    answer:
-      "Please bring a valid ID, insurance card (if applicable), and any previous medical records relevant to your condition.",
-  },
-  {
-    question: "How long is a typical consultation?",
-    answer:
-      "Consultations typically last 30-45 minutes, allowing adequate time for examination and discussion.",
-  },
-  {
-    question: "Do you accept insurance?",
-    answer:
-      "We accept most major insurance plans. Please contact us to verify coverage for your specific plan.",
-  },
-];
 
 // Interface for dynamic time slots
 interface TimeSlot {
@@ -640,10 +630,9 @@ const DoctorDetails = () => {
         <Card className="border-0 shadow-md overflow-hidden mb-6">
           <CardContent className="p-6">
             <Tabs defaultValue="about">
-              <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="about">About</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
-                <TabsTrigger value="faq">FAQ</TabsTrigger>
               </TabsList>
 
               <TabsContent value="about" className="space-y-4">
@@ -659,15 +648,6 @@ const DoctorDetails = () => {
                   </p>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-medium text-green-700 mb-2">
-                    Certifications
-                  </h3>
-                  <p className="text-gray-700">
-                    Professional certifications information will be available
-                    soon.
-                  </p>
-                </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="bg-green-50 p-4 rounded-lg">
@@ -741,18 +721,6 @@ const DoctorDetails = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="faq" className="space-y-4">
-                <div className="space-y-4">
-                  {dummyFAQ.map((faq, index) => (
-                    <div key={index}>
-                      <h4 className="font-medium text-green-700 mb-2">
-                        {faq.question}
-                      </h4>
-                      <p className="text-gray-700">{faq.answer}</p>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
