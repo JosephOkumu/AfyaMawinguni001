@@ -559,10 +559,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                           size="sm"
                           className="flex-1 bg-blue-600 hover:bg-blue-700"
                           onClick={() => {
-                            if (onAppointmentComplete) {
-                              onAppointmentComplete(selectedAppointment.id);
-                              setShowAppointmentDetails(false);
-                            }
+                            // Start call functionality will be implemented here
                           }}
                         >
                           <Video className="h-4 w-4 mr-2" />
