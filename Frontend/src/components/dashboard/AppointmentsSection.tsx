@@ -228,9 +228,10 @@ const AppointmentsSection = () => {
 
   const handleAppointmentClick = (appointment: Appointment | LabAppointment | NursingAppointment) => {
     // Only handle clicks for virtual doctor appointments with confirmed or pending status
-    if ("doctor_id" in appointment && 
-        appointment.type === "virtual" && 
-        (appointment.status === "confirmed" || appointment.status === "pending")) {
+    const isVirtualAppointment = "doctor_id" in appointment && "type" in appointment && appointment.type === "virtual";
+    const hasValidStatus = appointment.status === "confirmed" || appointment.status === "pending" || appointment.status === "scheduled";
+    
+    if (isVirtualAppointment && hasValidStatus) {
       navigate(`/patient-dashboard/appointments/${appointment.id}`);
     }
   };
@@ -316,33 +317,43 @@ const AppointmentsSection = () => {
           {isUpcoming ? (
             <>
               {/* Show View call button for virtual appointments with confirmed/pending status - regardless of upcoming status */}
-              {"doctor_id" in appointment && 
-               appointment.type === "virtual" && 
-               (appointment.status === "confirmed" || appointment.status === "pending") && (
-                <Button 
-                  size="sm" 
-                  className="text-xs bg-green-600 hover:bg-green-700 text-white"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/patient-dashboard/appointments/${appointment.id}`);
-                  }}
-                >
-                  View call
-                </Button>
-              )}
+              {(() => {
+                const isVirtualAppointment = "doctor_id" in appointment && "type" in appointment && appointment.type === "virtual";
+                const hasValidStatus = appointment.status === "confirmed" || appointment.status === "pending" || appointment.status === "scheduled";
+                const shouldShowViewCall = isVirtualAppointment && hasValidStatus;
+                
+                return shouldShowViewCall ? (
+                  <Button 
+                    size="sm" 
+                    className="text-xs bg-green-600 hover:bg-green-700 text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/patient-dashboard/appointments/${appointment.id}`);
+                    }}
+                  >
+                    View call
+                  </Button>
+                ) : null;
+              })()}
               {/* Show regular buttons only if not a virtual appointment with View call button */}
-              {!("doctor_id" in appointment && 
-                 appointment.type === "virtual" && 
-                 (appointment.status === "confirmed" || appointment.status === "pending")) && (
-                <>
-                  <Button variant="outline" size="sm" className="text-xs">
-                    Reschedule
-                  </Button>
-                  <Button variant="destructive" size="sm" className="text-xs">
-                    Cancel
-                  </Button>
-                </>
-              )}
+              {(() => {
+                const hasDoctorid = "doctor_id" in appointment;
+                const hasTypeProperty = "type" in appointment;
+                const isVirtual = hasTypeProperty && appointment.type === "virtual";
+                const hasValidStatus = appointment.status === "confirmed" || appointment.status === "pending" || appointment.status === "scheduled";
+                const shouldHideButtons = hasDoctorid && isVirtual && hasValidStatus;
+                
+                return !shouldHideButtons ? (
+                  <>
+                    <Button variant="outline" size="sm" className="text-xs">
+                      Reschedule
+                    </Button>
+                    <Button variant="destructive" size="sm" className="text-xs">
+                      Cancel
+                    </Button>
+                  </>
+                ) : null;
+              })()}
             </>
           ) : (
             <>
@@ -373,37 +384,37 @@ const AppointmentsSection = () => {
                   size="sm" 
                   className={`text-xs ${
                     "doctor_id" in appointment && 
-                    appointment.type === "virtual" && 
-                    (appointment.status === "confirmed" || appointment.status === "pending")
+                    "type" in appointment && appointment.type === "virtual" && 
+                    (appointment.status === "confirmed" || appointment.status === "pending" || appointment.status === "scheduled")
                       ? "bg-primary-blue hover:bg-secondary-green hover:text-white text-white border border-gray-300"
                       : ""
                   }`}
                   variant={
                     "doctor_id" in appointment && 
-                    appointment.type === "virtual" && 
-                    (appointment.status === "confirmed" || appointment.status === "pending")
+                    "type" in appointment && appointment.type === "virtual" && 
+                    (appointment.status === "confirmed" || appointment.status === "pending" || appointment.status === "scheduled")
                       ? undefined
                       : "outline"
                   }
                   onClick={(e) => {
                     // For virtual appointments with confirmed/pending status, navigate to video call
                     if ("doctor_id" in appointment && 
-                        appointment.type === "virtual" && 
-                        (appointment.status === "confirmed" || appointment.status === "pending")) {
+                        "type" in appointment && appointment.type === "virtual" && 
+                        (appointment.status === "confirmed" || appointment.status === "pending" || appointment.status === "scheduled")) {
                       e.stopPropagation();
                       navigate(`/patient-dashboard/appointments/${appointment.id}`);
                     }
                   }}
                 >
-                  {"doctor_id" in appointment && 
-                   appointment.type === "virtual" && 
-                   (appointment.status === "confirmed" || appointment.status === "pending")
-                    ? "View call"
-                    : "doctor_id" in appointment
-                      ? "View Report"
-                      : "lab_provider_id" in appointment
-                        ? "View Results"
-                        : "View Care Notes"}
+                  {(() => {
+                    const isVirtualAppointment = "doctor_id" in appointment && "type" in appointment && appointment.type === "virtual";
+                    const hasValidStatus = appointment.status === "confirmed" || appointment.status === "pending" || appointment.status === "scheduled";
+                    const shouldShowViewCall = isVirtualAppointment && hasValidStatus;
+                    
+                    return shouldShowViewCall ? "View call" :
+                           "doctor_id" in appointment ? "View Report" :
+                           "lab_provider_id" in appointment ? "View Results" : "View Care Notes";
+                  })()}
                 </Button>
               )}
             </>
