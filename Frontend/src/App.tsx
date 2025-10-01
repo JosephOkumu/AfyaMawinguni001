@@ -24,6 +24,7 @@ import LabDashboard from "./pages/ProviderDashboard/LabDashboard";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import AboutUs from "./components/AboutUs"; // Correcting the import path for AboutUs component
+import AppointmentDetails from "./pages/AppointmentDetails";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,10 @@ const App = () => (
               <Route
                 path="/patient-dashboard/appointments"
                 element={<PatientAppointments />}
+              />
+              <Route
+                path="/patient-dashboard/appointments/:id"
+                element={<AppointmentDetails />}
               />
 
               {/* Medicine Routes */}

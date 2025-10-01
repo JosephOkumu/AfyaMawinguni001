@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import appointmentService, {
   Appointment,
   LabAppointment,
@@ -23,6 +23,7 @@ import { format } from "date-fns";
 
 const AppointmentsSection = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [doctorAppointments, setDoctorAppointments] = useState<Appointment[]>(
     [],
   );
@@ -225,6 +226,15 @@ const AppointmentsSection = () => {
     return displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
   };
 
+  const handleAppointmentClick = (appointment: Appointment | LabAppointment | NursingAppointment) => {
+    // Only handle clicks for virtual doctor appointments with confirmed or pending status
+    if ("doctor_id" in appointment && 
+        appointment.type === "virtual" && 
+        (appointment.status === "confirmed" || appointment.status === "pending")) {
+      navigate(`/patient-dashboard/appointments/${appointment.id}`);
+    }
+  };
+
   const renderAppointmentCard = (
     appointment: Appointment | LabAppointment | NursingAppointment,
     isUpcoming: boolean = true,
@@ -236,6 +246,22 @@ const AppointmentsSection = () => {
         : appointment.appointment_datetime,
     );
 
+    const isClickable = "doctor_id" in appointment && 
+                       appointment.type === "virtual" && 
+                       (appointment.status === "confirmed" || appointment.status === "pending");
+    
+    // Debug log for isClickable
+    if ("doctor_id" in appointment && appointment.type === "virtual") {
+      console.log("Checking isClickable for appointment:", {
+        id: appointment.id,
+        doctor_id: appointment.doctor_id,
+        type: appointment.type,
+        status: appointment.status,
+        isClickable: isClickable,
+        isUpcoming: isUpcoming
+      });
+    }
+
     return (
       <div
         key={`${appointment.id}-${
@@ -245,7 +271,10 @@ const AppointmentsSection = () => {
               ? "lab"
               : "nursing"
         }`}
-        className="border border-gray-200 rounded-lg p-4 flex items-start space-x-4"
+        className={`border border-gray-200 rounded-lg p-4 flex items-start space-x-4 ${
+          isClickable ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""
+        }`}
+        onClick={() => isClickable && handleAppointmentClick(appointment)}
       >
         <div className="flex-shrink-0 w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
           {getAppointmentIcon(appointment)}
@@ -286,12 +315,34 @@ const AppointmentsSection = () => {
         <div className="flex-shrink-0 flex space-x-2">
           {isUpcoming ? (
             <>
-              <Button variant="outline" size="sm" className="text-xs">
-                Reschedule
-              </Button>
-              <Button variant="destructive" size="sm" className="text-xs">
-                Cancel
-              </Button>
+              {/* Show View call button for virtual appointments with confirmed/pending status - regardless of upcoming status */}
+              {"doctor_id" in appointment && 
+               appointment.type === "virtual" && 
+               (appointment.status === "confirmed" || appointment.status === "pending") && (
+                <Button 
+                  size="sm" 
+                  className="text-xs bg-green-600 hover:bg-green-700 text-white"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/patient-dashboard/appointments/${appointment.id}`);
+                  }}
+                >
+                  View call
+                </Button>
+              )}
+              {/* Show regular buttons only if not a virtual appointment with View call button */}
+              {!("doctor_id" in appointment && 
+                 appointment.type === "virtual" && 
+                 (appointment.status === "confirmed" || appointment.status === "pending")) && (
+                <>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    Reschedule
+                  </Button>
+                  <Button variant="destructive" size="sm" className="text-xs">
+                    Cancel
+                  </Button>
+                </>
+              )}
             </>
           ) : (
             <>
@@ -318,12 +369,41 @@ const AppointmentsSection = () => {
                   Review
                 </Button>
               ) : (
-                <Button variant="outline" size="sm" className="text-xs">
-                  {"doctor_id" in appointment
-                    ? "View Report"
-                    : "lab_provider_id" in appointment
-                      ? "View Results"
-                      : "View Care Notes"}
+                <Button 
+                  size="sm" 
+                  className={`text-xs ${
+                    "doctor_id" in appointment && 
+                    appointment.type === "virtual" && 
+                    (appointment.status === "confirmed" || appointment.status === "pending")
+                      ? "bg-primary-blue hover:bg-secondary-green hover:text-white text-white border border-gray-300"
+                      : ""
+                  }`}
+                  variant={
+                    "doctor_id" in appointment && 
+                    appointment.type === "virtual" && 
+                    (appointment.status === "confirmed" || appointment.status === "pending")
+                      ? undefined
+                      : "outline"
+                  }
+                  onClick={(e) => {
+                    // For virtual appointments with confirmed/pending status, navigate to video call
+                    if ("doctor_id" in appointment && 
+                        appointment.type === "virtual" && 
+                        (appointment.status === "confirmed" || appointment.status === "pending")) {
+                      e.stopPropagation();
+                      navigate(`/patient-dashboard/appointments/${appointment.id}`);
+                    }
+                  }}
+                >
+                  {"doctor_id" in appointment && 
+                   appointment.type === "virtual" && 
+                   (appointment.status === "confirmed" || appointment.status === "pending")
+                    ? "View call"
+                    : "doctor_id" in appointment
+                      ? "View Report"
+                      : "lab_provider_id" in appointment
+                        ? "View Results"
+                        : "View Care Notes"}
                 </Button>
               )}
             </>
@@ -410,6 +490,18 @@ const AppointmentsSection = () => {
                 : appointment.appointment_datetime,
             );
             const isUpcoming = appointmentDate > now && appointment.status !== "cancelled" && appointment.status !== "completed";
+            
+            // Debug log for virtual appointments
+            if ("doctor_id" in appointment && appointment.type === "virtual") {
+              console.log("Virtual appointment found:", {
+                id: appointment.id,
+                status: appointment.status,
+                type: appointment.type,
+                isUpcoming: isUpcoming,
+                appointmentDate: appointmentDate,
+                now: now
+              });
+            }
             return renderAppointmentCard(appointment, isUpcoming);
           })
         )}
