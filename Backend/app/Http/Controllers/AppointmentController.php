@@ -94,10 +94,6 @@ class AppointmentController extends Controller
         $data['status'] = 'pending';
         $data['is_paid'] = $request->input('is_paid', false);
 
-        // Generate meeting link for virtual appointments
-        if ($request->type === 'virtual') {
-            $data['meeting_link'] = 'https://meet.afyamawinguni.com/' . uniqid();
-        }
 
         $appointment = Appointment::create($data);
 
@@ -172,10 +168,6 @@ class AppointmentController extends Controller
             ], 404);
         }
 
-        // If changing to virtual type and no meeting link is set, generate one
-        if ($request->has('type') && $request->type === 'virtual' && empty($request->meeting_link)) {
-            $request->merge(['meeting_link' => 'https://meet.afyamawinguni.com/' . uniqid()]);
-        }
 
         $appointment->update($request->all());
 
