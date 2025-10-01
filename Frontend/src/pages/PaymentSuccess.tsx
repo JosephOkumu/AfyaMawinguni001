@@ -167,7 +167,7 @@ const PaymentSuccess = () => {
             patient_id: bookingData.patient_id,
             doctor_id: bookingData.doctor_id,
             appointment_datetime: bookingData.appointment_datetime,
-            type: "in_person",
+            type: bookingData.consultation_type || "in_person",
             reason_for_visit: "Consultation",
             fee: bookingData.consultation_fee,
             is_paid: true,

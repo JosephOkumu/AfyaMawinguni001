@@ -118,7 +118,7 @@ const DoctorDetails = () => {
 
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [reviewsData, setReviewsData] = useState<DoctorReviewsResponse | null>(null);
-  const [consultationType, setConsultationType] = useState("physical");
+  const [consultationType, setConsultationType] = useState("in_person");
   const [date, setDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState(null);
   const [dynamicTimeSlots, setDynamicTimeSlots] = useState<DoctorTimeSlot[]>([]);
@@ -405,6 +405,7 @@ const DoctorDetails = () => {
           doctor_id: doctor.id,
           appointment_datetime: appointmentDateTime.toISOString(),
           consultation_fee: Number(consultationFee),
+          consultation_type: consultationType, // Add consultation type to localStorage data
         };
 
         localStorage.setItem(
@@ -444,7 +445,7 @@ const DoctorDetails = () => {
   // Calculate consultation fee based on selected type
   const consultationFee = doctor ? 
     Number(
-      consultationType === "physical"
+      consultationType === "in_person"
         ? doctor.physical_consultation_fee || doctor.default_consultation_fee
         : doctor.online_consultation_fee || doctor.default_consultation_fee,
     ) || 0 : 0;
@@ -746,19 +747,19 @@ const DoctorDetails = () => {
                 {doctor.online_consultation_fee && (
                   <div
                     className={`border-2 rounded-lg p-4 flex items-center space-x-2 transition-all duration-200 hover:shadow-md ${
-                      consultationType === "online"
+                      consultationType === "virtual"
                         ? "bg-blue-50 border-blue-500 shadow-md"
                         : "border-gray-300 hover:border-blue-300"
                     }`}
                   >
-                    <RadioGroupItem value="online" id="online" />
+                    <RadioGroupItem value="virtual" id="virtual" />
                     <Label
-                      htmlFor="online"
+                      htmlFor="virtual"
                       className="flex items-center cursor-pointer w-full"
                     >
                       <Video className="h-6 w-6 mr-3 text-blue-500" />
                       <div>
-                        <div className="font-semibold text-lg text-gray-800">Online Consultation</div>
+                        <div className="font-semibold text-lg text-gray-800">Virtual Consultation</div>
                         <div className="text-sm font-medium text-blue-600">
                           KES {doctor.online_consultation_fee}
                         </div>
@@ -768,19 +769,19 @@ const DoctorDetails = () => {
                 )}
                 <div
                   className={`border-2 rounded-lg p-4 flex items-center space-x-2 transition-all duration-200 hover:shadow-md ${
-                    consultationType === "physical"
+                    consultationType === "in_person"
                       ? "bg-green-50 border-green-500 shadow-md"
                       : "border-gray-300 hover:border-green-300"
                   }`}
                 >
-                  <RadioGroupItem value="physical" id="physical" />
+                  <RadioGroupItem value="in_person" id="in_person" />
                   <Label
-                    htmlFor="physical"
+                    htmlFor="in_person"
                     className="flex items-center cursor-pointer w-full"
                   >
                     <UserRound className="h-6 w-6 mr-3 text-green-500" />
                     <div>
-                      <div className="font-semibold text-lg text-gray-800">Physical Consultation</div>
+                      <div className="font-semibold text-lg text-gray-800">In-Person Consultation</div>
                       <div className="text-sm font-medium text-green-600">
                         KES{" "}
                         {doctor.physical_consultation_fee ||
@@ -998,9 +999,9 @@ const DoctorDetails = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Consultation Type:</span>
                     <span className="font-medium">
-                      {consultationType === "online"
-                        ? "Online Consultation"
-                        : "Physical Consultation"}
+                      {consultationType === "virtual"
+                        ? "Virtual Consultation"
+                        : "In-Person Consultation"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -1058,9 +1059,9 @@ const DoctorDetails = () => {
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Consultation:</span>
                   <span className="font-medium">
-                    {consultationType === "online"
-                      ? "Online Consultation"
-                      : "Physical Consultation"}
+                    {consultationType === "virtual"
+                      ? "Virtual Consultation"
+                      : "In-Person Consultation"}
                   </span>
                 </div>
                 <div className="flex justify-between mb-2">
@@ -1115,14 +1116,14 @@ const DoctorDetails = () => {
                 Booking Successful!
               </h2>
               <p className="text-gray-600 mb-6">
-                Your {consultationType === "online" ? "online" : "physical"} consultation with {doctor.user.name} has been scheduled for{" "}
+                Your {consultationType === "virtual" ? "virtual" : "in-person"} consultation with {doctor.user.name} has been scheduled for{" "}
                 {date?.toLocaleDateString("en-GB")} at {timeSlot}.
               </p>
-              {consultationType === "online" && (
+              {consultationType === "virtual" && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Video className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium text-blue-800">Online Consultation</span>
+                    <span className="font-medium text-blue-800">Virtual Consultation</span>
                   </div>
                   <p className="text-sm text-blue-700">
                     You'll receive a call link before your appointment time.

@@ -425,10 +425,10 @@ class DoctorController extends Controller
             $totalSlots = count($allTimeSlots);
 
             // Get dates where ALL time slots are booked
-            // Only include paid appointments to mark dates as fully occupied
+            // Include pending, confirmed, and scheduled paid appointments to mark dates as fully occupied
             $occupiedDates = DB::table('appointments')
                 ->where('doctor_id', $id)
-                ->where('status', 'confirmed')
+                ->whereIn('status', ['pending', 'confirmed', 'scheduled'])
                 ->where('is_paid', true)
                 ->whereDate('appointment_datetime', '>=', now()->toDateString())
                 ->select(DB::raw('DATE(appointment_datetime) as date'))
@@ -483,10 +483,10 @@ class DoctorController extends Controller
         try {
             $date = $request->get('date');
 
-            // Get all confirmed and paid appointments for this doctor on the specified date
+            // Get all confirmed, scheduled, and pending paid appointments for this doctor on the specified date
             $occupiedTimes = DB::table('appointments')
                 ->where('doctor_id', $id)
-                ->where('status', 'confirmed')
+                ->whereIn('status', ['pending', 'confirmed', 'scheduled'])
                 ->where('is_paid', true)
                 ->whereDate('appointment_datetime', $date)
                 ->select(DB::raw('TIME_FORMAT(appointment_datetime, "%h:%i %p") as time'))
@@ -731,7 +731,7 @@ class DoctorController extends Controller
                 $timeSlots = $this->getDefaultTimeSlots();
             }
 
-            // Get booked appointments for this date
+            // Get booked appointments for this date (including pending paid appointments)
             $bookedTimes = DB::table('appointments')
                 ->where('doctor_id', $id)
                 ->whereIn('status', ['pending', 'scheduled', 'confirmed', 'completed'])

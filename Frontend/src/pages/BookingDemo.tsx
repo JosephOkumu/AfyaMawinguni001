@@ -73,7 +73,7 @@ const BookingDemo = () => {
     lab: null,
   });
 
-  const [consultationType, setConsultationType] = useState("physical");
+  const [consultationType, setConsultationType] = useState("in_person");
 
   const handleTimeSelection = (providerType: string, time: string) => {
     setSelectedTimes(prev => ({

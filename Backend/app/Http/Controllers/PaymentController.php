@@ -249,8 +249,8 @@ class PaymentController extends Controller
                         $appointment->patient_id = $bookingData['patient_id'];
                         $appointment->doctor_id = $bookingData['doctor_id'];
                         $appointment->appointment_datetime = $bookingData['appointment_datetime'];
-                        // Set appointment type based on consultation_type from booking data
-                        $appointment->type = isset($bookingData['consultation_type']) && $bookingData['consultation_type'] === 'online' ? 'virtual' : 'in_person';
+                        // Set appointment type directly from booking data (using database values)
+                        $appointment->type = $bookingData['consultation_type'] ?? 'in_person';
                         $appointment->reason_for_visit = 'Doctor consultation';
                         $appointment->fee = $bookingData['consultation_fee'];
                         $appointment->status = 'pending';
