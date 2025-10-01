@@ -563,7 +563,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                           }}
                         >
                           <Video className="h-4 w-4 mr-2" />
-                          Start Call
+                          Video Call
                         </Button>
                         <Button variant="outline" size="sm" className="flex-1">
                           Reschedule
