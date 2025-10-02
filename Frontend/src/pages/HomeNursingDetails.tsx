@@ -1098,14 +1098,6 @@ const HomeNursingDetails = () => {
                           <p className="text-sm text-gray-600 mt-1">
                             {service.description}
                           </p>
-                          <div className="flex items-center mt-2 text-xs text-gray-500">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Availability: {service.availability}
-                          </div>
-                          <div className="flex items-center mt-1 text-xs text-gray-500">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            Location: {service.location}
-                          </div>
                           <div className="flex items-center mt-1 text-xs text-gray-500">
                             <Users className="h-3 w-3 mr-1" />
                             Experience: {service.experience}
@@ -1189,9 +1181,6 @@ const HomeNursingDetails = () => {
                         className="flex justify-between text-sm"
                       >
                         <span className="text-gray-700">{service?.name}</span>
-                        <span className="text-gray-900">
-                          KES {parseFloat(String(service?.price)) || 0}
-                        </span>
                       </div>
                     );
                   })}
@@ -1203,8 +1192,8 @@ const HomeNursingDetails = () => {
                   </div>
                 </div>
               ) : (
-                <div className="border rounded-lg p-4 bg-gray-50 text-center text-gray-500">
-                  <p>Please select at least one service</p>
+                <div className="border rounded-lg p-4 bg-red-50 text-center text-red-500 border-red-200">
+                  <p>Please select at least one service above</p>
                 </div>
               )}
             </div>
