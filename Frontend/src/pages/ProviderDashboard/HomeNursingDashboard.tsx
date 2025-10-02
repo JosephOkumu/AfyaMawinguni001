@@ -1585,7 +1585,7 @@ const HomeNursingDashboard = () => {
                     <h3 className="text-2xl font-bold">
                       KES {appointmentHistory
                         .filter((apt) => apt.status === "completed" && apt.is_paid)
-                        .reduce((total, apt) => total + parseFloat(apt.service_price || 0), 0)
+                        .reduce((total, apt) => total + parseFloat(String(apt.service_price || 0)), 0)
                         .toLocaleString()}
                     </h3>
                   </div>
@@ -1599,19 +1599,18 @@ const HomeNursingDashboard = () => {
             {/* Tabs Navigation */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="mb-6 w-full justify-start overflow-x-auto space-x-2">
-                <TabsTrigger value="services" className="gap-2">
-                  <Home className="h-4 w-4" />
-                  <span>My Services</span>
+                <TabsTrigger value="requests" className="gap-2">
+                  <Bell className="h-4 w-4" />
+                  <span>Pending Requests</span>
                 </TabsTrigger>
                 <TabsTrigger value="calendar" className="gap-2">
                   <Calendar className="h-4 w-4" />
                   <span>My Schedule</span>
                 </TabsTrigger>
-                <TabsTrigger value="requests" className="gap-2">
-                  <Bell className="h-4 w-4" />
-                  <span>Pending Requests</span>
+                <TabsTrigger value="services" className="gap-2">
+                  <Home className="h-4 w-4" />
+                  <span>My Services</span>
                 </TabsTrigger>
-
                 <TabsTrigger value="history" className="gap-2">
                   <Activity className="h-4 w-4" />
                   <span>Appointment History</span>
