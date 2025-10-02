@@ -54,6 +54,7 @@ interface AppointmentCalendarProps {
   onAppointmentConfirm?: (appointmentId: number) => void;
   onAppointmentReject?: (appointmentId: number) => void;
   onAppointmentComplete?: (appointmentId: number) => void;
+  disableInternalModal?: boolean;
 }
 
 type FilterType = "all" | "today" | "tomorrow" | "week" | "month";
@@ -64,6 +65,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   onAppointmentConfirm,
   onAppointmentReject,
   onAppointmentComplete,
+  disableInternalModal = false,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -165,8 +167,10 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   };
 
   const handleAppointmentClick = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setShowAppointmentDetails(true);
+    if (!disableInternalModal) {
+      setSelectedAppointment(appointment);
+      setShowAppointmentDetails(true);
+    }
     if (onAppointmentClick) {
       onAppointmentClick(appointment);
     }

@@ -2003,9 +2003,33 @@ const HomeNursingDashboard = () => {
                           },
                         }))}
                         onAppointmentClick={(appointment) => {
-                          setSelectedAppointment(null);
+                          // Convert calendar appointment back to NursingAppointment format
+                          const nursingAppointment: NursingAppointment = {
+                            id: appointment.id,
+                            patient_id: appointment.patient_id,
+                            provider_id: appointment.doctor_id,
+                            appointment_datetime: appointment.appointment_datetime,
+                            status: appointment.status as "confirmed" | "scheduled" | "completed" | "cancelled",
+                            type: appointment.type,
+                            reason_for_visit: appointment.reason_for_visit,
+                            symptoms: appointment.symptoms,
+                            fee: appointment.fee,
+                            is_paid: appointment.is_paid,
+                            location: "Home visit", // Default location for nursing
+                            patient: {
+                              id: appointment.patient.id,
+                              user_id: appointment.patient_id,
+                              user: {
+                                name: appointment.patient.name,
+                                email: appointment.patient.email,
+                                phone_number: appointment.patient.phone_number,
+                              },
+                            },
+                          };
+                          setSelectedAppointment(nursingAppointment);
                           setShowAppointmentModal(true);
                         }}
+                        disableInternalModal={true}
                         onAppointmentConfirm={async (appointmentId) => {
                           try {
                             await acceptRequest(appointmentId);
