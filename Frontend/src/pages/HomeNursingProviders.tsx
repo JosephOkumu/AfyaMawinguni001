@@ -79,13 +79,17 @@ const NursingProviderCard = ({
   return (
     <Card className="overflow-hidden hover:shadow-md transition-all duration-300 h-full">
       <div className="relative">
-        <img
-          src={
-            provider.logo || "https://randomuser.me/api/portraits/men/32.jpg"
-          }
-          alt={provider.provider_name || provider.user.name}
-          className="w-full h-48 object-cover object-center"
-        />
+        {provider.logo ? (
+          <img
+            src={provider.logo}
+            alt={provider.provider_name || provider.user.name}
+            className="w-full h-48 object-cover object-center"
+          />
+        ) : (
+          <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+            <span className="text-gray-400 text-sm">No image available</span>
+          </div>
+        )}
         <Badge className="absolute top-2 right-2 bg-green-500 hover:bg-green-600">
           KES {provider.startingPrice}
         </Badge>
