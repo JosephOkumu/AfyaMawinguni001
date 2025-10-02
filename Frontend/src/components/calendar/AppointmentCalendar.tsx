@@ -46,6 +46,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Appointment } from "@/services/appointmentService";
+import { VideoCall } from "@/components/VideoCall";
 
 interface AppointmentCalendarProps {
   appointments: Appointment[];
@@ -433,106 +434,14 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
       {/* Content */}
       {view === "calendar" ? renderCalendarView() : renderListView()}
 
-      {/* Video Call Interface - Full Screen */}
-      <Dialog
-        open={showVideoCallInterface}
-        onOpenChange={setShowVideoCallInterface}
-      >
-        <DialogContent className="max-w-full h-screen m-0 p-0">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Virtual Appointment Video Call</DialogTitle>
-          </DialogHeader>
-          <div className="min-h-screen bg-white">
-            {(() => {
-              console.log("🎥 [AppointmentCalendar] Rendering full-screen video call interface for appointment:", selectedAppointment?.id);
-              return null;
-            })()}
-            {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowVideoCallInterface(false)}
-                  className="rounded-full"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <h1 className="text-xl font-semibold text-gray-900">
-                  Virtual Appointment
-                </h1>
-              </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="max-w-4xl mx-auto px-6 py-8">
-              {/* Video Container */}
-              <Card className="mb-8">
-                <CardContent className="p-8">
-                  <div className="aspect-video bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center mb-6">
-                    <div className="text-center text-gray-500">
-                      <Video className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                      <p className="text-lg font-medium">Video Call Area</p>
-                      <p className="text-sm">Video will appear here when call starts</p>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-4 justify-center mb-6">
-                    <Button
-                      className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium"
-                      size="lg"
-                      onClick={() => {
-                        console.log("🚀 [AppointmentCalendar] Start Call button clicked for appointment:", selectedAppointment?.id);
-                        // Start call functionality will be implemented here
-                      }}
-                    >
-                      <Video className="h-5 w-5 mr-2" />
-                      Start Call
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-medium"
-                      size="lg"
-                      onClick={() => {
-                        console.log("📅 [AppointmentCalendar] Reschedule button clicked for appointment:", selectedAppointment?.id);
-                        // Reschedule functionality will be implemented here
-                      }}
-                    >
-                      <Calendar className="h-5 w-5 mr-2" />
-                      Reschedule
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      className="border-red-600 text-red-600 hover:bg-red-50 px-8 py-3 rounded-lg font-medium"
-                      size="lg"
-                      onClick={() => {
-                        console.log("❌ [AppointmentCalendar] Cancel button clicked for appointment:", selectedAppointment?.id);
-                        // Cancel functionality will be implemented here
-                      }}
-                    >
-                      <X className="h-5 w-5 mr-2" />
-                      Cancel
-                    </Button>
-                  </div>
-
-                  {/* Dynamic Appointment Details */}
-                  <div className="text-center text-gray-600 space-y-2">
-                    <p className="text-lg font-medium">
-                      {selectedAppointment ? format(getAppointmentDate(selectedAppointment), "MMMM dd, yyyy") : "Date not available"} at {selectedAppointment ? getAppointmentTime(selectedAppointment) : "Time not available"}
-                    </p>
-                    <p className="text-base text-gray-700">
-                      Patient: <span className="font-medium">{selectedAppointment?.patient?.name || "Unknown Patient"}</span>
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Video Call Interface */}
+      {selectedAppointment && (
+        <VideoCall
+          isOpen={showVideoCallInterface}
+          onClose={() => setShowVideoCallInterface(false)}
+          appointmentId={selectedAppointment.id.toString()}
+        />
+      )}
 
       {/* Appointment Details Dialog */}
       <Dialog
