@@ -19,6 +19,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import FilterPopover from "@/components/ui/FilterPopover";
 import nursingService, { NursingProvider } from "@/services/nursingService";
+import reviewService from "@/services/reviewService";
 
 interface NursingProviderWithServices extends NursingProvider {
   services: Array<{
@@ -33,6 +34,8 @@ interface NursingProviderWithServices extends NursingProvider {
   }>;
   servicesCount: number;
   startingPrice: number;
+  dynamicRating: number;
+  totalReviews: number;
 }
 
 const NursingProviderCard = ({
@@ -97,10 +100,10 @@ const NursingProviderCard = ({
         </h3>
         <div className="flex items-center mb-2">
           <div className="flex mr-1">
-            {renderStars(provider.average_rating)}
+            {renderStars(provider.dynamicRating)}
           </div>
           <span className="text-sm text-gray-600">
-            ({provider.average_rating})
+            ({provider.dynamicRating}) • {provider.totalReviews} reviews
           </span>
         </div>
 
@@ -202,6 +205,20 @@ const HomeNursingProviders = () => {
               }
             }
 
+            // Fetch dynamic ratings from reviews
+            let dynamicRating = 0;
+            let totalReviews = 0;
+            try {
+              const reviewsData = await reviewService.getNursingProviderReviews(provider.id);
+              dynamicRating = reviewsData.average_rating;
+              totalReviews = reviewsData.total_reviews;
+            } catch (error) {
+              console.error(`Error fetching reviews for provider ${provider.id}:`, error);
+              // Fallback to provider's average_rating if available
+              dynamicRating = provider.average_rating || 0;
+              totalReviews = 0;
+            }
+
             return {
               ...provider,
               services: services,
@@ -210,6 +227,8 @@ const HomeNursingProviders = () => {
                 services.length > 0
                   ? Math.min(...services.map((s) => s.price))
                   : provider.base_rate_per_hour || 2500,
+              dynamicRating: dynamicRating,
+              totalReviews: totalReviews,
             };
           }),
         );
@@ -259,7 +278,7 @@ const HomeNursingProviders = () => {
     const providerLocation = provider.services[0]?.location || "";
     return (
       (selectedLocation === "" || providerLocation === selectedLocation) &&
-      provider.average_rating >= ratingFilter &&
+      provider.dynamicRating >= ratingFilter &&
       (searchTerm === "" ||
         (provider.provider_name || provider.user.name)
           .toLowerCase()
