@@ -564,7 +564,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                   // Actions for scheduled appointments (already confirmed)
                   <>
                     {selectedAppointment.type === "virtual" ? (
-                      // Virtual appointment: Start Call, Reschedule, Cancel
+                      // Virtual appointment: Start Call, Mark as Complete
                       <>
                         <Button
                           size="sm"
@@ -579,16 +579,18 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                           <Video className="h-4 w-4 mr-2" />
                           Video Call
                         </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          Reschedule
-                        </Button>
                         <Button
-                          variant="destructive"
                           size="sm"
-                          className="flex-1"
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          onClick={() => {
+                            if (onAppointmentComplete) {
+                              onAppointmentComplete(selectedAppointment.id);
+                              setShowAppointmentDetails(false);
+                            }
+                          }}
                         >
-                          <X className="h-4 w-4 mr-2" />
-                          Cancel
+                          <Check className="h-4 w-4 mr-2" />
+                          Mark as Complete
                         </Button>
                       </>
                     ) : (
