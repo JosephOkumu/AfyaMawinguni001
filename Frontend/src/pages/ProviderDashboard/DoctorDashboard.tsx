@@ -74,7 +74,6 @@ import {
   Settings,
   X,
   Video,
-  LogOut,
   UserCog,
 } from "lucide-react";
 import AvailabilityScheduler, {
@@ -255,7 +254,7 @@ const formatScheduleToDisplayString = (schedule: WeeklySchedule): string => {
 
 const DoctorDashboard = () => {
   const { toast } = useToast();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("schedule");
   const [isAddingService, setIsAddingService] = useState(false);
   const [isEditingService, setIsEditingService] = useState(false);
@@ -1184,23 +1183,6 @@ const DoctorDashboard = () => {
     }
   };
 
-  // Handle logout
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account.",
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast({
-        title: "Logout Error",
-        description: "Failed to logout. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   // Helper function to get pending appointments
   const getPendingAppointments = () => {
@@ -1263,14 +1245,6 @@ const DoctorDashboard = () => {
                 >
                   <UserCog className="h-4 w-4 mr-2" />
                   Profile Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={handleLogout}
-                  className="cursor-pointer text-red-600 focus:text-red-600"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
