@@ -1581,8 +1581,13 @@ const HomeNursingDashboard = () => {
               <Card className="bg-gradient-to-br from-purple-50 to-purple-100">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Monthly Revenue</p>
-                    <h3 className="text-2xl font-bold">KES 45,000</h3>
+                    <p className="text-sm text-gray-600">Total Revenue</p>
+                    <h3 className="text-2xl font-bold">
+                      KES {appointmentHistory
+                        .filter((apt) => apt.status === "completed" && apt.is_paid)
+                        .reduce((total, apt) => total + parseFloat(apt.service_price || 0), 0)
+                        .toLocaleString()}
+                    </h3>
                   </div>
                   <div className="h-10 w-10 bg-purple-200 rounded-full flex items-center justify-center">
                     <Activity className="h-5 w-5 text-purple-600" />
