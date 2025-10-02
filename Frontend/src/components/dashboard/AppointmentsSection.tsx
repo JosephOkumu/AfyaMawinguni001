@@ -343,25 +343,6 @@ const AppointmentsSection = () => {
                   </Button>
                 ) : null;
               })()}
-              {/* Show regular buttons only if not a virtual appointment with View call button */}
-              {(() => {
-                const hasDoctorid = "doctor_id" in appointment;
-                const hasTypeProperty = "type" in appointment;
-                const isVirtual = hasTypeProperty && appointment.type === "virtual";
-                const hasValidStatus = appointment.status === "confirmed" || appointment.status === "pending" || appointment.status === "scheduled";
-                const shouldHideButtons = hasDoctorid && isVirtual && hasValidStatus;
-                
-                return !shouldHideButtons ? (
-                  <>
-                    <Button variant="outline" size="sm" className="text-xs">
-                      Reschedule
-                    </Button>
-                    <Button variant="destructive" size="sm" className="text-xs">
-                      Cancel
-                    </Button>
-                  </>
-                ) : null;
-              })()}
             </>
           ) : (
             <>
