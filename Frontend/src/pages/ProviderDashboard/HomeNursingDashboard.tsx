@@ -1877,10 +1877,7 @@ const HomeNursingDashboard = () => {
                               <div className="flex items-center space-x-3">
                                 <Avatar className="h-10 w-10">
                                   <AvatarImage
-                                    src={
-                                      request.patient?.profile?.avatar ||
-                                      "https://randomuser.me/api/portraits/men/32.jpg"
-                                    }
+                                    src={request.patient?.profile?.avatar}
                                   />
                                   <AvatarFallback>
                                     {request.patient?.name
@@ -2099,10 +2096,7 @@ const HomeNursingDashboard = () => {
                               <div className="flex items-center space-x-3">
                                 <Avatar className="h-10 w-10">
                                   <AvatarImage
-                                    src={
-                                      appointment.patient?.profile?.avatar ||
-                                      "https://randomuser.me/api/portraits/men/32.jpg"
-                                    }
+                                    src={appointment.patient?.profile?.avatar}
                                   />
                                   <AvatarFallback>
                                     {appointment.patient?.name
