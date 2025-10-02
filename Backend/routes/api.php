@@ -66,6 +66,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/appointments/{id}/confirm', [AppointmentController::class, 'confirm']);
     Route::put('/appointments/{id}/reject', [AppointmentController::class, 'reject']);
     Route::put('/appointments/{id}/complete', [AppointmentController::class, 'complete']);
+    
+    // WebRTC signaling and call session management
+    Route::post('/appointments/{id}/signal', [AppointmentController::class, 'signal']);
+    Route::get('/appointments/{id}/signals', [AppointmentController::class, 'getSignals']);
+    Route::post('/appointments/{id}/start-call', [AppointmentController::class, 'startCall']);
+    Route::post('/appointments/{id}/join-call', [AppointmentController::class, 'joinCall']);
+    Route::post('/appointments/{id}/end-call', [AppointmentController::class, 'endCall']);
 
     // Lab Provider routes
     Route::apiResource('lab-providers', LabProviderController::class);
