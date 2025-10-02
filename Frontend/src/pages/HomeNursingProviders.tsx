@@ -106,7 +106,7 @@ const NursingProviderCard = ({
 
         <div className="flex items-center text-xs text-gray-500 mb-2">
           <MapPin className="h-3.5 w-3.5 mr-1 text-gray-400" />
-          {provider.services[0]?.location || "Location not specified"}
+          {provider.location || "Location not specified"}
         </div>
 
         <Button

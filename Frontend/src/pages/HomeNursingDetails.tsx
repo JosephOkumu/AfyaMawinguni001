@@ -1006,7 +1006,7 @@ const HomeNursingDetails = () => {
                     <div>
                       <div className="text-sm opacity-80">Location</div>
                       <div className="font-bold text-lg">
-                        {provider.services[0]?.location ||
+                        {provider.location ||
                           "Location not specified"}
                       </div>
                     </div>
@@ -1147,7 +1147,7 @@ const HomeNursingDetails = () => {
                         Address
                       </h4>
                       <p className="text-sm text-gray-700">
-                        {provider.services[0]?.location ||
+                        {provider.location ||
                           "Address not specified"}
                       </p>
                     </CardContent>
