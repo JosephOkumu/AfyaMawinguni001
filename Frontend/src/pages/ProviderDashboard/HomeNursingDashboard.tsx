@@ -2304,17 +2304,10 @@ const HomeNursingDashboard = () => {
               <div className="flex gap-2 pt-4 border-t">
                 <Button
                   size="sm"
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
                   onClick={handleMarkComplete}
                 >
                   Mark as Complete
-                </Button>
-                <Button
-                  size="sm"
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                  onClick={handleCancelAppointment}
-                >
-                  Cancel
                 </Button>
               </div>
             </div>
