@@ -1055,9 +1055,8 @@ const HomeNursingDetails = () => {
         <Card className="border-0 shadow-md overflow-hidden mb-6">
           <CardContent className="p-6">
             <Tabs defaultValue="services">
-              <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="services">Services</TabsTrigger>
-                <TabsTrigger value="about">About</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
 
@@ -1137,101 +1136,6 @@ const HomeNursingDetails = () => {
                     </div>
                   )}
                 </div>
-              </TabsContent>
-
-              <TabsContent value="about" className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium text-green-700 mb-2">
-                    About {provider.provider_name || provider.user.name}
-                  </h3>
-                  <p className="text-gray-700">
-                    {provider.description || "No description available."}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <Card className="shadow-sm border border-gray-100 hover:shadow-md transition-shadow overflow-hidden">
-                    <CardContent className="p-5">
-                      <h4 className="font-medium mb-3 flex items-center text-green-700">
-                        <Home className="h-4 w-4 mr-2 text-gray-500" />
-                        Address
-                      </h4>
-                      <p className="text-sm text-gray-700">
-                        {provider.location ||
-                          "Address not specified"}
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="shadow-sm border border-gray-100 hover:shadow-md transition-shadow overflow-hidden">
-                    <CardContent className="p-5">
-                      <h4 className="font-medium mb-3 flex items-center text-green-700">
-                        <Clock className="h-4 w-4 mr-2 text-gray-500" />
-                        Operating Hours
-                      </h4>
-                      <p className="text-sm text-gray-700">
-                        {provider.services[0]?.availability ||
-                          "Hours not specified"}
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="shadow-sm border border-gray-100 hover:shadow-md transition-shadow overflow-hidden">
-                    <CardContent className="p-5">
-                      <h4 className="font-medium mb-3 flex items-center text-green-700">
-                        <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                        Contact Number
-                      </h4>
-                      <p className="text-sm text-gray-700">
-                        {provider.user.phone_number || "Phone not available"}
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="shadow-sm border border-gray-100 hover:shadow-md transition-shadow overflow-hidden">
-                    <CardContent className="p-5">
-                      <h4 className="font-medium mb-3 flex items-center text-green-700">
-                        <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                        Email Address
-                      </h4>
-                      <p className="text-sm text-gray-700">
-                        {provider.user.email}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <Card className="bg-yellow-50 border border-yellow-200 overflow-hidden shadow-sm">
-                  <CardContent className="p-5">
-                    <div className="flex items-start">
-                      <Info className="h-5 w-5 text-yellow-500 mr-3 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium text-yellow-700 mb-2">
-                          Important Information
-                        </h4>
-                        <ul className="text-sm text-yellow-700 space-y-2 list-disc ml-4">
-                          <li>
-                            Our nurses are fully certified and registered with
-                            the Nursing Council of Kenya.
-                          </li>
-                          <li>
-                            We conduct thorough background checks on all our
-                            staff for your safety.
-                          </li>
-                          <li>
-                            Appointments can be rescheduled with at least 6
-                            hours notice.
-                          </li>
-                          <li>
-                            In case of emergencies, please contact our 24/7
-                            support line.
-                          </li>
-                          <li>Payment is required at the time of booking.</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
               </TabsContent>
 
               <TabsContent value="reviews">
