@@ -196,4 +196,5 @@ Route::prefix('payments/pesapal')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store']);
     Route::get('/doctors/{doctorId}/reviews', [App\Http\Controllers\ReviewController::class, 'getDoctorReviews']);
+    Route::get('/nursing-providers/{nursingProviderId}/reviews', [App\Http\Controllers\ReviewController::class, 'getNursingProviderReviews']);
 });
