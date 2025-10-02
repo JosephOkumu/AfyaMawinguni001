@@ -292,6 +292,7 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
   const renderAppointmentCard = (
     appointment: Appointment | LabAppointment | NursingAppointment,
     isUpcoming: boolean = true,
+    index: number = 0,
   ) => {
     const provider = getAppointmentProvider(appointment);
     const appointmentDate = new Date(
@@ -316,15 +317,18 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
       });
     }
 
+    // Generate unique key based on appointment type and ID
+    const getAppointmentType = () => {
+      if ("doctor_id" in appointment) return "doctor";
+      if ("lab_provider_id" in appointment) return "lab";
+      return "nursing";
+    };
+
+    const uniqueKey = `${getAppointmentType()}-${appointment.id}-${appointmentDate.getTime()}-${index}`;
+
     return (
       <div
-        key={`${appointment.id}-${
-          "doctor_id" in appointment
-            ? "doctor"
-            : "lab_provider_id" in appointment
-              ? "lab"
-              : "nursing"
-        }`}
+        key={uniqueKey}
         className={`border border-gray-200 rounded-lg p-4 flex items-start space-x-4 ${
           isClickable ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""
         }`}
@@ -402,10 +406,17 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
                   onClick={async () => {
                     setSelectedAppointment(appointment);
                     
-                    // Check if user has already reviewed this doctor
+                    // Check if user has already reviewed this provider
                     if ("doctor_id" in appointment) {
                       try {
                         const reviewsData = await reviewService.getDoctorReviews(appointment.doctor_id);
+                        setHasAlreadyReviewed(reviewsData.current_user_reviewed);
+                      } catch (error) {
+                        setHasAlreadyReviewed(false);
+                      }
+                    } else if ("nursing_provider_id" in appointment) {
+                      try {
+                        const reviewsData = await reviewService.getNursingProviderReviews(appointment.nursing_provider_id);
                         setHasAlreadyReviewed(reviewsData.current_user_reviewed);
                       } catch (error) {
                         setHasAlreadyReviewed(false);
@@ -544,7 +555,7 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
             </p>
           </div>
         ) : (
-          filteredAppointments.map((appointment) => {
+          filteredAppointments.map((appointment, index) => {
             const now = new Date();
             const appointmentDate = new Date(
               "scheduled_datetime" in appointment
@@ -564,7 +575,7 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
                 now: now
               });
             }
-            return renderAppointmentCard(appointment, isUpcoming);
+            return renderAppointmentCard(appointment, isUpcoming, index);
           })
         )}
 
@@ -603,7 +614,11 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
               <p className="text-sm font-medium mb-2">Rating</p>
               {hasAlreadyReviewed ? (
                 <div className="text-red-600 text-sm font-medium">
-                  You have already reviewed this doctor. Only one review per doctor is allowed.
+                  You have already reviewed this {
+                    "doctor_id" in selectedAppointment ? "doctor" : "nursing provider"
+                  }. Only one review per {
+                    "doctor_id" in selectedAppointment ? "doctor" : "nursing provider"
+                  } is allowed.
                 </div>
               ) : (
                 <div className="flex space-x-1">
@@ -659,15 +674,23 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
               </Button>
               <Button
                 onClick={async () => {
-                  if (!selectedAppointment || !("doctor_id" in selectedAppointment)) return;
+                  if (!selectedAppointment) return;
                   
                   setIsSubmittingReview(true);
                   try {
-                    await reviewService.submitReview({
-                      appointment_id: selectedAppointment.id,
+                    const reviewData: any = {
                       rating: rating,
                       review_text: reviewText || undefined
-                    });
+                    };
+
+                    // Determine if it's a doctor appointment or nursing service
+                    if ("doctor_id" in selectedAppointment) {
+                      reviewData.appointment_id = selectedAppointment.id;
+                    } else if ("nursing_provider_id" in selectedAppointment) {
+                      reviewData.nursing_service_id = selectedAppointment.id;
+                    }
+
+                    await reviewService.submitReview(reviewData);
                     
                     // Close modal and reset form
                     setShowReviewModal(false);

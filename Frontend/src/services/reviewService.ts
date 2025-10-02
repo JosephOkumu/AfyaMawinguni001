@@ -1,7 +1,8 @@
 import api from './api';
 
 export interface ReviewData {
-  appointment_id: number;
+  appointment_id?: number;
+  nursing_service_id?: number;
   rating: number;
   review_text?: string;
 }
@@ -14,12 +15,16 @@ export interface Review {
   created_at: string;
 }
 
-export interface DoctorReviewsResponse {
+export interface ReviewsResponse {
   reviews: Review[];
   average_rating: number;
   total_reviews: number;
   current_user_reviewed: boolean;
 }
+
+export interface DoctorReviewsResponse extends ReviewsResponse {}
+
+export interface NursingProviderReviewsResponse extends ReviewsResponse {}
 
 class ReviewService {
   async submitReview(reviewData: ReviewData): Promise<any> {
@@ -37,6 +42,15 @@ class ReviewService {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Failed to fetch reviews');
+    }
+  }
+
+  async getNursingProviderReviews(nursingProviderId: number): Promise<NursingProviderReviewsResponse> {
+    try {
+      const response = await api.get(`/nursing-providers/${nursingProviderId}/reviews`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to fetch nursing provider reviews');
     }
   }
 
