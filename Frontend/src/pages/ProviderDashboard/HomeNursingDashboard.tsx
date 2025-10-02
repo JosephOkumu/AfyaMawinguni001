@@ -884,20 +884,52 @@ const HomeNursingDashboard = () => {
     setShowAppointmentModal(true);
   };
 
-  const handleMarkComplete = () => {
+  const handleMarkComplete = async () => {
     if (selectedAppointment) {
-      setAppointments((prev) =>
-        prev.map((apt) =>
-          apt.id === selectedAppointment.id
-            ? { ...apt, status: "completed" as const }
-            : apt,
-        ),
-      );
-      toast({
-        title: "Appointment Completed",
-        description: "The appointment has been marked as completed.",
-      });
-      setShowAppointmentModal(false);
+      try {
+        // Call the API to mark the appointment as completed
+        await handleCompleteAppointment(selectedAppointment.id);
+        
+        // Find the appointment in confirmedAppointments and move it to history
+        const completedAppointment = confirmedAppointments.find(
+          (apt) => apt.id === selectedAppointment.id
+        );
+        
+        if (completedAppointment) {
+          // Remove from confirmed appointments
+          setConfirmedAppointments((prev) =>
+            prev.filter((apt) => apt.id !== selectedAppointment.id)
+          );
+          
+          // Add to appointment history with completed status
+          setAppointmentHistory((prev) => [
+            { ...completedAppointment, status: "completed" as const },
+            ...prev,
+          ]);
+        }
+        
+        // Update the mock appointments array as well (for backward compatibility)
+        setAppointments((prev) =>
+          prev.map((apt) =>
+            apt.id === selectedAppointment.id
+              ? { ...apt, status: "completed" as const }
+              : apt,
+          ),
+        );
+        
+        toast({
+          title: "Appointment Completed",
+          description: "The appointment has been marked as completed and moved to history.",
+        });
+        setShowAppointmentModal(false);
+      } catch (error) {
+        console.error("Failed to complete appointment:", error);
+        toast({
+          title: "Error",
+          description: "Failed to complete appointment. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
