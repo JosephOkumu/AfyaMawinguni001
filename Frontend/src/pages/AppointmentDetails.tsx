@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Video, Calendar, X } from "lucide-react";
+import { VideoCall } from "@/components/VideoCall";
 
 const AppointmentDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
 
   const handleStartCall = () => {
-    // TODO: Implement start call functionality
     console.log("Start call clicked");
+    setIsVideoCallOpen(true);
   };
 
   const handleReschedule = () => {
@@ -110,6 +112,15 @@ const AppointmentDetails = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Video Call Modal */}
+      {id && (
+        <VideoCall
+          isOpen={isVideoCallOpen}
+          onClose={() => setIsVideoCallOpen(false)}
+          appointmentId={id}
+        />
+      )}
     </div>
   );
 };
