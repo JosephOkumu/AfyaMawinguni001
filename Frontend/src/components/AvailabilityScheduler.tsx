@@ -9,7 +9,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import DoctorUnavailabilityModal from "@/components/DoctorUnavailabilityModal";
+import UnavailabilityModal from "@/components/UnavailabilityModal";
 
 export interface TimeSlot {
   start: string;
@@ -501,7 +501,7 @@ const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({
       </DialogContent>
 
       {/* Unavailability Modal */}
-      <DoctorUnavailabilityModal
+      <UnavailabilityModal
         isOpen={showUnavailabilityModal}
         onClose={() => setShowUnavailabilityModal(false)}
         onSessionCreated={(session) => {
