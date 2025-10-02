@@ -90,9 +90,6 @@ const NursingProviderCard = ({
             <span className="text-gray-400 text-sm">No image available</span>
           </div>
         )}
-        <Badge className="absolute top-2 right-2 bg-green-500 hover:bg-green-600">
-          KES {provider.startingPrice}
-        </Badge>
       </div>
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg text-primary-blue">
