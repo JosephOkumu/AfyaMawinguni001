@@ -9,6 +9,13 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,6 +74,8 @@ import {
   Settings,
   X,
   Video,
+  LogOut,
+  UserCog,
 } from "lucide-react";
 import AvailabilityScheduler, {
   WeeklySchedule,
@@ -246,7 +255,7 @@ const formatScheduleToDisplayString = (schedule: WeeklySchedule): string => {
 
 const DoctorDashboard = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("schedule");
   const [isAddingService, setIsAddingService] = useState(false);
   const [isEditingService, setIsEditingService] = useState(false);
@@ -1175,6 +1184,24 @@ const DoctorDashboard = () => {
     }
   };
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout Error",
+        description: "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Helper function to get pending appointments
   const getPendingAppointments = () => {
     return appointments
@@ -1223,15 +1250,34 @@ const DoctorDashboard = () => {
             <Button variant="outline" size="icon">
               <Bell className="h-4 w-4" />
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem 
+                  onClick={() => setShowProfileDialog(true)}
+                  className="cursor-pointer"
+                >
+                  <UserCog className="h-4 w-4 mr-2" />
+                  Profile Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  className="cursor-pointer text-red-600 focus:text-red-600"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Dialog
               open={showProfileDialog}
               onOpenChange={setShowProfileDialog}
             >
-              <DialogTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
               <DialogContent className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto">
                 <DialogHeader className="sticky top-0 z-10 bg-white px-6 py-4 border-b flex flex-row justify-between items-center">
                   <DialogTitle className="text-xl font-semibold">
