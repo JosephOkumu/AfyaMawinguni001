@@ -1232,22 +1232,13 @@ const DoctorDashboard = () => {
             <Button variant="outline" size="icon">
               <Bell className="h-4 w-4" />
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem 
-                  onClick={() => setShowProfileDialog(true)}
-                  className="cursor-pointer"
-                >
-                  <UserCog className="h-4 w-4 mr-2" />
-                  Profile Settings
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => setShowProfileDialog(true)}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
             <Dialog
               open={showProfileDialog}
               onOpenChange={setShowProfileDialog}
