@@ -478,7 +478,6 @@ const LabProviderDetails = () => {
                 <span className="font-medium text-sm">
                   {user?.name || "User"}
                 </span>
-                <span className="text-xs text-gray-500">Patient</span>
               </div>
               <Avatar className="h-9 w-9 border-2 border-secondary-green/20">
                 <AvatarFallback className="bg-secondary-green/10 text-secondary-green font-semibold">
