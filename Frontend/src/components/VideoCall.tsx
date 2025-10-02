@@ -24,11 +24,16 @@ export const VideoCall: React.FC<VideoCallProps> = ({ isOpen, onClose, appointme
     connectionState,
     currentUserId,
     isCallInitiator,
+    isMuted,
+    isVideoOff,
     localVideoRef,
     remoteVideoRef,
     startCall,
     joinCall,
-    endCall
+    endCall,
+    createOffer,
+    toggleMute,
+    toggleVideo
   } = useWebRTC(appointmentId.toString());
 
   const handleEndCall = () => {
@@ -98,8 +103,20 @@ export const VideoCall: React.FC<VideoCallProps> = ({ isOpen, onClose, appointme
                     Start Call
                   </Button>
                 ) : isCallInitiator ? (
-                  // Current user initiated the call - show End Call
+                  // Current user initiated the call - show End Call with controls
                   <div className="flex gap-4">
+                    <Button
+                      onClick={toggleMute}
+                      className={`${isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-600 hover:bg-gray-700'} text-white px-6 py-3 rounded-full`}
+                    >
+                      {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                    </Button>
+                    <Button
+                      onClick={toggleVideo}
+                      className={`${isVideoOff ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-600 hover:bg-gray-700'} text-white px-6 py-3 rounded-full`}
+                    >
+                      {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+                    </Button>
                     <Button
                       onClick={handleEndCall}
                       className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-full"
@@ -109,19 +126,44 @@ export const VideoCall: React.FC<VideoCallProps> = ({ isOpen, onClose, appointme
                     </Button>
                   </div>
                 ) : (
-                  // Call session exists but user is not the initiator - show Join Call
-                  <Button
-                    onClick={() => {
-                      console.log("Join Call button clicked in VideoCall component");
-                      console.log("Current call session:", callSession);
-                      console.log("Is call active:", isCallActive);
-                      joinCall();
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full"
-                  >
-                    <Video className="h-5 w-5 mr-2" />
-                    Join Call
-                  </Button>
+                  // Call session exists but user is not the initiator - show Join Call or controls if joined
+                  !isCallStarted ? (
+                    <Button
+                      onClick={() => {
+                        console.log("Join Call button clicked in VideoCall component");
+                        console.log("Current call session:", callSession);
+                        console.log("Is call active:", isCallActive);
+                        joinCall();
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full"
+                    >
+                      <Video className="h-5 w-5 mr-2" />
+                      Join Call
+                    </Button>
+                  ) : (
+                    // User has joined - show controls
+                    <div className="flex gap-4">
+                      <Button
+                        onClick={toggleMute}
+                        className={`${isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-600 hover:bg-gray-700'} text-white px-6 py-3 rounded-full`}
+                      >
+                        {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                      </Button>
+                      <Button
+                        onClick={toggleVideo}
+                        className={`${isVideoOff ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-600 hover:bg-gray-700'} text-white px-6 py-3 rounded-full`}
+                      >
+                        {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+                      </Button>
+                      <Button
+                        onClick={handleEndCall}
+                        className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-full"
+                      >
+                        <Phone className="h-5 w-5 mr-2" />
+                        End Call
+                      </Button>
+                    </div>
+                  )
                 )}
               </div>
             ) : (

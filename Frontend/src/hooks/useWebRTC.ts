@@ -11,6 +11,8 @@ export const useWebRTC = (appointmentId: string) => {
   const [connectionState, setConnectionState] = useState('new');
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isCallInitiator, setIsCallInitiator] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
   
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -367,6 +369,28 @@ export const useWebRTC = (appointmentId: string) => {
     }
   };
 
+  const toggleMute = () => {
+    if (localStream) {
+      const audioTrack = localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setIsMuted(!audioTrack.enabled);
+        console.log(`Microphone ${audioTrack.enabled ? 'unmuted' : 'muted'}`);
+      }
+    }
+  };
+
+  const toggleVideo = () => {
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setIsVideoOff(!videoTrack.enabled);
+        console.log(`Video ${videoTrack.enabled ? 'enabled' : 'disabled'}`);
+      }
+    }
+  };
+
   const endCall = () => {
     console.log("Ending call");
     
@@ -389,6 +413,8 @@ export const useWebRTC = (appointmentId: string) => {
     setCallSession(null);
     setConnectionState('new');
     setIsCallInitiator(false);
+    setIsMuted(false);
+    setIsVideoOff(false);
 
     // Clear processed signals and call start time
     processedSignals.current.clear();
@@ -436,11 +462,15 @@ export const useWebRTC = (appointmentId: string) => {
     connectionState,
     isCallInitiator,
     currentUserId,
+    isMuted,
+    isVideoOff,
     localVideoRef,
     remoteVideoRef,
     startCall,
     joinCall,
     endCall,
-    createOffer
+    createOffer,
+    toggleMute,
+    toggleVideo
   };
 };
