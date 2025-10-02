@@ -61,22 +61,27 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Log detailed error information for debugging
-    console.error("🚨 API Response Error:", {
-      url: error.config?.url,
-      method: error.config?.method?.toUpperCase(),
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message
-    });
+    // Don't log 409 Conflict errors as they are expected for existing call sessions
+    if (error.response?.status !== 409) {
+      // Log detailed error information for debugging
+      console.error("🚨 API Response Error:", {
+        url: error.config?.url,
+        method: error.config?.method?.toUpperCase(),
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+    }
 
     if (error.response) {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
-      console.error("Response data:", error.response.data);
-      console.error("Response status:", error.response.status);
-      console.error("Response headers:", error.response.headers);
+      if (error.response.status !== 409) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response headers:", error.response.headers);
+      }
 
       // Handle authentication errors
       if (error.response.status === 401) {
