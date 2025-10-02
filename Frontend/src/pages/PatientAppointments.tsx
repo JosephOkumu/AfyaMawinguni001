@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import AIChat from "@/components/AIChat";
 
 const PatientAppointments = () => {
   const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Generate user initials
   const getUserInitials = (name: string) => {
@@ -65,7 +66,9 @@ const PatientAppointments = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               type="search"
-              placeholder="Search for services, doctors..."
+              placeholder="Search appointments, doctors, services..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 w-full border-gray-200 focus-visible:ring-secondary-green"
             />
           </div>
@@ -146,7 +149,7 @@ const PatientAppointments = () => {
         </Card>
 
         {/* Appointments Section */}
-        <AppointmentsSection />
+        <AppointmentsSection searchQuery={searchQuery} />
       </main>
       <AIChat />
     </div>

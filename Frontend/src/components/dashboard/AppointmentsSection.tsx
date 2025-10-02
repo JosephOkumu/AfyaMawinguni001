@@ -23,7 +23,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { VideoCall } from "@/components/VideoCall";
 
-const AppointmentsSection = () => {
+interface AppointmentsSectionProps {
+  searchQuery?: string;
+}
+
+const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery = "" }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [doctorAppointments, setDoctorAppointments] = useState<Appointment[]>(
@@ -141,6 +145,51 @@ const AppointmentsSection = () => {
           : b.appointment_datetime,
       );
       return dateB.getTime() - dateA.getTime();
+    });
+  };
+
+  const filterAppointments = (appointments: (Appointment | LabAppointment | NursingAppointment)[]) => {
+    if (!searchQuery.trim()) {
+      return appointments;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+
+    return appointments.filter((appointment) => {
+      // Search in appointment title
+      const title = getAppointmentTitle(appointment).toLowerCase();
+      if (title.includes(query)) return true;
+
+      // Search in provider name and specialty
+      const provider = getAppointmentProvider(appointment);
+      const providerName = provider.name.toLowerCase();
+      const providerSpecialty = provider.specialty.toLowerCase();
+      if (providerName.includes(query) || providerSpecialty.includes(query)) return true;
+
+      // Search in appointment status
+      const status = appointment.status.toLowerCase();
+      if (status.includes(query)) return true;
+
+      // Search in appointment type for doctor appointments
+      if ("doctor_id" in appointment && "type" in appointment) {
+        const type = appointment.type.toLowerCase();
+        if (type.includes(query) || (type === "virtual" && "online".includes(query))) return true;
+      }
+
+      // Search in reason for visit or symptoms for doctor appointments
+      if ("doctor_id" in appointment) {
+        const reason = (appointment.reason_for_visit || "").toLowerCase();
+        const symptoms = (appointment.symptoms || "").toLowerCase();
+        if (reason.includes(query) || symptoms.includes(query)) return true;
+      }
+
+      // Search in service name for nursing appointments
+      if ("service_name" in appointment) {
+        const serviceName = appointment.service_name.toLowerCase();
+        if (serviceName.includes(query)) return true;
+      }
+
+      return false;
     });
   };
 
@@ -462,6 +511,8 @@ const AppointmentsSection = () => {
     return dateB.getTime() - dateA.getTime();
   });
 
+  const filteredAppointments = filterAppointments(allAppointments);
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex justify-between items-center mb-4">
@@ -471,18 +522,29 @@ const AppointmentsSection = () => {
       </div>
 
       <div className="space-y-4">
-        {allAppointments.length === 0 ? (
+        {searchQuery && (
+          <div className="text-sm text-gray-600 mb-2">
+            {filteredAppointments.length === 0 
+              ? `No appointments found for "${searchQuery}"` 
+              : `Found ${filteredAppointments.length} appointment${filteredAppointments.length !== 1 ? 's' : ''} for "${searchQuery}"`
+            }
+          </div>
+        )}
+        {filteredAppointments.length === 0 ? (
           <div className="text-center py-8">
             <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No appointments
+              {searchQuery ? "No matching appointments" : "No appointments"}
             </h3>
             <p className="text-gray-500">
-              You don't have any appointments scheduled.
+              {searchQuery 
+                ? `No appointments match your search for "${searchQuery}".`
+                : "You don't have any appointments scheduled."
+              }
             </p>
           </div>
         ) : (
-          allAppointments.map((appointment) => {
+          filteredAppointments.map((appointment) => {
             const now = new Date();
             const appointmentDate = new Date(
               "scheduled_datetime" in appointment
