@@ -307,4 +307,193 @@ class AppointmentController extends Controller
             'data' => $appointment->load(['patient', 'doctor.user'])
         ]);
     }
+
+    /**
+     * Store WebRTC signaling data
+     */
+    public function signal(Request $request, $id)
+    {
+        $appointment = Appointment::find($id);
+        if (!$appointment) {
+            return response()->json(['error' => 'Appointment not found'], 404);
+        }
+
+        $user = Auth::user();
+        
+        // Store signal in cache for 5 minutes
+        $cacheKey = "webrtc_signals_{$id}";
+        $signals = cache()->get($cacheKey, []);
+        
+        // Store the entire signal data, preserving structure for different signal types
+        $signalData = $request->all();
+        $signalData['from'] = $user->id;
+        $signalData['timestamp'] = now()->toISOString();
+        
+        $signals[] = $signalData;
+        
+        cache()->put($cacheKey, $signals, 300); // 5 minutes
+        
+        return response()->json([
+            'status' => 'success',
+            'debug' => [
+                'signal_stored' => true,
+                'total_signals_now' => count($signals),
+                'cache_key' => $cacheKey,
+                'from_user' => $user->id,
+                'signal_type' => $request->input('type')
+            ]
+        ]);
+    }
+
+    /**
+     * Get WebRTC signaling data
+     */
+    public function getSignals(Request $request, $id)
+    {
+        $appointment = Appointment::find($id);
+        if (!$appointment) {
+            return response()->json(['error' => 'Appointment not found'], 404);
+        }
+
+        $user = Auth::user();
+        $cacheKey = "webrtc_signals_{$id}";
+        $signals = cache()->get($cacheKey, []);
+        
+        // Return signals not from current user and not older than 2 minutes
+        $cutoffTime = now()->subSeconds(120);
+        $filteredSignals = array_filter($signals, function($signal) use ($user, $cutoffTime) {
+            $signalTime = \Carbon\Carbon::parse($signal['timestamp']);
+            return $signal['from'] != $user->id && $signalTime->gt($cutoffTime);
+        });
+        
+        // Get call session status
+        $callSession = $this->getCallSession($id);
+        
+        // Clear old signals to prevent accumulation
+        $freshSignals = array_filter($signals, function($signal) use ($cutoffTime) {
+            $signalTime = \Carbon\Carbon::parse($signal['timestamp']);
+            return $signalTime->gt($cutoffTime);
+        });
+        cache()->put($cacheKey, $freshSignals, 300);
+        
+        return response()->json([
+            'signals' => array_values($filteredSignals),
+            'callSession' => $callSession,
+            'signalsCount' => count($filteredSignals),
+            'rawSignals' => array_values($filteredSignals),
+            'debug' => [
+                'total_signals' => count($signals),
+                'filtered_signals' => count($filteredSignals),
+                'current_user_id' => $user->id,
+                'cutoff_time' => $cutoffTime->toISOString(),
+                'all_signals_with_times' => array_map(function($signal) use ($cutoffTime) {
+                    $signalTime = \Carbon\Carbon::parse($signal['timestamp']);
+                    return [
+                        'from' => $signal['from'],
+                        'type' => $signal['type'],
+                        'timestamp' => $signal['timestamp'],
+                        'is_recent' => $signalTime->gt($cutoffTime),
+                        'age_seconds' => now()->diffInSeconds($signalTime)
+                    ];
+                }, $signals)
+            ]
+        ]);
+    }
+
+    /**
+     * Start a video call session
+     */
+    public function startCall(Request $request, $id)
+    {
+        $appointment = Appointment::find($id);
+        if (!$appointment) {
+            return response()->json(['error' => 'Appointment not found'], 404);
+        }
+
+        $user = Auth::user();
+        $sessionKey = "call_session_{$id}";
+        
+        // Check if call already exists
+        $existingSession = cache()->get($sessionKey);
+        if ($existingSession) {
+            return response()->json([
+                'error' => 'Call already in progress',
+                'callSession' => $existingSession
+            ], 409);
+        }
+
+        // Create new call session
+        $callSession = [
+            'appointment_id' => $id,
+            'caller_id' => $user->id,
+            'caller_name' => $user->name,
+            'status' => 'waiting_for_participant',
+            'started_at' => now()->toISOString(),
+            'participants' => [$user->id]
+        ];
+
+        cache()->put($sessionKey, $callSession, 1800); // 30 minutes
+
+        return response()->json([
+            'status' => 'success',
+            'callSession' => $callSession
+        ]);
+    }
+
+    /**
+     * Join an existing video call session
+     */
+    public function joinCall(Request $request, $id)
+    {
+        $appointment = Appointment::find($id);
+        if (!$appointment) {
+            return response()->json(['error' => 'Appointment not found'], 404);
+        }
+
+        $user = Auth::user();
+        $sessionKey = "call_session_{$id}";
+        
+        $callSession = cache()->get($sessionKey);
+        if (!$callSession) {
+            return response()->json(['error' => 'No active call session found'], 404);
+        }
+
+        // Add participant if not already in call
+        if (!in_array($user->id, $callSession['participants'])) {
+            $callSession['participants'][] = $user->id;
+            $callSession['status'] = 'active';
+            $callSession['joined_at'] = now()->toISOString();
+            
+            cache()->put($sessionKey, $callSession, 1800); // 30 minutes
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'callSession' => $callSession
+        ]);
+    }
+
+    /**
+     * End a video call session
+     */
+    public function endCall(Request $request, $id)
+    {
+        $sessionKey = "call_session_{$id}";
+        cache()->forget($sessionKey);
+        
+        // Also clear signals
+        $signalsKey = "webrtc_signals_{$id}";
+        cache()->forget($signalsKey);
+
+        return response()->json(['status' => 'success']);
+    }
+
+    /**
+     * Get call session status
+     */
+    public function getCallSession($appointmentId)
+    {
+        $sessionKey = "call_session_{$appointmentId}";
+        return cache()->get($sessionKey);
+    }
 }
