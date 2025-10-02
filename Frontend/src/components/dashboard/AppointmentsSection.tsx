@@ -9,6 +9,7 @@ import {
   TestTube,
   Star,
   X,
+  Video,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -20,6 +21,7 @@ import appointmentService, {
 import reviewService from "@/services/reviewService";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import { VideoCall } from "@/components/VideoCall";
 
 const AppointmentsSection = () => {
   const { user } = useAuth();
@@ -39,6 +41,8 @@ const AppointmentsSection = () => {
   const [reviewText, setReviewText] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [hasAlreadyReviewed, setHasAlreadyReviewed] = useState(false);
+  const [showVideoCall, setShowVideoCall] = useState(false);
+  const [videoCallAppointment, setVideoCallAppointment] = useState<Appointment | null>(null);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -328,10 +332,14 @@ const AppointmentsSection = () => {
                     className="text-xs bg-green-600 hover:bg-green-700 text-white"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/patient-dashboard/appointments/${appointment.id}`);
+                      console.log("Start Call clicked for appointment:", appointment);
+                      setVideoCallAppointment(appointment as Appointment);
+                      setShowVideoCall(true);
+                      console.log("Video call state set:", { showVideoCall: true, appointmentId: appointment.id });
                     }}
                   >
-                    View call
+                    <Video className="h-3 w-3 mr-1" />
+                    View Call
                   </Button>
                 ) : null;
               })()}
@@ -651,6 +659,20 @@ const AppointmentsSection = () => {
           </div>
         </div>
       )}
+
+      {/* Video Call Interface */}
+      {videoCallAppointment && (
+        <VideoCall
+          isOpen={showVideoCall}
+          onClose={() => {
+            console.log("Closing video call");
+            setShowVideoCall(false);
+            setVideoCallAppointment(null);
+          }}
+          appointmentId={videoCallAppointment.id.toString()}
+        />
+      )}
+      
     </div>
   );
 };
