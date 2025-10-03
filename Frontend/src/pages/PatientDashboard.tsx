@@ -14,9 +14,9 @@ import {
 } from "lucide-react";
 import ServicesSection from "@/components/dashboard/ServicesSection";
 import TopDoctorsSection from "@/components/dashboard/TopDoctorsSection";
-import PharmaciesSection from "@/components/dashboard/PharmaciesSection";
-import HomeNursingSection from "@/components/dashboard/HomeNursingSection";
-import NearbyProvidersSection from "@/components/dashboard/NearbyProvidersSection";
+import NearbyDoctorsSection from "@/components/dashboard/NearbyDoctorsSection";
+import NearbyLabProvidersSection from "@/components/dashboard/NearbyLabProvidersSection";
+import NearbyHomeNursingSection from "@/components/dashboard/NearbyHomeNursingSection";
 
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -159,14 +159,14 @@ const PatientDashboard = () => {
           {/* Top Rated Doctors Section */}
           <TopDoctorsSection />
 
-          {/* Nearby Providers Section - Location-based provider finder */}
-          <NearbyProvidersSection />
+          {/* Nearby Doctors Section - Dynamic location-based */}
+          <NearbyDoctorsSection />
 
-          {/* Pharmacies Section - Now below doctors */}
-          <PharmaciesSection />
+          {/* Nearby Lab Providers Section - Dynamic location-based */}
+          <NearbyLabProvidersSection />
 
-          {/* Home Nursing Providers Section - Now at the bottom */}
-          <HomeNursingSection />
+          {/* Nearby Home Nursing Section - Dynamic location-based */}
+          <NearbyHomeNursingSection />
         </div>
       </main>
 
