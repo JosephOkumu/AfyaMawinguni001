@@ -57,18 +57,10 @@ const PatientDashboard = () => {
       {/* Top Navigation Bar */}
       <header className="bg-white shadow-sm p-4">
         <div className="container mx-auto flex justify-between items-center">
-          {/* Logo & User Profile */}
-          <div className="flex items-center gap-2">
+          {/* Logo */}
+          <div className="flex items-center -ml-2">
             <Link to="/patient-dashboard">
-              <div className="h-10 w-10 rounded-full bg-secondary-green/80 flex items-center justify-center text-white font-bold">
-                AM
-              </div>
-            </Link>
-            <Link to="/patient-dashboard">
-              <span className="font-semibold text-xl font-playfair">
-                <span className="text-primary-blue">ACESO</span>
-                <span className="text-secondary-green"> HEALTH SOLUTIONS</span>
-              </span>
+              <img src="/aceso.png" alt="Aceso Health Solutions" className="h-24 w-auto bg-white p-2 rounded" />
             </Link>
           </div>
 
