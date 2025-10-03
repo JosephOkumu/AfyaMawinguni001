@@ -37,73 +37,73 @@ const medicineImg = "/lovable-uploads/a05b3053-380f-4711-b032-bc48d1c082f0.png";
 const medicines: MedicineType[] = [
   {
     id: 1,
-    name: "Paracetamol 500mg",
+    name: "Turmeric Capsules",
     price: 250,
-    pharmacy: "MediPharm",
+    pharmacy: "Natural Health Store",
     pharmacyLogo: "https://randomuser.me/api/portraits/women/2.jpg",
-    pharmacyInitials: "MP",
+    pharmacyInitials: "NHS",
     rating: 4.8,
-    category: "Pain Relief",
+    category: "Anti-inflammatory",
     status: "In Stock",
     imagePath: medicineImg,
   },
   {
     id: 2,
-    name: "Amoxicillin 250mg",
+    name: "Ginger Root Extract",
     price: 450,
-    pharmacy: "HealthPlus",
+    pharmacy: "Herbal Wellness",
     pharmacyLogo: "",
-    pharmacyInitials: "HP",
+    pharmacyInitials: "HW",
     rating: 4.7,
-    category: "Antibiotics",
+    category: "Digestive Support",
     status: "In Stock",
     imagePath: medicineImg,
   },
   {
     id: 3,
-    name: "Ibuprofen 400mg",
+    name: "Aloe Vera Gel Capsules",
     price: 350,
-    pharmacy: "MediPharm",
+    pharmacy: "Natural Health Store",
     pharmacyLogo: "https://randomuser.me/api/portraits/women/2.jpg",
-    pharmacyInitials: "MP",
+    pharmacyInitials: "NHS",
     rating: 4.5,
-    category: "Pain Relief",
+    category: "Skin Health",
     status: "Low Stock",
     imagePath: medicineImg,
   },
   {
     id: 4,
-    name: "Loratadine 10mg",
+    name: "Echinacea Immune Support",
     price: 550,
-    pharmacy: "SafeCare Pharmacy",
+    pharmacy: "Organic Remedies",
     pharmacyLogo: "",
-    pharmacyInitials: "SP",
+    pharmacyInitials: "OR",
     rating: 4.9,
-    category: "Allergy Relief",
+    category: "Immune Support",
     status: "In Stock",
     imagePath: medicineImg,
   },
   {
     id: 5,
-    name: "Metformin 500mg",
+    name: "Moringa Leaf Powder",
     price: 650,
-    pharmacy: "HealthPlus",
+    pharmacy: "Herbal Wellness",
     pharmacyLogo: "",
-    pharmacyInitials: "HP",
+    pharmacyInitials: "HW",
     rating: 4.6,
-    category: "Diabetes",
+    category: "Nutritional Support",
     status: "In Stock",
     imagePath: medicineImg,
   },
   {
     id: 6,
-    name: "Omeprazole 20mg",
+    name: "Neem Leaf Extract",
     price: 450,
-    pharmacy: "MediPharm",
+    pharmacy: "Natural Health Store",
     pharmacyLogo: "https://randomuser.me/api/portraits/women/2.jpg",
-    pharmacyInitials: "MP",
+    pharmacyInitials: "NHS",
     rating: 4.7,
-    category: "Digestive Health",
+    category: "Blood Purifier",
     status: "In Stock",
     imagePath: medicineImg,
   },
@@ -305,26 +305,6 @@ const PatientMedicines = () => {
                   </div>
                   <div className="text-xl font-bold text-green-600 mb-2">
                     KSh {medicine.price}
-                  </div>
-                  <div className="flex items-center gap-2 mt-3">
-                    <Avatar className="h-6 w-6">
-                      {medicine.pharmacyLogo ? (
-                        <AvatarImage
-                          src={medicine.pharmacyLogo}
-                          alt={medicine.pharmacy}
-                        />
-                      ) : null}
-                      <AvatarFallback className="bg-primary-blue/10 text-primary-blue text-xs">
-                        {medicine.pharmacyInitials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm text-gray-600">
-                      {medicine.pharmacy}
-                    </span>
-                    <div className="ml-auto flex items-center">
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs ml-1">{medicine.rating}</span>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
