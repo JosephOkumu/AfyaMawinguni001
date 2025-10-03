@@ -355,15 +355,16 @@ const MedicineDetails = () => {
             {/* User Profile */}
             <div className="flex items-center gap-3">
               <div className="hidden md:flex flex-col items-end">
-                <span className="font-medium text-sm">John Doe</span>
-                <span className="text-xs text-gray-500">Patient</span>
+                <span className="font-medium text-sm">{user?.name || "Patient"}</span>
               </div>
               <Avatar className="h-9 w-9 border-2 border-secondary-green/20">
                 <AvatarImage
-                  src="https://randomuser.me/api/portraits/men/32.jpg"
+                  src=""
                   alt="User"
                 />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback>
+                  {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'P'}
+                </AvatarFallback>
               </Avatar>
             </div>
           </div>
