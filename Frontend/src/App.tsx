@@ -25,6 +25,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import AboutUs from "./components/AboutUs"; // Correcting the import path for AboutUs component
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
 import AppointmentDetails from "./pages/AppointmentDetails";
 
 const queryClient = new QueryClient();
@@ -137,6 +138,19 @@ const App = () => (
                     <Header />
                     <main className="flex-grow">
                       <PrivacyPolicy />
+                    </main>
+                  </>
+                }
+              />
+
+              {/* Terms and Conditions Route */}
+              <Route
+                path="/terms-of-service"
+                element={
+                  <>
+                    <Header />
+                    <main className="flex-grow">
+                      <TermsAndConditions />
                     </main>
                   </>
                 }
