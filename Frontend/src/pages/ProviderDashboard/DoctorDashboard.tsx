@@ -40,7 +40,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { compressImage } from "@/utils/imageCompression";
 import { LocationAutocomplete } from "@/components/LocationInput";
 import AppointmentCalendar from "@/components/calendar/AppointmentCalendar";
 import appointmentService, { Appointment } from "@/services/appointmentService";
@@ -50,6 +50,7 @@ import doctorService, {
   AvailabilitySchedule,
   DoctorAvailabilitySettings,
 } from "@/services/doctorService";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Upload,
   Save,
@@ -881,11 +882,11 @@ const DoctorDashboard = () => {
       return;
     }
 
-    // Validate file size (2MB limit)
-    if (file.size > 2 * 1024 * 1024) {
+    // Validate file size (10MB limit before compression)
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File Too Large",
-        description: "Please select an image smaller than 2MB.",
+        description: "Please select an image smaller than 10MB.",
         variant: "destructive",
       });
       return;
@@ -894,8 +895,18 @@ const DoctorDashboard = () => {
     try {
       setIsUploadingImage(true);
 
+      // Compress image before upload
+      const compressedFile = await compressImage(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.8,
+      });
+
+      console.log("Original size:", (file.size / 1024).toFixed(2), "KB");
+      console.log("Compressed size:", (compressedFile.size / 1024).toFixed(2), "KB");
+
       // Create immediate preview using blob URL
-      const previewUrl = URL.createObjectURL(file);
+      const previewUrl = URL.createObjectURL(compressedFile);
       console.log("Preview URL created:", previewUrl);
 
       // Update the preview immediately with the blob URL
@@ -907,8 +918,8 @@ const DoctorDashboard = () => {
 
       console.log("Image preview updated, starting upload...");
 
-      // Upload the actual file to server
-      const imageUrl = await doctorService.uploadProfileImage(file);
+      // Upload the compressed file to server
+      const imageUrl = await doctorService.uploadProfileImage(compressedFile);
       console.log("Server upload complete. New URL:", imageUrl);
 
       // Clean up the blob URL

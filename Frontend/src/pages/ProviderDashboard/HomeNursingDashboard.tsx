@@ -59,13 +59,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LocationAutocomplete } from "@/components/LocationInput";
-import nursingService, {
-  NursingProvider,
-  NursingService,
-  NursingServiceOffering,
-  NursingServiceOfferingCreateData,
-  AvailabilitySchedule,
-} from "@/services/nursingService";
+import nursingService from "@/services/nursingService";
+import { compressImage } from "@/utils/imageCompression";
 import { format } from "date-fns";
 import { AppointmentCalendar } from "@/components/calendar";
 import useNursingCalendar from "@/hooks/useNursingCalendar";
@@ -770,9 +765,40 @@ const HomeNursingDashboard = () => {
   const handleImageUpload = async (file: File) => {
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid File",
+        description: "Please select an image file (PNG, JPG, JPEG, GIF).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (10MB limit before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please select an image smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsUploading(true);
-      const imageUrl = await nursingService.uploadProfileImage(file);
+
+      // Compress image before upload
+      const compressedFile = await compressImage(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.8,
+      });
+
+      console.log("Original size:", (file.size / 1024).toFixed(2), "KB");
+      console.log("Compressed size:", (compressedFile.size / 1024).toFixed(2), "KB");
+
+      const imageUrl = await nursingService.uploadProfileImage(compressedFile);
       setProfileImage(imageUrl);
 
       // Update the nursing profile state to reflect the new image
