@@ -41,6 +41,8 @@ import {
   User,
   X,
   Clock,
+  MapPin,
+  Video,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -56,6 +58,9 @@ import labService, {
   LabTestService,
   LabTestServiceCreateData,
 } from "@/services/labService";
+import AppointmentCalendar from "@/components/calendar/AppointmentCalendar";
+import appointmentService, { Appointment as ServiceAppointment } from "@/services/appointmentService";
+import { format } from "date-fns";
 
 // Interfaces
 interface LabTest {
@@ -81,19 +86,20 @@ interface LaboratoryProfile {
   certifications: string[];
 }
 
-interface Appointment {
+interface LabAppointment {
   id: number;
   patientName: string;
   patientImage: string;
   testName: string;
   date: string;
   time: string;
-  status: "pending" | "completed" | "In progress";
+  status: "pending" | "completed" | "In progress" | "confirmed" | "scheduled" | "cancelled";
   paymentStatus: "paid" | "unpaid" | "partial";
   amount: number;
   location: string;
   assignedStaff: string;
   notes: string;
+  type?: "virtual" | "in_person";
 }
 
 // Helper functions for schedule parsing
@@ -128,7 +134,7 @@ const LabDashboard = () => {
   const [showTestForm, setShowTestForm] = useState<boolean>(false);
   const [showProfileDialog, setShowProfileDialog] = useState<boolean>(false);
   const [selectedAppointment, setSelectedAppointment] =
-    useState<Appointment | null>(null);
+    useState<ServiceAppointment | null>(null);
   const [showAppointmentDetails, setShowAppointmentDetails] =
     useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -157,6 +163,10 @@ const LabDashboard = () => {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [testServices, setTestServices] = useState<LabTestService[]>([]);
   const [isTestServicesLoading, setIsTestServicesLoading] = useState(true);
+  const [labAppointments, setLabAppointments] = useState<ServiceAppointment[]>([]);
+  const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
+  const [selectedLabAppointment, setSelectedLabAppointment] = useState<ServiceAppointment | null>(null);
+  const [showLabAppointmentDetails, setShowLabAppointmentDetails] = useState(false);
 
   // Profile form setup
   const profileForm = useForm<LaboratoryProfile>({
@@ -188,6 +198,24 @@ const LabDashboard = () => {
       });
     } finally {
       setIsTestServicesLoading(false);
+    }
+  }, [toast]);
+
+  // Load appointments
+  const loadAppointments = useCallback(async () => {
+    try {
+      setIsLoadingAppointments(true);
+      const appointments = await appointmentService.getAppointments("doctor");
+      setLabAppointments(appointments);
+    } catch (error) {
+      console.error("Failed to load appointments:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load appointments.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAppointments(false);
     }
   }, [toast]);
 
@@ -244,9 +272,10 @@ const LabDashboard = () => {
 
     loadProfile();
     loadTestServices();
-  }, [loadTestServices, profileForm, toast]);
+    loadAppointments();
+  }, [loadTestServices, loadAppointments, profileForm, toast]);
 
-  const appointments: Appointment[] = [
+  const appointments: LabAppointment[] = [
     {
       id: 1,
       patientName: "John Doe",
@@ -572,7 +601,7 @@ const LabDashboard = () => {
     });
   };
 
-  const getStatusColor = (status: Appointment["status"]) => {
+  const getStatusColor = (status: LabAppointment["status"]) => {
     switch (status) {
       case "pending":
         return "bg-red-100 text-red-800";
@@ -585,7 +614,7 @@ const LabDashboard = () => {
     }
   };
 
-  const getPaymentStatusColor = (status: Appointment["paymentStatus"]) => {
+  const getPaymentStatusColor = (status: LabAppointment["paymentStatus"]) => {
     switch (status) {
       case "paid":
         return "bg-green-100 text-green-800";
@@ -596,6 +625,83 @@ const LabDashboard = () => {
       default:
         return "";
     }
+  };
+
+  // Appointment helper functions
+  const getPendingAppointments = () => {
+    return labAppointments.filter((apt) => apt.status === "pending");
+  };
+
+  const getConfirmedAppointments = () => {
+    return labAppointments.filter((apt) => apt.status === "confirmed" || apt.status === "scheduled");
+  };
+
+  const getPastAppointments = () => {
+    return labAppointments.filter((apt) => apt.status === "completed" || apt.status === "cancelled");
+  };
+
+  const handleLabAppointmentClick = (appointment: ServiceAppointment) => {
+    setSelectedLabAppointment(appointment);
+    setShowLabAppointmentDetails(true);
+  };
+
+  const handleLabAppointmentConfirm = async (appointmentId: number) => {
+    try {
+      await appointmentService.confirmAppointment(appointmentId);
+      await loadAppointments();
+      toast({
+        title: "Appointment Confirmed",
+        description: "The appointment has been confirmed successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to confirm appointment.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLabAppointmentReject = async (appointmentId: number) => {
+    try {
+      await appointmentService.rejectAppointment(appointmentId);
+      await loadAppointments();
+      toast({
+        title: "Appointment Rejected",
+        description: "The appointment has been rejected.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject appointment.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLabAppointmentComplete = async (appointmentId: number) => {
+    try {
+      await appointmentService.completeAppointment(appointmentId);
+      await loadAppointments();
+      toast({
+        title: "Test Completed",
+        description: "The laboratory test has been marked as completed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to complete test.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getAppointmentDateTime = (appointment: ServiceAppointment) => {
+    const appointmentDate = new Date(appointment.appointment_datetime);
+    return {
+      date: format(appointmentDate, "MMM dd, yyyy"),
+      time: format(appointmentDate, "h:mm a"),
+    };
   };
 
   return (
@@ -1020,9 +1126,17 @@ const LabDashboard = () => {
               <TestTube className="h-4 w-4" />
               <span>Lab Tests</span>
             </TabsTrigger>
-            <TabsTrigger value="appointments" className="gap-2">
+            <TabsTrigger value="pending-requests" className="gap-2">
+              <Bell className="h-4 w-4" />
+              <span>Pending Requests</span>
+            </TabsTrigger>
+            <TabsTrigger value="schedule" className="gap-2">
               <Calendar className="h-4 w-4" />
-              <span>Appointments</span>
+              <span>My Schedule</span>
+            </TabsTrigger>
+            <TabsTrigger value="appointments" className="gap-2">
+              <Activity className="h-4 w-4" />
+              <span>Appointment History</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1224,105 +1338,198 @@ const LabDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Appointments Tab */}
-          <TabsContent value="appointments">
+          {/* Pending Requests Tab */}
+          <TabsContent value="pending-requests">
             <Card>
-              <CardHeader className="border-b pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <CardHeader className="border-b pb-4">
                 <div>
-                  <h2 className="text-xl font-semibold">
-                    Appointments History
-                  </h2>
+                  <h2 className="text-xl font-semibold">Pending Test Requests</h2>
                   <p className="text-gray-600 text-sm">
-                    Manage patient test appointments
+                    Review and manage incoming test appointment requests
                   </p>
-                </div>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                  <Input
-                    className="pl-10 w-full md:w-64"
-                    placeholder="Search appointments..."
-                  />
                 </div>
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Patient</TableHead>
-                        <TableHead>Test</TableHead>
-                        <TableHead>Date & Time</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {appointments.map((appointment) => (
-                        <TableRow key={appointment.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage
-                                  src={appointment.patientImage}
-                                  alt={appointment.patientName}
-                                />
-                                <AvatarFallback>
-                                  {appointment.patientName.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="font-medium">
-                                {appointment.patientName}
-                              </span>
+                <div className="space-y-4">
+                  {getPendingAppointments().length === 0 ? (
+                    <div className="p-8 text-center">
+                      <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No pending requests
+                      </h3>
+                      <p className="text-gray-500">
+                        You don't have any pending test requests at the moment.
+                      </p>
+                    </div>
+                  ) : (
+                    getPendingAppointments().map((appointment) => {
+                      const { date, time } = getAppointmentDateTime(appointment);
+                      return (
+                        <Card
+                          key={appointment.id}
+                          className="border-l-4 border-l-amber-500 hover:shadow-md transition-shadow"
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Clock className="h-4 w-4 text-gray-500" />
+                                    <span className="font-medium text-amber-600">
+                                      {date} at {time}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <User className="h-4 w-4 text-gray-500" />
+                                    <span className="text-gray-700">
+                                      {appointment.patient?.name || "Unknown Patient"}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <TestTube className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm text-gray-600">
+                                      {appointment.reason_for_visit || "Laboratory Test"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Badge className="bg-amber-100 text-amber-800">
+                                  Pending
+                                </Badge>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleLabAppointmentClick(appointment)}
+                                >
+                                  Review
+                                </Button>
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  onClick={() => handleLabAppointmentConfirm(appointment.id!)}
+                                >
+                                  Accept
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleLabAppointmentReject(appointment.id!)}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
                             </div>
-                          </TableCell>
-                          <TableCell>{appointment.testName}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <span>
-                                {new Date(appointment.date).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  },
-                                )}
-                              </span>
-                              <span className="text-gray-500 text-xs">
-                                {appointment.time}
-                              </span>
+                          </CardContent>
+                        </Card>
+                      );
+                    })
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* My Schedule Tab */}
+          <TabsContent value="schedule">
+            {isLoadingAppointments ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <span className="text-gray-600">
+                      Loading appointments...
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <AppointmentCalendar
+                appointments={getConfirmedAppointments()}
+                onAppointmentClick={handleLabAppointmentClick}
+                onAppointmentConfirm={handleLabAppointmentConfirm}
+                onAppointmentReject={handleLabAppointmentReject}
+                onAppointmentComplete={handleLabAppointmentComplete}
+              />
+            )}
+          </TabsContent>
+
+          {/* Appointments History Tab */}
+          <TabsContent value="appointments">
+            <Card>
+              <CardHeader className="border-b pb-4">
+                <div>
+                  <h2 className="text-xl font-semibold">Test Appointment History</h2>
+                  <p className="text-gray-600 text-sm">
+                    View completed and cancelled test appointments
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  {getPastAppointments().length === 0 ? (
+                    <div className="p-8 text-center">
+                      <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No appointment history found
+                      </h3>
+                      <p className="text-gray-500">
+                        You don't have any past test appointments yet.
+                      </p>
+                    </div>
+                  ) : (
+                    getPastAppointments().map((appointment) => {
+                      const { date, time } = getAppointmentDateTime(appointment);
+                      return (
+                        <Card
+                          key={appointment.id}
+                          className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
+                        >
+                          <CardContent
+                            className="p-4"
+                            onClick={() => handleLabAppointmentClick(appointment)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Clock className="h-4 w-4 text-gray-500" />
+                                    <span className="font-medium text-blue-600">
+                                      {date} at {time}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <User className="h-4 w-4 text-gray-500" />
+                                    <span className="text-gray-700">
+                                      {appointment.patient?.name || "Unknown Patient"}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <TestTube className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm text-gray-600">
+                                      {appointment.reason_for_visit || "Laboratory Test"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    appointment.status === "completed"
+                                      ? "border-green-200 text-green-700 bg-green-50"
+                                      : "border-red-200 text-red-700 bg-red-50"
+                                  }
+                                >
+                                  {appointment.status === "completed" ? "Completed" : "Cancelled"}
+                                </Badge>
+                              </div>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              className={getStatusColor(appointment.status)}
-                            >
-                              {appointment.status.charAt(0).toUpperCase() +
-                                appointment.status.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            KES {appointment.amount.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedAppointment(appointment);
-                                  setShowAppointmentDetails(true);
-                                }}
-                              >
-                                View
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          </CardContent>
+                        </Card>
+                      );
+                    })
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1720,6 +1927,179 @@ const LabDashboard = () => {
                   }}
                 >
                   Confirm Reschedule
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Lab Appointment Details Dialog */}
+      <Dialog
+        open={showLabAppointmentDetails}
+        onOpenChange={(open) => {
+          setShowLabAppointmentDetails(open);
+          if (!open) {
+            setSelectedLabAppointment(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[650px]">
+          <DialogHeader>
+            <DialogTitle>Test Appointment Details</DialogTitle>
+          </DialogHeader>
+
+          {selectedLabAppointment && (
+            <div className="space-y-6">
+              {/* Patient Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">
+                  Patient Information
+                </h3>
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage
+                      src={selectedLabAppointment.patient?.avatar || ''}
+                      alt={selectedLabAppointment.patient?.name}
+                    />
+                    <AvatarFallback>
+                      {selectedLabAppointment.patient?.name?.charAt(0) || "P"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold">
+                      {selectedLabAppointment.patient?.name || "Unknown Patient"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Patient ID: PT-{1000 + selectedLabAppointment.id!}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Test Type:
+                    </p>
+                    <p>{selectedLabAppointment.reason_for_visit || "Laboratory Test"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Status:</p>
+                    <Badge
+                      className={
+                        selectedLabAppointment.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : selectedLabAppointment.status === "confirmed"
+                          ? "bg-blue-100 text-blue-800"
+                          : selectedLabAppointment.status === "pending"
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-red-100 text-red-800"
+                      }
+                    >
+                      {selectedLabAppointment.status.charAt(0).toUpperCase() +
+                        selectedLabAppointment.status.slice(1)}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment Details */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">
+                  Appointment Details
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Date:</p>
+                    <p>
+                      {format(
+                        new Date(selectedLabAppointment.appointment_datetime),
+                        "EEEE, MMMM dd, yyyy"
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Time:</p>
+                    <p>
+                      {format(
+                        new Date(selectedLabAppointment.appointment_datetime),
+                        "h:mm a"
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Type:</p>
+                  <Badge
+                    variant="outline"
+                    className={
+                      selectedLabAppointment.type === "virtual"
+                        ? "border-blue-200 text-blue-700 bg-blue-50"
+                        : "border-green-200 text-green-700 bg-green-50"
+                    }
+                  >
+                    <div className="flex items-center gap-1">
+                      {selectedLabAppointment.type === "virtual" ? (
+                        <Video className="h-3 w-3" />
+                      ) : (
+                        <MapPin className="h-3 w-3" />
+                      )}
+                      {selectedLabAppointment.type === "virtual" ? "Virtual" : "In-Person"}
+                    </div>
+                  </Badge>
+                </div>
+                {selectedLabAppointment.notes && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Notes:</p>
+                    <p className="text-sm">{selectedLabAppointment.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-4 border-t">
+                <div className="flex gap-2">
+                  {selectedLabAppointment.status === "pending" && (
+                    <>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => {
+                          handleLabAppointmentConfirm(selectedLabAppointment.id!);
+                          setShowLabAppointmentDetails(false);
+                        }}
+                      >
+                        Accept Request
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          handleLabAppointmentReject(selectedLabAppointment.id!);
+                          setShowLabAppointmentDetails(false);
+                        }}
+                      >
+                        Reject Request
+                      </Button>
+                    </>
+                  )}
+                  {selectedLabAppointment.status === "confirmed" && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => {
+                        handleLabAppointmentComplete(selectedLabAppointment.id!);
+                        setShowLabAppointmentDetails(false);
+                      }}
+                    >
+                      Mark as Completed
+                    </Button>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowLabAppointmentDetails(false)}
+                >
+                  Close
                 </Button>
               </div>
             </div>
