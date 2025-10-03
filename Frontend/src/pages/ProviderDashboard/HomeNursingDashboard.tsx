@@ -1106,6 +1106,20 @@ const HomeNursingDashboard = () => {
     );
   };
 
+  // Helper function to calculate total revenue from paid appointments with 2 decimal places
+  const getTotalRevenue = () => {
+    // Get all paid appointments from all sources (confirmed, history, and requests)
+    const allPaidAppointments = [
+      ...confirmedAppointments.filter(apt => apt.is_paid && apt.service_price),
+      ...appointmentHistory.filter(apt => apt.is_paid && apt.service_price),
+      ...nursingRequests.filter(apt => apt.is_paid && apt.service_price)
+    ];
+    
+    const total = allPaidAppointments
+      .reduce((sum, appointment) => sum + (Number(appointment.service_price) || 0), 0);
+    return Number(total).toFixed(2);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white p-6">
       <div className="max-w-6xl mx-auto">
@@ -1583,10 +1597,7 @@ const HomeNursingDashboard = () => {
                   <div>
                     <p className="text-sm text-gray-600">Total Revenue</p>
                     <h3 className="text-2xl font-bold">
-                      KES {appointmentHistory
-                        .filter((apt) => apt.status === "completed" && apt.is_paid)
-                        .reduce((total, apt) => total + parseFloat(String(apt.service_price || 0)), 0)
-                        .toLocaleString()}
+                      KES {getTotalRevenue()}
                     </h3>
                   </div>
                   <div className="h-10 w-10 bg-purple-200 rounded-full flex items-center justify-center">
