@@ -522,26 +522,6 @@ const MedicineDetails = () => {
                 Use as directed. Consult a healthcare professional before use.
               </div>
             </CardContent>
-            <div className="flex items-center gap-2 mt-3 p-4">
-              <Avatar className="h-8 w-8">
-                {medicine?.pharmacyLogo ? (
-                  <AvatarImage
-                    src={medicine.pharmacyLogo}
-                    alt={medicine.pharmacy}
-                  />
-                ) : null}
-                <AvatarFallback className="bg-primary-blue/10 text-primary-blue">
-                  {medicine?.pharmacyInitials}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <span className="text-sm font-medium">
-                  {medicine?.pharmacy}
-                </span>
-                <p className="text-xs text-gray-500">Verified Seller</p>
-              </div>
-              <ShieldCheck className="h-5 w-5 ml-auto text-green-500" />
-            </div>
           </Card>
         </div>
 
