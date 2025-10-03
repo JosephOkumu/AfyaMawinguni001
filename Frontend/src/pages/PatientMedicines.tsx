@@ -235,10 +235,10 @@ const PatientMedicines = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <h1 className="text-2xl font-bold font-playfair">
-                  Online Pharmacy
+                  Herbal Products
                 </h1>
                 <p className="opacity-90 mt-1">
-                  Browse and order medications from trusted pharmacies
+                  Browse and order quality herbal products
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -272,28 +272,6 @@ const PatientMedicines = () => {
           </CardContent>
         </Card>
 
-        {/* Filter Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6 flex flex-wrap gap-2 items-center">
-          <div className="font-medium text-sm flex items-center mr-2">
-            <Filter className="h-4 w-4 mr-1" />
-            Filter by:
-          </div>
-          <Button size="sm" variant="outline" className="rounded-full text-xs">
-            All
-          </Button>
-          <Button size="sm" variant="outline" className="rounded-full text-xs">
-            Pain Relief
-          </Button>
-          <Button size="sm" variant="outline" className="rounded-full text-xs">
-            Antibiotics
-          </Button>
-          <Button size="sm" variant="outline" className="rounded-full text-xs">
-            Diabetes
-          </Button>
-          <Button size="sm" variant="outline" className="rounded-full text-xs">
-            Allergy Relief
-          </Button>
-        </div>
 
         {/* Medicines Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
