@@ -207,13 +207,13 @@ const LabDashboard = () => {
   const loadAppointments = useCallback(async () => {
     try {
       setIsLoadingAppointments(true);
-      const appointments = await appointmentService.getAppointments("doctor");
-      setLabAppointments(appointments);
+      const appointments = await appointmentService.getLabAppointments();
+      setLabAppointments(appointments as unknown as ServiceAppointment[]);
     } catch (error) {
-      console.error("Failed to load appointments:", error);
+      console.error("Failed to load lab appointments:", error);
       toast({
         title: "Error",
-        description: "Failed to load appointments.",
+        description: "Failed to load lab appointments. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -276,6 +276,24 @@ const LabDashboard = () => {
     loadTestServices();
     loadAppointments();
   }, [loadTestServices, loadAppointments, profileForm, toast]);
+
+  // Helper function to get completed appointments count
+  const getCompletedCount = () => {
+    return labAppointments.filter(appointment => appointment.status === "completed").length;
+  };
+
+  // Helper function to calculate total revenue from paid appointments with 2 decimal places
+  const getTotalRevenue = () => {
+    const total = labAppointments
+      .filter(appointment => appointment.is_paid && appointment.fee)
+      .reduce((sum, appointment) => sum + (Number(appointment.fee) || 0), 0);
+    return Number(total).toFixed(2);
+  };
+
+  // Helper function to get pending appointments count
+  const getPendingCount = () => {
+    return labAppointments.filter(appointment => appointment.status === "pending").length;
+  };
 
 
   // Event handlers
@@ -1065,9 +1083,7 @@ const LabDashboard = () => {
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Completed Tests</p>
-                <h3 className="text-2xl font-bold">
-                  {labAppointments.filter((a) => a.status === "completed").length}
-                </h3>
+                <h3 className="text-2xl font-bold">0</h3>
               </div>
               <div className="h-10 w-10 bg-green-200 rounded-full flex items-center justify-center">
                 <Activity className="h-5 w-5 text-green-600" />
@@ -1079,9 +1095,7 @@ const LabDashboard = () => {
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Pending Appointments</p>
-                <h3 className="text-2xl font-bold">
-                  {labAppointments.filter((a) => a.status === "pending").length}
-                </h3>
+                <h3 className="text-2xl font-bold">0</h3>
               </div>
               <div className="h-10 w-10 bg-amber-200 rounded-full flex items-center justify-center">
                 <Calendar className="h-5 w-5 text-amber-600" />
@@ -1093,7 +1107,7 @@ const LabDashboard = () => {
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Revenue</p>
-                <h3 className="text-2xl font-bold">KES 78,500</h3>
+                <h3 className="text-2xl font-bold">KES 0.00</h3>
               </div>
               <div className="h-10 w-10 bg-purple-200 rounded-full flex items-center justify-center">
                 <ChevronDown className="h-5 w-5 text-purple-600" />
