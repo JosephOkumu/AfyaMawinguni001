@@ -134,14 +134,6 @@ const PatientAppointments = () => {
                     </Button>
                   </Link>
                 ))}
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="bg-red-500/80 hover:bg-red-600/80 border-none"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
               </div>
             </div>
           </CardContent>
