@@ -16,6 +16,7 @@ import ServicesSection from "@/components/dashboard/ServicesSection";
 import TopDoctorsSection from "@/components/dashboard/TopDoctorsSection";
 import PharmaciesSection from "@/components/dashboard/PharmaciesSection";
 import HomeNursingSection from "@/components/dashboard/HomeNursingSection";
+import NearbyProvidersSection from "@/components/dashboard/NearbyProvidersSection";
 
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -154,6 +155,9 @@ const PatientDashboard = () => {
         <div className="space-y-6">
           {/* Services Section */}
           <ServicesSection />
+
+          {/* Nearby Providers Section - Location-based provider finder */}
+          <NearbyProvidersSection />
 
           {/* Top Rated Doctors Section */}
           <TopDoctorsSection />
