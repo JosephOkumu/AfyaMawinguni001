@@ -90,7 +90,7 @@ const FAQ = () => {
           </p>
           <div className="space-y-2">
             <p className="text-gray-600">
-              <strong>Email:</strong> info@acesohealth.com
+              <strong>Email:</strong> info@acesohealth.co.ke
             </p>
           </div>
         </div>

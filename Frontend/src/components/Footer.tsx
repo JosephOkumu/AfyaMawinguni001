@@ -39,7 +39,7 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-lg mb-4">Contact Us</h3>
             <ul className="space-y-2">
-              <li>info@acesohealth.com</li>
+              <li>info@acesohealth.co.ke</li>
               <li>
                 <Link to="/faq" className="hover:text-gray-300">
                   FAQs
