@@ -24,6 +24,7 @@ import LabDashboard from "./pages/ProviderDashboard/LabDashboard";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import AboutUs from "./components/AboutUs"; // Correcting the import path for AboutUs component
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AppointmentDetails from "./pages/AppointmentDetails";
 
 const queryClient = new QueryClient();
@@ -123,6 +124,19 @@ const App = () => (
                     <Header />
                     <main className="flex-grow">
                       <AboutUs />
+                    </main>
+                  </>
+                }
+              />
+
+              {/* Privacy Policy Route */}
+              <Route
+                path="/privacy-policy"
+                element={
+                  <>
+                    <Header />
+                    <main className="flex-grow">
+                      <PrivacyPolicy />
                     </main>
                   </>
                 }
