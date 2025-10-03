@@ -30,6 +30,7 @@ import FAQ from "./pages/FAQ";
 import AppointmentDetails from "./pages/AppointmentDetails";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import LoadingBar from "./components/LoadingBar";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <LoadingBar />
           <div className="flex flex-col min-h-screen">
             <Routes>
               <Route
