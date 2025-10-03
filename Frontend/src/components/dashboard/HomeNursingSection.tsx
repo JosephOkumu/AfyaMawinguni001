@@ -44,7 +44,7 @@ const HomeNursingSection = () => {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-[var(--dark)]">Home Nursing Providers</h2>
+        <h2 className="text-xl font-semibold text-[var(--dark)]">Home Nursing near you</h2>
         <Link to="/patient-dashboard/nursing">
           <Button variant="link" className="text-primary-blue p-0">View All</Button>
         </Link>
