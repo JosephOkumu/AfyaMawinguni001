@@ -200,21 +200,6 @@ const MedicineDetails = () => {
     paymentStatus: pesapalPaymentStatus,
     resetPayment: resetPesapalPayment,
   } = usePesapalPayment({
-    onSuccess: async (result) => {
-      setIsProcessing(false);
-      setIsPaymentSuccess(true);
-
-      toast({
-        title: "Order Placed Successfully!",
-        description: "Your medicine order has been confirmed.",
-        variant: "default",
-      });
-
-      // Redirect after a short delay
-      setTimeout(() => {
-        navigate("/patient-dashboard/orders");
-      }, 2000);
-    },
     onError: (error) => {
       setIsProcessing(false);
       console.error("Payment failed:", error);
