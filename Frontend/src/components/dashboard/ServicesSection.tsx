@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShoppingBag, FileText, Stethoscope, Home, PillBottle } from "lucide-react";
+import { ShoppingBag, FileText, Stethoscope, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -51,12 +51,6 @@ const ServicesSection = () => {
       icon: <Home className="h-6 w-6 text-teal-500" />,
       title: "Home Nursing",
       path: "/patient-dashboard/nursing",
-      bgColor: "bg-teal-50"
-    },
-    {
-      icon: <PillBottle className="h-6 w-6 text-teal-500" />,
-      title: "Prescription Refill & Reminders",
-      path: "/patient-dashboard/prescriptions",
       bgColor: "bg-teal-50"
     }
   ];
