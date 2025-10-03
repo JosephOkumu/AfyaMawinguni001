@@ -332,15 +332,6 @@ const MedicineDetails = () => {
             </Link>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative hidden md:block max-w-md w-full mx-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="search"
-              placeholder="Search for medications..."
-              className="pl-10 w-full border-gray-200 focus-visible:ring-secondary-green"
-            />
-          </div>
 
           {/* User Actions */}
           <div className="flex items-center gap-3">
