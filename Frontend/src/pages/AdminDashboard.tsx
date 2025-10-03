@@ -515,12 +515,19 @@ const AdminDashboard = () => {
               </div>
 
               <div className="col-span-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">
+                  {newUser.type === 'lab' || newUser.type === 'pharmacy' 
+                    ? 'Contact Person Name' 
+                    : 'Full Name'}
+                </Label>
                 <Input
                   id="name"
                   value={newUser.name}
                   onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
                   required
+                  placeholder={newUser.type === 'lab' || newUser.type === 'pharmacy' 
+                    ? 'Enter contact person name' 
+                    : 'Enter full name'}
                 />
               </div>
 

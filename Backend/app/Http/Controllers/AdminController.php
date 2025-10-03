@@ -371,8 +371,17 @@ class AdminController extends Controller
         try {
             DB::beginTransaction();
 
-            // Get user type ID
-            $userType = DB::table('user_types')->where('name', $request->type === 'nursing' ? 'nursing' : $request->type)->first();
+            // Get user type ID - map frontend types to database types
+            $typeMapping = [
+                'doctor' => 'doctor',
+                'nursing' => 'nursing',
+                'lab' => 'laboratory',
+                'pharmacy' => 'pharmacy',
+                'patient' => 'patient',
+            ];
+            
+            $dbType = $typeMapping[$request->type] ?? $request->type;
+            $userType = DB::table('user_types')->where('name', $dbType)->first();
             
             if (!$userType) {
                 throw new \Exception('User type not found');
