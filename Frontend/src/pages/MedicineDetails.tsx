@@ -255,16 +255,6 @@ const MedicineDetails = () => {
   };
 
   const processPayment = async () => {
-    // Validate phone number
-    if (!phoneNumber.trim()) {
-      toast({
-        title: "Phone Number Required",
-        description: "Please enter your phone number for payment.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!user || !medicine) {
       toast({
         title: "Missing Information",
@@ -281,7 +271,7 @@ const MedicineDetails = () => {
       await initiatePesapalPayment({
         amount: medicine.price * quantity,
         email: user.email || "patient@example.com",
-        phone_number: phoneNumber,
+        phone_number: "+254722549387", // Default phone number like in doctor booking
         first_name: user.name?.split(" ")[0] || "Patient",
         last_name: user.name?.split(" ").slice(1).join(" ") || "User",
         description: `Medicine order: ${medicine.name} x ${quantity}`,
@@ -501,40 +491,38 @@ const MedicineDetails = () => {
                 </TabsContent>
               </Tabs>
 
-              <div className="mt-8 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full bg-green-500 text-white hover:bg-green-600 border-none"
-                    onClick={addToCart}
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                  </Button>
-
-                  {/* Quantity section moved here */}
-                  <div className="flex items-center flex-1">
+              <div className="space-y-4 mt-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-medium">Quantity</span>
+                  <div className="flex items-center gap-3">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-l-md"
+                      className="h-8 w-8 rounded-full"
                       onClick={decreaseQuantity}
                       disabled={quantity <= 1}
                     >
-                      <Minus className="h-3 w-3" />
+                      <Minus className="h-4 w-4" />
                     </Button>
-                    <div className="h-8 px-4 flex items-center justify-center border-y border-input bg-white min-w-12 text-center">
+                    <span className="font-medium text-lg w-8 text-center">
                       {quantity}
-                    </div>
+                    </span>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-r-md"
+                      className="h-8 w-8 rounded-full"
                       onClick={increaseQuantity}
                     >
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </div>
+                </div>
+
+                <div className="flex items-center justify-between text-2xl font-bold">
+                  <span>Total:</span>
+                  <span className="text-green-600">
+                    KSh {medicine?.price ? medicine.price * quantity : 0}
+                  </span>
                 </div>
 
                 <Button
@@ -549,144 +537,60 @@ const MedicineDetails = () => {
                 Use as directed. Consult a healthcare professional before use.
               </div>
             </CardContent>
+            <div className="flex items-center gap-2 mt-3 p-4">
+              <Avatar className="h-8 w-8">
+                {medicine?.pharmacyLogo ? (
+                  <AvatarImage
+                    src={medicine.pharmacyLogo}
+                    alt={medicine.pharmacy}
+                  />
+                ) : null}
+                <AvatarFallback className="bg-primary-blue/10 text-primary-blue">
+                  {medicine?.pharmacyInitials}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <span className="text-sm font-medium">
+                  {medicine?.pharmacy}
+                </span>
+                <p className="text-xs text-gray-500">Verified Seller</p>
+              </div>
+              <ShieldCheck className="h-5 w-5 ml-auto text-green-500" />
+            </div>
           </Card>
         </div>
-      </main>
 
-      {/* Payment Modal - Using the consistent payment style like doctor consultation page */}
-      {isPaymentModalOpen && !isPaymentSuccess && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md mx-auto shadow-xl overflow-hidden border-none">
-            <div className="bg-gradient-to-r from-primary-blue to-secondary-green text-white p-5">
-              <h2 className="text-xl font-bold font-playfair">Checkout</h2>
+      {/* Payment Modal */}
+      {isPaymentModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md border-0 shadow-xl">
+            <div className="bg-gradient-to-r from-blue-500 to-green-500 text-white p-5">
+              <h2 className="text-xl font-bold">Complete Your Purchase</h2>
               <p className="text-sm opacity-90">
-                Complete your purchase securely
+                Make payment to confirm your order
               </p>
             </div>
             <CardContent className="p-6">
-              <div className="border-b pb-4 mb-4">
+              <div className="mb-6 border-b pb-4">
                 <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Product</span>
+                  <span className="text-gray-600">Medicine:</span>
                   <span className="font-medium">{medicine?.name}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Quantity</span>
-                  <span>{quantity}</span>
+                  <span className="text-gray-600">Quantity:</span>
+                  <span className="font-medium">{quantity}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Price</span>
-                  <span>
-                    KSh {medicine?.price} x {quantity}
-                  </span>
+                  <span className="text-gray-600">Price per item:</span>
+                  <span className="font-medium">KES {medicine?.price || 0}</span>
                 </div>
-                <div className="flex justify-between font-bold mt-4 text-lg">
-                  <span>Total</span>
-                  <span className="text-green-600">
-                    KSh {medicine?.price ? medicine.price * quantity : 0}
-                  </span>
+                <div className="flex justify-between font-bold text-lg mt-4">
+                  <span>Total Amount:</span>
+                  <span className="text-green-600">KES {medicine?.price ? medicine.price * quantity : 0}</span>
                 </div>
               </div>
 
-              <h3 className="font-medium mb-3">Select Payment Method</h3>
-
-              <RadioGroup
-                value={paymentMethod}
-                onValueChange={setPaymentMethod}
-                className="space-y-2"
-              >
-                <div className="border rounded-lg p-4 flex items-center space-x-2">
-                  <RadioGroupItem value="mpesa" id="mpesa" />
-                  <Label
-                    htmlFor="mpesa"
-                    className="flex items-center cursor-pointer"
-                  >
-                    <div className="bg-green-100 rounded-full p-1 mr-2">
-                      <span className="text-green-600 font-bold text-xs">
-                        M
-                      </span>
-                    </div>
-                    M-Pesa
-                  </Label>
-                </div>
-                <div className="border rounded-lg p-4 flex items-center space-x-2">
-                  <RadioGroupItem value="card" id="card" />
-                  <Label
-                    htmlFor="card"
-                    className="flex items-center cursor-pointer"
-                  >
-                    <div className="bg-blue-100 rounded-full p-1 mr-2">
-                      <span className="text-blue-600 font-bold text-xs">C</span>
-                    </div>
-                    Credit/Debit Card
-                  </Label>
-                </div>
-              </RadioGroup>
-
-              {paymentMethod === "mpesa" && (
-                <div className="mb-6">
-                  <Label htmlFor="phone" className="mb-2 block font-medium">
-                    Phone Number
-                  </Label>
-                  <Input
-                    id="phone"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="+254722549387"
-                    className="mb-2"
-                  />
-                  <p className="text-xs text-gray-500">
-                    You will receive an M-Pesa prompt to complete the payment.
-                  </p>
-                  {pesapalPaymentStatus && (
-                    <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
-                      {pesapalPaymentStatus}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {paymentMethod === "card" && (
-                <div className="mb-6 space-y-4">
-                  <div>
-                    <Label
-                      htmlFor="cardPhone"
-                      className="mb-2 block font-medium"
-                    >
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="cardPhone"
-                      type="tel"
-                      placeholder="+254722549387"
-                      value={phoneNumber || "+254722549387"}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="mb-2"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Required for payment confirmation and notifications.
-                    </p>
-                  </div>
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Info className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-800">
-                        Secure Card Payment
-                      </span>
-                    </div>
-                    <p className="text-xs text-blue-700">
-                      You will be redirected to a secure payment page to
-                      complete your card payment.
-                    </p>
-                    {pesapalPaymentStatus && (
-                      <div className="mt-2 p-2 bg-white rounded text-sm text-blue-700">
-                        {pesapalPaymentStatus}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-3 mt-6">
+              <div className="flex gap-4">
                 <Button
                   variant="outline"
                   className="flex-1"
@@ -695,15 +599,18 @@ const MedicineDetails = () => {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-gradient-to-r from-primary-blue to-secondary-green hover:brightness-90 text-white"
+                  className="flex-1"
                   onClick={processPayment}
-                  disabled={
-                    isProcessing || pesapalProcessing || !phoneNumber.trim()
-                  }
+                  disabled={isProcessing || pesapalProcessing}
                 >
-                  {isProcessing || pesapalProcessing
-                    ? "Processing..."
-                    : "Make Payment"}
+                  {isProcessing || pesapalProcessing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    "Make Payment"
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -772,6 +679,8 @@ const MedicineDetails = () => {
           </Card>
         </div>
       )}
+
+      </main>
 
       {/* Footer */}
       <Footer />
