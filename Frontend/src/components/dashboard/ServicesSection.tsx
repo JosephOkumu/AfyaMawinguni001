@@ -57,9 +57,8 @@ const ServicesSection = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6">
         <h2 className="text-xl font-semibold text-[var(--dark)]">Our Services</h2>
-        <Button variant="link" className="text-primary-blue p-0">View All</Button>
       </div>
       
       <div className="grid grid-cols-4 gap-4">
