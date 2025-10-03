@@ -109,19 +109,19 @@ class AdminController extends Controller
             // Get revenue data
             $doctorRevenue = Appointment::where('is_paid', true)
                 ->whereIn('status', ['scheduled', 'confirmed', 'completed'])
-                ->sum('consultation_fee');
+                ->sum('fee');
 
             $nursingRevenue = NursingService::where('is_paid', true)
                 ->whereIn('status', ['scheduled', 'confirmed', 'completed'])
-                ->sum('service_fee');
+                ->sum('service_price');
 
             $labRevenue = LabAppointment::where('is_paid', true)
                 ->whereIn('status', ['scheduled', 'confirmed', 'completed'])
                 ->sum('total_amount');
 
             $medicineRevenue = MedicineOrder::where('is_paid', true)
-                ->whereIn('status', ['pending', 'processing', 'completed'])
-                ->sum('total_amount');
+                ->whereIn('status', ['pending', 'processing', 'delivered'])
+                ->sum('total');
 
             $totalRevenue = $doctorRevenue + $nursingRevenue + $labRevenue + $medicineRevenue;
 
