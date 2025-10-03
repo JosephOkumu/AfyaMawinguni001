@@ -16,6 +16,12 @@ const PaymentCancelled = () => {
   const orderTrackingId = searchParams.get("OrderTrackingId");
 
   useEffect(() => {
+    // Break out of iframe if we're inside one
+    if (window.self !== window.top) {
+      window.top!.location.href = window.location.href;
+      return;
+    }
+
     // Clean up any temporary booking data
     if (merchantReference) {
       localStorage.removeItem(`lab_booking_${merchantReference}`);

@@ -27,6 +27,12 @@ const PaymentSuccess = () => {
     searchParams.get("order_tracking_id");
 
   useEffect(() => {
+    // Break out of iframe if we're inside one
+    if (window.self !== window.top) {
+      window.top!.location.href = window.location.href;
+      return;
+    }
+
     const verifyPaymentAndRedirect = async () => {
       console.log("=== PAYMENT SUCCESS DEBUG ===");
       console.log("Current URL:", window.location.href);

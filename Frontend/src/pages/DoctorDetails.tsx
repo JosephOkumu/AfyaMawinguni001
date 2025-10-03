@@ -1112,8 +1112,7 @@ const DoctorDetails = () => {
                 Booking Successful!
               </h2>
               <p className="text-gray-600 mb-6">
-                Your {consultationType === "virtual" ? "virtual" : "in-person"} consultation with {doctor.user.name} has been scheduled for{" "}
-                {date?.toLocaleDateString("en-GB")} at {timeSlot}.
+                Your {consultationType === "virtual" ? "virtual" : "in-person"} consultation with {doctor.user.name} has been scheduled.
               </p>
               {consultationType === "virtual" && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">

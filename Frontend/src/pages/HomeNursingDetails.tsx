@@ -1533,8 +1533,7 @@ const HomeNursingDetails = () => {
                 Booking Successful!
               </h2>
               <p className="text-gray-600 mb-6">
-                Your home nursing appointment has been scheduled for{" "}
-                {date?.toLocaleDateString("en-GB")} at {timeSlot}.
+                Your home nursing appointment has been scheduled.
               </p>
               <Button
                 className="w-full"

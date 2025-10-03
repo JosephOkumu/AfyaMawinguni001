@@ -31,6 +31,7 @@ import AppointmentDetails from "./pages/AppointmentDetails";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import LoadingBar from "./components/LoadingBar";
+import PaymentPage from "./pages/PaymentPage";
 
 const queryClient = new QueryClient();
 
@@ -119,6 +120,7 @@ const App = () => (
               <Route path="/provider/laboratory" element={<LabDashboard />} />
 
               {/* Payment Routes */}
+              <Route path="/payment" element={<PaymentPage />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
 

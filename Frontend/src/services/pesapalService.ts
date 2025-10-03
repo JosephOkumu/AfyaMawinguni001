@@ -223,8 +223,9 @@ class PesapalService {
    * Redirect to Pesapal payment page
    */
   redirectToPayment(redirectUrl: string): void {
-    console.log("Redirecting to Pesapal payment page:", redirectUrl);
-    window.location.href = redirectUrl;
+    // Redirect through our branded payment page
+    const encodedUrl = encodeURIComponent(redirectUrl);
+    window.location.href = `/payment?url=${encodedUrl}`;
   }
 
   /**
