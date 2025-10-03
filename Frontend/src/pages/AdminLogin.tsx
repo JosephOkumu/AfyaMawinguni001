@@ -59,7 +59,7 @@ const AdminLogin = () => {
             Admin Portal
           </CardTitle>
           <CardDescription className="text-base">
-            AfyaMawinguni Healthcare Platform
+            Aceso Health Solutions
           </CardDescription>
         </CardHeader>
         <CardContent>

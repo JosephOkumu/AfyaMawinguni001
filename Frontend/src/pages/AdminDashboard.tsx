@@ -221,7 +221,7 @@ const AdminDashboard = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                <p className="text-sm text-gray-600">AfyaMawinguni Healthcare Platform</p>
+                <p className="text-sm text-gray-600">Aceso Health Solutions</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
