@@ -213,16 +213,16 @@ const AdminDashboard = () => {
       {/* Header */}
       <div className="bg-white shadow-md border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <img src="/aceso.svg" alt="Aceso Logo" className="h-[86px] w-[86px]" />
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <img src="/aceso.svg" alt="Aceso Logo" className="h-12 w-12 sm:h-16 sm:w-16 md:h-[86px] md:w-[86px]" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                <p className="text-sm text-gray-600">Aceso Health Solutions</p>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p className="text-xs sm:text-sm text-gray-600">Aceso Health Solutions</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
+            <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto justify-between sm:justify-end">
+              <div className="text-left sm:text-right">
                 <p className="text-sm font-medium text-gray-900">{adminUser?.username}</p>
                 <p className="text-xs text-gray-500">Administrator</p>
               </div>
@@ -230,9 +230,10 @@ const AdminDashboard = () => {
                 onClick={handleLogout}
                 variant="outline"
                 className="flex items-center space-x-2"
+                size="sm"
               >
                 <LogOut className="h-4 w-4" />
-                <span>Logout</span>
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </div>
