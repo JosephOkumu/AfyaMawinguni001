@@ -186,7 +186,7 @@ const AdminDashboard = () => {
     { id: 'doctors', name: 'Doctors', icon: Stethoscope, color: 'from-blue-500 to-blue-600' },
     { id: 'nursing', name: 'Home Nursing', icon: Heart, color: 'from-pink-500 to-pink-600' },
     { id: 'labs', name: 'Lab Providers', icon: FlaskConical, color: 'from-purple-500 to-purple-600' },
-    { id: 'pharmacies', name: 'Pharmacies', icon: Pill, color: 'from-green-500 to-green-600' },
+    { id: 'pharmacies', name: 'Herbal Products', icon: Pill, color: 'from-green-500 to-green-600' },
     { id: 'patients', name: 'Patients', icon: Users, color: 'from-indigo-500 to-indigo-600' },
   ];
 
