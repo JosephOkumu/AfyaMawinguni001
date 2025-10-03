@@ -55,126 +55,126 @@ const commonMedicineImg =
 const medicineData: MedicineType[] = [
   {
     id: 1,
-    name: "Paracetamol 500mg",
+    name: "Turmeric Capsules",
     price: 250,
-    pharmacy: "MediPharm",
+    pharmacy: "Natural Health Store",
     pharmacyLogo: "https://randomuser.me/api/portraits/women/2.jpg",
-    pharmacyInitials: "MP",
+    pharmacyInitials: "NHS",
     rating: 4.8,
-    category: "Pain Relief",
+    category: "Anti-inflammatory",
     status: "In Stock",
     description:
-      "Paracetamol is a commonly used medicine that can help treat pain and reduce a high temperature (fever). It's typically used to relieve mild or moderate pain, such as headaches, toothache or sprains, and reduce fevers caused by illnesses such as colds and flu.",
+      "Turmeric capsules contain curcumin, a powerful natural anti-inflammatory compound. Known for its potent antioxidant properties, turmeric has been used for centuries in traditional medicine to support joint health, reduce inflammation, and boost immune function. Our premium turmeric extract is standardized to contain 95% curcuminoids for maximum potency.",
     dosageAdult:
-      "1-2 tablets every 4-6 hours as needed, not exceeding 8 tablets in 24 hours.",
+      "Take 1-2 capsules daily with meals, or as directed by your healthcare provider. For enhanced absorption, take with black pepper or a fat-containing meal.",
     dosageChildren:
-      "For children 6-12 years: 1/2 to 1 tablet every 4-6 hours as needed, not exceeding 4 tablets in 24 hours. Not recommended for children under 6 without medical advice.",
-    sideEffects: ["Nausea", "Stomach pain", "Allergic reactions (rare)"],
-    form: "Tablets",
-    manufacturer: "GSK Pharmaceuticals",
+      "Not recommended for children under 12 years. For children 12+ years, consult with a healthcare provider for appropriate dosage.",
+    sideEffects: ["Mild stomach upset (rare)", "May interact with blood thinners", "Avoid during pregnancy"],
+    form: "Capsules",
+    manufacturer: "Natural Wellness Co.",
     imagePath: commonMedicineImg,
   },
   {
     id: 2,
-    name: "Amoxicillin 250mg",
+    name: "Ginger Root Extract",
     price: 450,
-    pharmacy: "HealthPlus",
+    pharmacy: "Herbal Wellness",
     pharmacyLogo: "",
-    pharmacyInitials: "HP",
+    pharmacyInitials: "HW",
     rating: 4.7,
-    category: "Antibiotics",
+    category: "Digestive Support",
     status: "In Stock",
     description:
-      "Amoxicillin is an antibiotic used to treat a number of bacterial infections. These include middle ear infection, strep throat, pneumonia, skin infections, and urinary tract infections.",
+      "Ginger root extract is a natural digestive aid with powerful anti-nausea properties. This concentrated extract supports healthy digestion, reduces motion sickness, and helps alleviate morning sickness. Rich in gingerols and shogaols, our ginger extract provides therapeutic benefits in an easy-to-take capsule form.",
     dosageAdult:
-      "250mg to 500mg every 8 hours or 500mg to 875mg every 12 hours, depending on the type and severity of infection.",
+      "Take 1 capsule 2-3 times daily with meals. For motion sickness, take 1 capsule 30 minutes before travel.",
     dosageChildren:
-      "20 to 40mg/kg/day divided into 3 doses every 8 hours or 2 doses every 12 hours, depending on weight and severity of infection.",
-    sideEffects: ["Diarrhea", "Rash", "Nausea", "Vomiting"],
+      "For children 6+ years: 1/2 capsule daily with food. Consult healthcare provider before use in children.",
+    sideEffects: ["Mild heartburn (rare)", "May interact with blood thinners", "Avoid with gallstones"],
     form: "Capsules",
-    manufacturer: "Pfizer Inc.",
+    manufacturer: "Herbal Remedies Ltd.",
     imagePath: commonMedicineImg,
   },
   {
     id: 3,
-    name: "Ibuprofen 400mg",
+    name: "Aloe Vera Gel Capsules",
     price: 350,
-    pharmacy: "MediPharm",
+    pharmacy: "Natural Health Store",
     pharmacyLogo: "https://randomuser.me/api/portraits/women/2.jpg",
-    pharmacyInitials: "MP",
+    pharmacyInitials: "NHS",
     rating: 4.5,
-    category: "Pain Relief",
+    category: "Skin Health",
     status: "Low Stock",
     description:
-      "Ibuprofen is a nonsteroidal anti-inflammatory drug (NSAID) used to relieve pain, reduce inflammation, and lower fever. It works by blocking the production of certain natural substances that cause inflammation.",
+      "Aloe Vera gel capsules provide the healing benefits of pure aloe vera in convenient capsule form. Known for its soothing and healing properties, aloe vera supports digestive health, promotes skin healing from within, and provides natural anti-inflammatory benefits. Our capsules contain 100% pure inner leaf aloe vera gel.",
     dosageAdult:
-      "400mg to 800mg every 6 to 8 hours as needed, not exceeding 3,200mg per day.",
+      "Take 1-2 capsules daily with water, preferably on an empty stomach. For digestive support, take 30 minutes before meals.",
     dosageChildren:
-      "5 to 10mg/kg every 6 to 8 hours. Children's dosage should be determined by a doctor based on weight.",
-    sideEffects: ["Stomach upset", "Heartburn", "Dizziness", "Headache"],
-    form: "Tablets",
-    manufacturer: "Reckitt Benckiser",
+      "For children 8+ years: 1 capsule daily with plenty of water. Not recommended for children under 8 years.",
+    sideEffects: ["Mild laxative effect", "Stomach cramps (if taken in excess)", "Avoid during pregnancy"],
+    form: "Capsules",
+    manufacturer: "Pure Botanicals",
     imagePath: commonMedicineImg,
   },
   {
     id: 4,
-    name: "Loratadine 10mg",
+    name: "Echinacea Immune Support",
     price: 550,
-    pharmacy: "SafeCare Pharmacy",
+    pharmacy: "Organic Remedies",
     pharmacyLogo: "",
-    pharmacyInitials: "SP",
+    pharmacyInitials: "OR",
     rating: 4.9,
-    category: "Allergy Relief",
+    category: "Immune Support",
     status: "In Stock",
     description:
-      "Loratadine is an antihistamine that reduces the effects of natural chemical histamine in the body. Histamine can produce symptoms of sneezing, itching, watery eyes, and runny nose. It is used to treat the symptoms of allergies.",
-    dosageAdult: "10mg once daily.",
+      "Echinacea immune support capsules contain premium purple coneflower extract, traditionally used to strengthen the immune system. This powerful herb helps the body's natural defenses against seasonal challenges and supports overall wellness. Our standardized extract ensures consistent potency and effectiveness.",
+    dosageAdult: "Take 2 capsules daily with meals during seasonal challenges, or 1 capsule daily for maintenance.",
     dosageChildren:
-      "For children 6 years and older: 10mg once daily. For children 2-5 years: 5mg once daily.",
-    sideEffects: ["Headache", "Drowsiness", "Dry mouth"],
-    form: "Tablets",
-    manufacturer: "Johnson & Johnson",
+      "For children 6+ years: 1 capsule daily with food. For children 2-5 years: consult healthcare provider.",
+    sideEffects: ["Mild stomach upset (rare)", "Allergic reactions in sensitive individuals", "Avoid with autoimmune conditions"],
+    form: "Capsules",
+    manufacturer: "Immune Botanicals",
     imagePath: commonMedicineImg,
   },
   {
     id: 5,
-    name: "Metformin 500mg",
+    name: "Moringa Leaf Powder",
     price: 650,
-    pharmacy: "HealthPlus",
+    pharmacy: "Herbal Wellness",
     pharmacyLogo: "",
-    pharmacyInitials: "HP",
+    pharmacyInitials: "HW",
     rating: 4.6,
-    category: "Diabetes",
+    category: "Nutritional Support",
     status: "In Stock",
     description:
-      "Metformin is used to treat type 2 diabetes. It is used along with diet and exercise to help control blood sugar levels. It works by decreasing the amount of sugar your liver makes and helping your body use insulin more effectively.",
+      "Moringa leaf powder is a nutrient-dense superfood packed with vitamins, minerals, and antioxidants. Known as the 'miracle tree,' moringa provides natural energy, supports immune function, and promotes overall wellness. Rich in vitamin C, iron, calcium, and protein, it's an excellent nutritional supplement for daily health maintenance.",
     dosageAdult:
-      "Start with 500mg twice daily with meals. May increase to 2,000mg per day based on response.",
+      "Mix 1-2 teaspoons in water, juice, or smoothies daily. Can be taken with or without food.",
     dosageChildren:
-      "Not typically prescribed for children under 10 years. For children 10-16 years, dosage should be determined by a doctor.",
-    sideEffects: ["Nausea", "Diarrhea", "Stomach upset", "Metallic taste"],
-    form: "Tablets",
-    manufacturer: "Merck & Co.",
+      "For children 5+ years: 1/2 teaspoon daily mixed in food or drinks. Start with smaller amounts.",
+    sideEffects: ["Mild laxative effect initially", "May lower blood pressure", "Generally well tolerated"],
+    form: "Powder",
+    manufacturer: "Superfood Naturals",
     imagePath: commonMedicineImg,
   },
   {
     id: 6,
-    name: "Omeprazole 20mg",
+    name: "Neem Leaf Extract",
     price: 450,
-    pharmacy: "MediPharm",
+    pharmacy: "Natural Health Store",
     pharmacyLogo: "https://randomuser.me/api/portraits/women/2.jpg",
-    pharmacyInitials: "MP",
+    pharmacyInitials: "NHS",
     rating: 4.7,
-    category: "Digestive Health",
+    category: "Blood Purifier",
     status: "In Stock",
     description:
-      "Omeprazole is a proton pump inhibitor that decreases the amount of acid produced in the stomach. It is used to treat symptoms of gastroesophageal reflux disease (GERD) and other conditions involving excessive stomach acid such as Zollinger-Ellison syndrome.",
-    dosageAdult: "20mg once daily for 4-8 weeks.",
+      "Neem leaf extract is a traditional Ayurvedic herb known for its blood purifying and detoxifying properties. This powerful botanical supports healthy skin from within, promotes liver function, and helps maintain balanced blood sugar levels. Our standardized extract provides consistent therapeutic benefits.",
+    dosageAdult: "Take 1-2 capsules daily with meals, or as directed by healthcare provider.",
     dosageChildren:
-      "For children 1-16 years: Weight-based dosing determined by a doctor, typically 10-20mg once daily.",
-    sideEffects: ["Headache", "Nausea", "Diarrhea", "Stomach pain"],
+      "For children 10+ years: 1 capsule daily with food. Not recommended for children under 10 years.",
+    sideEffects: ["Mild stomach upset if taken on empty stomach", "May lower blood sugar", "Avoid during pregnancy"],
     form: "Capsules",
-    manufacturer: "AstraZeneca",
+    manufacturer: "Ayurvedic Botanicals",
     imagePath: commonMedicineImg,
   },
 ];
@@ -325,8 +325,8 @@ const MedicineDetails = () => {
             </Link>
             <Link to="/patient-dashboard">
               <span className="text-xl font-bold">
-                <span className="text-primary-blue">AFYA</span>
-                <span className="text-secondary-green"> MAWINGUNI</span>
+                <span className="text-primary-blue">ACESO</span>
+                <span className="text-secondary-green"> HEALTH SOLUTIONS</span>
               </span>
             </Link>
           </div>
@@ -419,12 +419,6 @@ const MedicineDetails = () => {
                 >
                   {medicine?.status}
                 </Badge>
-                <div className="flex items-center">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm ml-1 font-medium">
-                    {medicine?.rating}
-                  </span>
-                </div>
               </div>
               <div className="flex items-center gap-2 mt-3">
                 <Avatar className="h-8 w-8">
@@ -452,9 +446,6 @@ const MedicineDetails = () => {
           {/* Middle Column - Medicine Info */}
           <Card className="md:col-span-1 bg-white">
             <CardContent className="p-6">
-              <h1 className="text-2xl font-bold mb-2 font-playfair">
-                {medicine?.name}
-              </h1>
               <div className="text-sm text-gray-500 mb-4">
                 Category: {medicine?.category}
               </div>
