@@ -387,9 +387,10 @@ class AdminController extends Controller
                 case 'doctor':
                     Doctor::create([
                         'user_id' => $user->id,
-                        'specialization' => $request->specialization,
+                        'specialty' => $request->specialization,
                         'license_number' => $request->license_number,
-                        'consultation_fee' => $request->consultation_fee ?? 0,
+                        'qualifications' => $request->specialization ?? 'Medical Doctor',
+                        'consultation_fee' => $request->consultation_fee ?? 1000,
                         'years_of_experience' => $request->years_of_experience ?? 0,
                     ]);
                     break;
@@ -397,9 +398,13 @@ class AdminController extends Controller
                 case 'nursing':
                     NursingProvider::create([
                         'user_id' => $user->id,
-                        'specialization' => $request->specialization,
+                        'provider_name' => $request->name,
+                        'description' => $request->specialization ?? 'Professional nursing provider',
                         'license_number' => $request->license_number,
-                        'years_of_experience' => $request->years_of_experience ?? 0,
+                        'qualifications' => $request->specialization ?? 'Certified Nurse',
+                        'services_offered' => json_encode(['General Nursing Care']),
+                        'base_rate_per_hour' => 1000.00,
+                        'is_available' => true,
                     ]);
                     break;
 
@@ -408,6 +413,9 @@ class AdminController extends Controller
                         'user_id' => $user->id,
                         'lab_name' => $request->lab_name,
                         'license_number' => $request->license_number,
+                        'address' => 'To be updated',
+                        'description' => 'Professional laboratory services',
+                        'is_available' => true,
                     ]);
                     break;
 
@@ -416,6 +424,10 @@ class AdminController extends Controller
                         'user_id' => $user->id,
                         'pharmacy_name' => $request->pharmacy_name,
                         'license_number' => $request->license_number,
+                        'description' => 'Professional pharmacy services',
+                        'address' => 'To be updated',
+                        'city' => 'Nairobi',
+                        'is_available' => true,
                     ]);
                     break;
 
