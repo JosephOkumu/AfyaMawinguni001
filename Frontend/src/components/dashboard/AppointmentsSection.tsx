@@ -767,7 +767,7 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
             
             <div className="space-y-4">
               <div className="text-sm text-gray-600">
-                <p><strong>Test:</strong> {selectedReportAppointment.reason_for_visit || "Laboratory Test"}</p>
+                <p><strong>Test:</strong> {selectedReportAppointment.notes || "Laboratory Test"}</p>
                 <p><strong>Date:</strong> {format(new Date(selectedReportAppointment.appointment_datetime), "MMM dd, yyyy")}</p>
                 <p><strong>Status:</strong> <span className="text-green-600 font-medium">Completed</span></p>
               </div>
