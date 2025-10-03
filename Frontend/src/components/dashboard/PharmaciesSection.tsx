@@ -39,7 +39,7 @@ const PharmaciesSection = () => {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-[var(--dark)]">Pharmacies Near You</h2>
+        <h2 className="text-xl font-semibold text-[var(--dark)]">lab providers near you</h2>
         <Button variant="link" className="text-primary-blue p-0">View All</Button>
       </div>
       
