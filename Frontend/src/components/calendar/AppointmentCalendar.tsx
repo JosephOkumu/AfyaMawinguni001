@@ -366,6 +366,11 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                           {appointment.patient?.name || "Unknown Patient"}
                         </span>
                       </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-gray-600">
+                          {appointment.reason_for_visit || "Laboratory Test"}
+                        </span>
+                      </div>
                     </div>
                   </div>
 

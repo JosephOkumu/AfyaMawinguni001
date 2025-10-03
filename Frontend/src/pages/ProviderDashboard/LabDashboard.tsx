@@ -167,6 +167,8 @@ const LabDashboard = () => {
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
   const [selectedLabAppointment, setSelectedLabAppointment] = useState<ServiceAppointment | null>(null);
   const [showLabAppointmentDetails, setShowLabAppointmentDetails] = useState(false);
+  const [showCompleteAppointmentModal, setShowCompleteAppointmentModal] = useState(false);
+  const [reportFile, setReportFile] = useState<File | null>(null);
 
   // Profile form setup
   const profileForm = useForm<LaboratoryProfile>({
@@ -275,68 +277,6 @@ const LabDashboard = () => {
     loadAppointments();
   }, [loadTestServices, loadAppointments, profileForm, toast]);
 
-  const appointments: LabAppointment[] = [
-    {
-      id: 1,
-      patientName: "John Doe",
-      patientImage: "https://randomuser.me/api/portraits/men/32.jpg",
-      testName: "Complete Blood Count",
-      date: "2023-06-15",
-      time: "10:00 AM",
-      status: "pending",
-      paymentStatus: "paid",
-      amount: 1200,
-      location: "Lab Room 3, East Wing",
-      assignedStaff: "Dr. Elizabeth Johnson",
-      notes:
-        "Patient should fast for 8 hours before the test. Bring previous lab results if available.",
-    },
-    {
-      id: 2,
-      patientName: "Jane Smith",
-      patientImage: "https://randomuser.me/api/portraits/women/44.jpg",
-      testName: "Blood Glucose Test",
-      date: "2023-06-15",
-      time: "11:30 AM",
-      status: "completed",
-      paymentStatus: "paid",
-      amount: 800,
-      location: "Lab Room 1, Main Floor",
-      assignedStaff: "Dr. Robert Chen",
-      notes:
-        "The patient is diabetic. Special care should be taken during sample collection.",
-    },
-    {
-      id: 3,
-      patientName: "Michael Johnson",
-      patientImage: "https://randomuser.me/api/portraits/men/45.jpg",
-      testName: "Lipid Profile",
-      date: "2023-06-16",
-      time: "09:15 AM",
-      status: "pending",
-      paymentStatus: "unpaid",
-      amount: 1500,
-      location: "Lab Room 5, Second Floor",
-      assignedStaff: "Dr. Lisa Wong",
-      notes:
-        "Patient must fast for 12 hours prior to the test. Water is allowed.",
-    },
-    {
-      id: 4,
-      patientName: "Samantha Williams",
-      patientImage: "https://randomuser.me/api/portraits/women/67.jpg",
-      testName: "COVID-19 PCR Test",
-      date: "2023-06-16",
-      time: "02:00 PM",
-      status: "In progress",
-      paymentStatus: "partial",
-      amount: 3500,
-      location: "Isolation Room 2, West Wing",
-      assignedStaff: "Dr. Michael Omondi",
-      notes:
-        "Patient has reported COVID-19 exposure. Follow strict isolation protocols during testing.",
-    },
-  ];
 
   // Event handlers
   const onTestSubmit = async (data: LabTestServiceCreateData) => {
@@ -614,6 +554,24 @@ const LabDashboard = () => {
     }
   };
 
+  const getStatusVariant = (status: "completed" | "pending" | "In progress" | "confirmed" | "scheduled" | "cancelled") => {
+    switch (status) {
+      case "completed":
+        return "default" as const;
+      case "pending":
+        return "destructive" as const;
+      case "In progress":
+        return "secondary" as const;
+      case "confirmed":
+      case "scheduled":
+        return "default" as const;
+      case "cancelled":
+        return "outline" as const;
+      default:
+        return "outline" as const;
+    }
+  };
+
   const getPaymentStatusColor = (status: LabAppointment["paymentStatus"]) => {
     switch (status) {
       case "paid":
@@ -681,8 +639,11 @@ const LabDashboard = () => {
 
   const handleLabAppointmentComplete = async (appointmentId: number) => {
     try {
+      // TODO: Implement report upload functionality with the backend
       await appointmentService.completeAppointment(appointmentId);
       await loadAppointments();
+      setShowCompleteAppointmentModal(false);
+      setReportFile(null);
       toast({
         title: "Test Completed",
         description: "The laboratory test has been marked as completed.",
@@ -693,6 +654,26 @@ const LabDashboard = () => {
         description: "Failed to complete test.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleReportFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (allowedTypes.includes(file.type)) {
+        setReportFile(file);
+        toast({
+          title: "File Selected",
+          description: `Selected: ${file.name}`,
+        });
+      } else {
+        toast({
+          title: "Invalid File Type",
+          description: "Please select a PDF or Word document.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -1084,7 +1065,9 @@ const LabDashboard = () => {
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Completed Tests</p>
-                <h3 className="text-2xl font-bold">123</h3>
+                <h3 className="text-2xl font-bold">
+                  {labAppointments.filter((a) => a.status === "completed").length}
+                </h3>
               </div>
               <div className="h-10 w-10 bg-green-200 rounded-full flex items-center justify-center">
                 <Activity className="h-5 w-5 text-green-600" />
@@ -1097,7 +1080,7 @@ const LabDashboard = () => {
               <div>
                 <p className="text-sm text-gray-600">Pending Appointments</p>
                 <h3 className="text-2xl font-bold">
-                  {appointments.filter((a) => a.status === "pending").length}
+                  {labAppointments.filter((a) => a.status === "pending").length}
                 </h3>
               </div>
               <div className="h-10 w-10 bg-amber-200 rounded-full flex items-center justify-center">
@@ -1397,27 +1380,15 @@ const LabDashboard = () => {
                                 <Badge className="bg-amber-100 text-amber-800">
                                   Pending
                                 </Badge>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleLabAppointmentClick(appointment)}
-                                >
-                                  Review
-                                </Button>
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={() => handleLabAppointmentConfirm(appointment.id!)}
-                                >
-                                  Accept
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => handleLabAppointmentReject(appointment.id!)}
-                                >
-                                  Reject
-                                </Button>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => handleLabAppointmentConfirm(appointment.id!)}
+                                  >
+                                    Accept
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           </CardContent>
@@ -1601,16 +1572,16 @@ const LabDashboard = () => {
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
                     <AvatarImage
-                      src={selectedAppointment.patientImage}
-                      alt={selectedAppointment.patientName}
+                      src=''
+                      alt={selectedAppointment.patient?.name || 'Patient'}
                     />
                     <AvatarFallback>
-                      {selectedAppointment.patientName.charAt(0)}
+                      {selectedAppointment.patient?.name?.charAt(0) || 'P'}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-semibold">
-                      {selectedAppointment.patientName}
+                      {selectedAppointment.patient?.name || 'Unknown Patient'}
                     </p>
                     <p className="text-sm text-gray-500">
                       Patient ID: PT-{1000 + selectedAppointment.id}
@@ -1622,11 +1593,11 @@ const LabDashboard = () => {
                     <p className="text-sm font-medium text-gray-500">
                       Test Type:
                     </p>
-                    <p>{selectedAppointment.testName}</p>
+                    <p>{selectedAppointment.reason_for_visit || 'Laboratory Test'}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Amount:</p>
-                    <p>KES {selectedAppointment.amount.toLocaleString()}</p>
+                    <p>KES {selectedAppointment.fee?.toLocaleString() || '0'}</p>
                   </div>
                 </div>
               </div>
@@ -1671,16 +1642,16 @@ const LabDashboard = () => {
                   </h4>
                   {isEditing ? (
                     <Input
-                      value={selectedAppointment.location}
+                      value={selectedAppointment.notes || ''}
                       onChange={(e) => {
                         setSelectedAppointment({
                           ...selectedAppointment,
-                          location: e.target.value,
+                          notes: e.target.value,
                         });
                       }}
                     />
                   ) : (
-                    <p>{selectedAppointment.location}</p>
+                    <p>{selectedAppointment.notes || 'No location specified'}</p>
                   )}
                 </div>
 
@@ -1691,16 +1662,16 @@ const LabDashboard = () => {
                   </h4>
                   {isEditing ? (
                     <Input
-                      value={selectedAppointment.assignedStaff}
+                      value={selectedAppointment.doctor_notes || ''}
                       onChange={(e) => {
                         setSelectedAppointment({
                           ...selectedAppointment,
-                          assignedStaff: e.target.value,
+                          doctor_notes: e.target.value,
                         });
                       }}
                     />
                   ) : (
-                    <p>{selectedAppointment.assignedStaff}</p>
+                    <p>{selectedAppointment.doctor_notes || 'No staff assigned'}</p>
                   )}
                 </div>
 
@@ -1732,7 +1703,7 @@ const LabDashboard = () => {
                   Current Status
                 </h4>
                 <div className="flex gap-2 items-center">
-                  <Badge className={getStatusColor(selectedAppointment.status)}>
+                  <Badge variant={getStatusVariant(selectedAppointment.status as "completed" | "pending" | "In progress" | "confirmed" | "scheduled" | "cancelled")}>
                     {selectedAppointment.status.charAt(0).toUpperCase() +
                       selectedAppointment.status.slice(1)}
                   </Badge>
@@ -1785,7 +1756,7 @@ const LabDashboard = () => {
                       size="sm"
                       onClick={() => {
                         // Update appointment status locally for demo
-                        const updatedAppointments = appointments.map(
+                        const updatedAppointments = labAppointments.map(
                           (appointment) =>
                             appointment.id === selectedAppointment.id
                               ? { ...appointment, status: "cancelled" as const }
@@ -1794,7 +1765,7 @@ const LabDashboard = () => {
                         // In a real app, you would call an API here
                         toast({
                           title: "Appointment Cancelled",
-                          description: `Appointment for ${selectedAppointment.patientName} has been cancelled.`,
+                          description: `Appointment for ${selectedAppointment.patient?.name || 'patient'} has been cancelled.`,
                         });
                         setShowAppointmentDetails(false);
                       }}
@@ -1825,7 +1796,7 @@ const LabDashboard = () => {
                         // Save changes in a real app would call API
                         toast({
                           title: "Details Updated",
-                          description: `Appointment details for ${selectedAppointment.patientName} have been updated.`,
+                          description: `Appointment details for ${selectedAppointment.patient?.name || 'patient'} have been updated.`,
                         });
                         setIsEditing(false);
                       }}
@@ -1841,7 +1812,7 @@ const LabDashboard = () => {
                       size="sm"
                       onClick={() => {
                         // Update appointment status locally for demo
-                        const updatedAppointments = appointments.map(
+                        const updatedAppointments = labAppointments.map(
                           (appointment) =>
                             appointment.id === selectedAppointment.id
                               ? { ...appointment, status: "completed" as const }
@@ -1850,7 +1821,7 @@ const LabDashboard = () => {
                         // In a real app, you would call an API here
                         toast({
                           title: "Test Completed",
-                          description: `The ${selectedAppointment.testName} for ${selectedAppointment.patientName} has been marked as completed.`,
+                          description: `The ${selectedAppointment.reason_for_visit || 'test'} for ${selectedAppointment.patient?.name || 'patient'} has been marked as completed.`,
                         });
                         setShowAppointmentDetails(false);
                       }}
@@ -1921,7 +1892,7 @@ const LabDashboard = () => {
                   onClick={() => {
                     toast({
                       title: "Appointment Rescheduled",
-                      description: `Appointment for ${selectedAppointment.patientName} has been rescheduled.`,
+                      description: `Appointment for ${selectedAppointment.patient?.name || 'patient'} has been rescheduled.`,
                     });
                     setShowRescheduleDialog(false);
                   }}
@@ -1959,7 +1930,7 @@ const LabDashboard = () => {
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
                     <AvatarImage
-                      src={selectedLabAppointment.patient?.avatar || ''}
+                      src=''
                       alt={selectedLabAppointment.patient?.name}
                     />
                     <AvatarFallback>
@@ -2059,39 +2030,24 @@ const LabDashboard = () => {
               <div className="flex justify-between items-center pt-4 border-t">
                 <div className="flex gap-2">
                   {selectedLabAppointment.status === "pending" && (
-                    <>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => {
-                          handleLabAppointmentConfirm(selectedLabAppointment.id!);
-                          setShowLabAppointmentDetails(false);
-                        }}
-                      >
-                        Accept Request
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          handleLabAppointmentReject(selectedLabAppointment.id!);
-                          setShowLabAppointmentDetails(false);
-                        }}
-                      >
-                        Reject Request
-                      </Button>
-                    </>
-                  )}
-                  {selectedLabAppointment.status === "confirmed" && (
                     <Button
                       variant="default"
                       size="sm"
                       onClick={() => {
-                        handleLabAppointmentComplete(selectedLabAppointment.id!);
+                        handleLabAppointmentConfirm(selectedLabAppointment.id!);
                         setShowLabAppointmentDetails(false);
                       }}
                     >
-                      Mark as Completed
+                      Accept Request
+                    </Button>
+                  )}
+                  {(selectedLabAppointment.status === "confirmed" || selectedLabAppointment.status === "scheduled") && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => setShowCompleteAppointmentModal(true)}
+                    >
+                      Mark as Complete
                     </Button>
                   )}
                 </div>
@@ -2100,6 +2056,74 @@ const LabDashboard = () => {
                   onClick={() => setShowLabAppointmentDetails(false)}
                 >
                   Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Complete Appointment Modal */}
+      <Dialog open={showCompleteAppointmentModal} onOpenChange={setShowCompleteAppointmentModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Complete Lab Test</DialogTitle>
+          </DialogHeader>
+          
+          {selectedLabAppointment && (
+            <div className="space-y-4">
+              <div className="text-sm text-gray-600">
+                <p><strong>Patient:</strong> {selectedLabAppointment.patient?.name}</p>
+                <p><strong>Test:</strong> {selectedLabAppointment.reason_for_visit || "Laboratory Test"}</p>
+                <p><strong>Date:</strong> {format(new Date(selectedLabAppointment.appointment_datetime), "MMM dd, yyyy 'at' h:mm a")}</p>
+              </div>
+
+              {/* Report Upload Section */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm">Upload Test Report</h4>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  <input
+                    type="file"
+                    id="report-upload"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleReportFileChange}
+                    className="hidden"
+                  />
+                  <label htmlFor="report-upload" className="cursor-pointer">
+                    <div className="flex flex-col items-center gap-2">
+                      <Plus className="h-8 w-8 text-gray-400" />
+                      <p className="text-sm text-gray-600">
+                        Click to upload report (PDF or Word)
+                      </p>
+                    </div>
+                  </label>
+                  {reportFile && (
+                    <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700">
+                      Selected: {reportFile.name}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCompleteAppointmentModal(false);
+                    setReportFile(null);
+                  }}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => handleLabAppointmentComplete(selectedLabAppointment.id!)}
+                  className="flex-1"
+                  disabled={!reportFile}
+                >
+                  Complete Test
                 </Button>
               </div>
             </div>

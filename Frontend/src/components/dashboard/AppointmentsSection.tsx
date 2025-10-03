@@ -47,6 +47,8 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
   const [hasAlreadyReviewed, setHasAlreadyReviewed] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [videoCallAppointment, setVideoCallAppointment] = useState<Appointment | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedReportAppointment, setSelectedReportAppointment] = useState<LabAppointment | null>(null);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -453,6 +455,12 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
                       e.stopPropagation();
                       navigate(`/patient-dashboard/appointments/${appointment.id}`);
                     }
+                    // For completed lab appointments, show report modal
+                    else if ("lab_provider_id" in appointment && appointment.status === "completed") {
+                      e.stopPropagation();
+                      setSelectedReportAppointment(appointment as LabAppointment);
+                      setShowReportModal(true);
+                    }
                   }}
                 >
                   {(() => {
@@ -462,7 +470,7 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
                     
                     return shouldShowViewCall ? "View call" :
                            "doctor_id" in appointment ? "View Report" :
-                           "lab_provider_id" in appointment ? "View Results" : "View Care Notes";
+                           "lab_provider_id" in appointment ? "View Report" : "View Care Notes";
                   })()}
                 </Button>
               )}
@@ -737,6 +745,70 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
           }}
           appointmentId={videoCallAppointment.id.toString()}
         />
+      )}
+
+      {/* Lab Report Modal */}
+      {showReportModal && selectedReportAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Lab Test Report</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowReportModal(false);
+                  setSelectedReportAppointment(null);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="text-sm text-gray-600">
+                <p><strong>Test:</strong> {selectedReportAppointment.reason_for_visit || "Laboratory Test"}</p>
+                <p><strong>Date:</strong> {format(new Date(selectedReportAppointment.appointment_datetime), "MMM dd, yyyy")}</p>
+                <p><strong>Status:</strong> <span className="text-green-600 font-medium">Completed</span></p>
+              </div>
+
+              {/* Report Preview Section */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600 mb-2">Lab Test Report</p>
+                <p className="text-xs text-gray-500">
+                  {/* TODO: Replace with actual report filename from backend */}
+                  Report_Lab_Test_{selectedReportAppointment.id}.pdf
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    // TODO: Implement report preview functionality
+                    alert("Report preview functionality will be implemented with backend integration");
+                  }}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Preview
+                </Button>
+                <Button
+                  variant="default"
+                  className="flex-1"
+                  onClick={() => {
+                    // TODO: Implement report download functionality
+                    alert("Report download functionality will be implemented with backend integration");
+                  }}
+                >
+                  Download
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
       
     </div>
