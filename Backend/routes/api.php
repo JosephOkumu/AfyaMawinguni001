@@ -198,3 +198,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/doctors/{doctorId}/reviews', [App\Http\Controllers\ReviewController::class, 'getDoctorReviews']);
     Route::get('/nursing-providers/{nursingProviderId}/reviews', [App\Http\Controllers\ReviewController::class, 'getNursingProviderReviews']);
 });
+
+// Admin routes
+Route::prefix('admin')->group(function () {
+    Route::post('/login', [App\Http\Controllers\AdminController::class, 'login']);
+    Route::get('/verify', [App\Http\Controllers\AdminController::class, 'verifyToken']);
+    Route::get('/dashboard/stats', [App\Http\Controllers\AdminController::class, 'getDashboardStats']);
+    Route::get('/users/{type}', [App\Http\Controllers\AdminController::class, 'getUsersByType']);
+    Route::delete('/users/{type}/{id}', [App\Http\Controllers\AdminController::class, 'deleteUser']);
+    Route::post('/users', [App\Http\Controllers\AdminController::class, 'createUser']);
+});
