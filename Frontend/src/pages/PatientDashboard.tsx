@@ -156,11 +156,11 @@ const PatientDashboard = () => {
           {/* Services Section */}
           <ServicesSection />
 
-          {/* Nearby Providers Section - Location-based provider finder */}
-          <NearbyProvidersSection />
-
           {/* Top Rated Doctors Section */}
           <TopDoctorsSection />
+
+          {/* Nearby Providers Section - Location-based provider finder */}
+          <NearbyProvidersSection />
 
           {/* Pharmacies Section - Now below doctors */}
           <PharmaciesSection />
