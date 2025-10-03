@@ -290,7 +290,7 @@ const MedicineDetails = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
       {/* Top Navigation Bar */}
-      <header className="bg-white shadow-sm p-4">
+      <header className="bg-white shadow-sm py-2 px-4">
         <div className="container mx-auto flex justify-between items-center">
           {/* Logo & User Profile */}
           <div className="flex items-center gap-2">
