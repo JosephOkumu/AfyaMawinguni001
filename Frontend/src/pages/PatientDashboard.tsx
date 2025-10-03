@@ -59,9 +59,13 @@ const PatientDashboard = () => {
       <header className="bg-white shadow-sm p-4">
         <div className="container mx-auto flex justify-between items-center">
           {/* Logo */}
-          <div className="flex items-center -ml-2">
+          <div className="flex items-center gap-2">
             <Link to="/patient-dashboard">
-              <img src="/aceso.png" alt="Aceso Health Solutions" className="h-24 w-auto bg-white p-2 rounded" />
+              <img 
+                src="/aceso.png" 
+                alt="Aceso Health Solutions" 
+                className="h-20 w-auto"
+              />
             </Link>
           </div>
 

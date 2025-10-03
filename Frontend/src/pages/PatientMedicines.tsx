@@ -149,15 +149,11 @@ const PatientMedicines = () => {
           {/* Logo & User Profile */}
           <div className="flex items-center gap-2">
             <Link to="/patient-dashboard">
-              <div className="h-10 w-10 rounded-full bg-secondary-green/80 flex items-center justify-center text-white font-bold">
-                AM
-              </div>
-            </Link>
-            <Link to="/patient-dashboard">
-              <span className="text-xl font-bold">
-                <span className="text-primary-blue">ACESO</span>
-                <span className="text-secondary-green"> HEALTH SOLUTIONS</span>
-              </span>
+              <img 
+                src="/aceso.png" 
+                alt="Aceso Health Solutions" 
+                className="h-20 w-auto"
+              />
             </Link>
           </div>
 

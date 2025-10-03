@@ -708,14 +708,17 @@ const LabDashboard = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">
-              <span className="text-primary-blue">AFYA</span>
-              <span className="text-secondary-green"> MAWINGUNI</span>
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Laboratory Service Provider Dashboard
-            </p>
+          <div className="flex items-center gap-4">
+            <img 
+              src="/aceso.png" 
+              alt="Aceso Health Solutions" 
+              className="h-20 w-auto"
+            />
+            <div>
+              <p className="text-gray-600 mt-2">
+                Laboratory Service Provider Dashboard
+              </p>
+            </div>
           </div>
 
           <div className="mt-4 md:mt-0 flex items-center space-x-3">
