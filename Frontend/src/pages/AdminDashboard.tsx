@@ -209,7 +209,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
       {/* Header */}
       <div className="bg-white shadow-md border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -339,7 +339,7 @@ const AdminDashboard = () => {
                 </p>
               </div>
               <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <p className="text-sm text-gray-600 mb-1">Medicines</p>
+                <p className="text-sm text-gray-600 mb-1">Herbal Products</p>
                 <p className="text-2xl font-bold text-green-600">
                   {formatCurrency(stats?.revenue.medicines || 0)}
                 </p>
