@@ -279,9 +279,11 @@ class AdminController extends Controller
     public function deleteUser(Request $request, $type, $id)
     {
         try {
+            Log::info('Delete user request', ['type' => $type, 'id' => $id]);
             DB::beginTransaction();
 
             switch ($type) {
+                case 'doctor':
                 case 'doctors':
                     $provider = Doctor::findOrFail($id);
                     $userId = $provider->user_id;
@@ -300,6 +302,7 @@ class AdminController extends Controller
                     }
                     break;
 
+                case 'lab':
                 case 'labs':
                     $provider = LabProvider::findOrFail($id);
                     $userId = $provider->user_id;
@@ -309,6 +312,7 @@ class AdminController extends Controller
                     }
                     break;
 
+                case 'pharmacy':
                 case 'pharmacies':
                     $provider = Pharmacy::findOrFail($id);
                     $userId = $provider->user_id;
@@ -318,6 +322,7 @@ class AdminController extends Controller
                     }
                     break;
 
+                case 'patient':
                 case 'patients':
                     User::findOrFail($id)->delete();
                     break;
