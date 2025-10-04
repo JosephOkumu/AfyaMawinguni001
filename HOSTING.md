@@ -32,17 +32,32 @@
 
 ## 1️⃣ Frontend Deployment
 
-### Step 1: Build the Frontend
+### Step 1: Configure Frontend Environment (BEFORE Building)
+
+Create `.env.production` file in Frontend folder:
 
 ```bash
 cd Frontend
+nano .env.production
+```
+
+Add your production API URL:
+```env
+VITE_API_URL=https://yourdomain.com/api
+```
+
+Save the file.
+
+### Step 2: Build the Frontend
+
+```bash
 npm install
 npm run build
 ```
 
 This creates a `dist` folder with optimized production files.
 
-### Step 2: Upload to TrueHost
+### Step 3: Upload to TrueHost
 
 **Option A: Using cPanel File Manager**
 1. Login to cPanel
