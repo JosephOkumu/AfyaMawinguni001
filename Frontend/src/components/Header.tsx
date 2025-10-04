@@ -26,10 +26,7 @@ const Header = () => {
         <nav className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="text-xl font-bold">
-              <span className="text-primary-blue">AFYA</span>
-              <span className="text-secondary-green"> MAWINGUNI</span>
-            </span>
+            <img src="/aceso.png" alt="Aceso Health Solutions" className="h-[100px] w-auto" />
           </Link>
 
           {/* Right side navigation and buttons */}
