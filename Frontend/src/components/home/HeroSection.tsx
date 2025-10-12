@@ -124,6 +124,12 @@ const HeroSection = () => {
               <Button 
                 variant="outline" 
                 className="bg-transparent border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-full text-lg font-semibold backdrop-blur-sm"
+                onClick={() => {
+                  const servicesSection = document.getElementById('services');
+                  if (servicesSection) {
+                    servicesSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
               >
                 Learn More
               </Button>
