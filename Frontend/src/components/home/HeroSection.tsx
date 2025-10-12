@@ -9,8 +9,7 @@ const HeroSection = () => {
   const heroImages = [
     "/Aceso_Hero1.jpg",
     "/Aceso_Hero2.jpg", 
-    "/Aceso_Hero3.jpg",
-    "/Aceso_Hero4.jpg"
+    "/Aceso_Hero3.jpg"
   ];
 
   // Auto-rotate images every 2 seconds
