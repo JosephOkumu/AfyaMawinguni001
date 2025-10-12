@@ -119,7 +119,7 @@ const HeroSection = () => {
                 defaultTab="signup" 
                 className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               >
-                Get Started Free
+                Get Started
               </AuthButton>
               <Button 
                 variant="outline" 
