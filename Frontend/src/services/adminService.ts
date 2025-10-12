@@ -1,6 +1,8 @@
 import axios from 'axios';
+import { apiUrl } from '@/utils/environmentConfig';
 
-const API_URL = 'http://localhost:8000/api';
+// Environment-based API URL configuration
+const API_URL = apiUrl;
 
 export interface AdminLoginData {
   username: string;

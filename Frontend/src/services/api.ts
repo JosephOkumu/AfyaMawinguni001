@@ -1,9 +1,8 @@
 import axios from "axios";
+import { apiUrl } from "@/utils/environmentConfig";
 
-// Modify this URL to match your backend server address
-// Using the WSL IP address instead of localhost to resolve networking issues
-// IMPORTANT: Make sure your backend server is running without errors
-const API_BASE_URL = "http://localhost:8000/api";
+// Environment-based API URL configuration
+const API_BASE_URL = apiUrl;
 
 // Print a helpful message about connectivity
 console.log("-------------------------------------");
