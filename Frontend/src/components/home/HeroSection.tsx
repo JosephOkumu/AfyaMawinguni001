@@ -36,7 +36,7 @@ const HeroSection = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative overflow-hidden" style={{ height: 'calc(100vh - 90px)' }}>
       {/* Image Carousel Background */}
       <div className="absolute inset-0">
         {heroImages.map((image, index) => (
@@ -89,7 +89,7 @@ const HeroSection = () => {
       </div>
 
       {/* Hero Content */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen text-white text-center">
+      <div className="relative z-10 flex items-center justify-center text-white text-center" style={{ height: 'calc(100vh - 90px)' }}>
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             {/* Badge */}
