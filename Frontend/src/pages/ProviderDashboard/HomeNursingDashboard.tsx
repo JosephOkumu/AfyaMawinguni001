@@ -59,7 +59,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LocationAutocomplete } from "@/components/LocationInput";
-import nursingService from "@/services/nursingService";
+import nursingService, { 
+  NursingProvider, 
+  NursingServiceOffering, 
+  AvailabilitySchedule, 
+  NursingService,
+  NursingServiceOfferingCreateData 
+} from "@/services/nursingService";
 import { compressImage } from "@/utils/imageCompression";
 import { format } from "date-fns";
 import { AppointmentCalendar } from "@/components/calendar";
@@ -371,7 +377,7 @@ interface AxiosErrorType {
   message: string;
   response?: {
     status: number;
-    data: {
+    data?: {
       errors?: Record<string, string[]>;
       message?: string;
     };
@@ -645,11 +651,6 @@ const HomeNursingDashboard = () => {
       console.log("Profile loading error:", error);
 
       // Type guard for axios error
-      interface AxiosErrorType {
-        response?: {
-          status: number;
-        };
-      }
 
       const isAxiosError = (err: unknown): err is AxiosErrorType => {
         return err !== null && typeof err === "object" && "response" in err;
@@ -712,12 +713,19 @@ const HomeNursingDashboard = () => {
               "Services will be loaded when user creates their first service",
             );
           }
-        } catch (createError) {
+        } catch (createError: unknown) {
           console.error("Failed to create default profile:", createError);
-          console.error(
-            "Profile creation error details:",
-            createError.response?.data,
-          );
+          
+          // Type guard for axios error with proper data checking
+          if (createError && typeof createError === "object" && "response" in createError) {
+            const axiosError = createError as AxiosErrorType;
+            if (axiosError.response?.data) {
+              console.error(
+                "Profile creation error details:",
+                axiosError.response.data,
+              );
+            }
+          }
 
           // Set fallback profile data so user can still use the dashboard
           const currentUser = getCurrentUser();
@@ -915,24 +923,6 @@ const HomeNursingDashboard = () => {
       try {
         // Call the API to mark the appointment as completed
         await handleCompleteAppointment(selectedAppointment.id);
-        
-        // Find the appointment in confirmedAppointments and move it to history
-        const completedAppointment = confirmedAppointments.find(
-          (apt) => apt.id === selectedAppointment.id
-        );
-        
-        if (completedAppointment) {
-          // Remove from confirmed appointments
-          setConfirmedAppointments((prev) =>
-            prev.filter((apt) => apt.id !== selectedAppointment.id)
-          );
-          
-          // Add to appointment history with completed status
-          setAppointmentHistory((prev) => [
-            { ...completedAppointment, status: "completed" as const },
-            ...prev,
-          ]);
-        }
         
         // Update the mock appointments array as well (for backward compatibility)
         setAppointments((prev) =>
