@@ -90,13 +90,6 @@ const FeaturesSection = () => {
           </div>
         </div>
 
-        {/* Call to Action */}
-        <div className="text-center mt-16">
-          <div className="inline-flex items-center gap-2 text-primary-blue hover:text-secondary-green transition-colors duration-300 cursor-pointer group">
-            <span className="text-lg font-medium">Explore all our services</span>
-            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-          </div>
-        </div>
       </div>
 
       {/* Custom CSS for animations */}
