@@ -39,13 +39,6 @@ const FeatureCard = ({ title, description, icon: Icon }: FeatureCardProps) => {
           {description}
         </p>
 
-        {/* Hover indicator */}
-        <div className="mt-6 flex items-center text-primary-blue opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-          <span className="text-sm font-medium">Learn more</span>
-          <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </div>
 
         {/* Background pattern */}
         <div className="absolute top-0 right-0 w-32 h-32 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
