@@ -12,13 +12,13 @@ const HeroSection = () => {
     "/Aceso_Hero3.jpg"
   ];
 
-  // Auto-rotate images every 2 seconds
+  // Auto-rotate images every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => 
         prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
       );
-    }, 2000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [heroImages.length]);
@@ -58,20 +58,6 @@ const HeroSection = () => {
         ))}
       </div>
 
-      {/* Navigation Arrows */}
-      <button
-        onClick={goToPrevious}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-all duration-300 group"
-      >
-        <ChevronLeft className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-300" />
-      </button>
-      
-      <button
-        onClick={goToNext}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-all duration-300 group"
-      >
-        <ChevronRight className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-300" />
-      </button>
 
       {/* Carousel Indicators */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex space-x-3">
