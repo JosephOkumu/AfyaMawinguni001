@@ -451,30 +451,22 @@ const DoctorDetails = () => {
     ) || 0 : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
+    <div className="min-h-screen bg-custom-white">
       {/* Top Navigation Bar */}
-      <header className="bg-white shadow-sm p-4">
-        <div className="container mx-auto flex justify-between items-center">
+      <header className="bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <nav className="flex items-center justify-between h-16">
           {/* Logo & User Profile */}
           <div className="flex items-center gap-2">
             <Link to="/patient-dashboard">
               <img 
                 src="/aceso.png" 
                 alt="Aceso Health Solutions" 
-                className="h-20 w-auto"
+                className="h-[100px] w-auto"
               />
             </Link>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative hidden md:block max-w-md w-full mx-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="search"
-              placeholder="Search for doctors, specialties..."
-              className="pl-10 w-full border-gray-200 focus-visible:ring-secondary-green"
-            />
-          </div>
 
           {/* User Actions */}
           <div className="flex items-center gap-3">
@@ -510,6 +502,7 @@ const DoctorDetails = () => {
               </Avatar>
             </div>
           </div>
+          </nav>
         </div>
       </header>
 
