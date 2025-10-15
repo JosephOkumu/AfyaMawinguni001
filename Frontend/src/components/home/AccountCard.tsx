@@ -17,12 +17,12 @@ const AccountCard = ({ title, description, icon: Icon, iconBgClass }: AccountCar
       <div className="absolute inset-[1px] bg-white rounded-lg"></div>
       
       {/* Content */}
-      <CardContent className="relative p-8 h-full flex flex-col items-center">
+      <CardContent className="relative p-4 sm:p-6 lg:p-8 h-full flex flex-col items-center">
         {/* Icon container with animated background */}
-        <div className="relative mb-6">
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg ${iconBgClass}`}>
+        <div className="relative mb-4 sm:mb-6">
+          <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg ${iconBgClass}`}>
             <div className="absolute inset-0 bg-gradient-to-br from-primary-blue/20 to-secondary-green/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <Icon className="h-8 w-8 text-white transition-colors duration-300 relative z-10" />
+            <Icon className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-white transition-colors duration-300 relative z-10" />
           </div>
           
           {/* Floating particles effect */}
@@ -31,18 +31,17 @@ const AccountCard = ({ title, description, icon: Icon, iconBgClass }: AccountCar
         </div>
 
         {/* Title */}
-        <h3 className="text-xl font-bold text-gray-800 mb-4 group-hover:text-primary-blue transition-colors duration-300">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 group-hover:text-primary-blue transition-colors duration-300">
           {title}
         </h3>
 
         {/* Description */}
-        <p className="text-gray-600 leading-relaxed flex-grow group-hover:text-gray-700 transition-colors duration-300">
+        <p className="text-sm sm:text-base text-gray-600 leading-relaxed flex-grow group-hover:text-gray-700 transition-colors duration-300">
           {description}
         </p>
 
-
         {/* Background pattern */}
-        <div className="absolute top-0 right-0 w-32 h-32 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+        <div className="absolute top-0 right-0 w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
           <Icon className="w-full h-full text-primary-blue transform rotate-12" />
         </div>
       </CardContent>

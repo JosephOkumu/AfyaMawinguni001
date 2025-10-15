@@ -4,7 +4,7 @@ import { UserRound, UserCog, Building2, FlaskConical } from "lucide-react";
 
 const AccountsSection = () => {
   return (
-    <div className="relative py-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-green-50/20 overflow-hidden">
+    <div className="relative py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-green-50/20 overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden z-0">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob z-0"></div>
@@ -12,24 +12,24 @@ const AccountsSection = () => {
         <div className="absolute top-40 left-1/2 transform -translate-x-1/2 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 z-0"></div>
       </div>
 
-      <div className="relative container mx-auto px-4">
+      <div className="relative container mx-auto px-4 sm:px-6">
         {/* Header Section */}
-        <div className="text-center mb-16">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary-blue mb-2">Accounts</h2>
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary-blue mb-2">Accounts</h2>
           
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
             Tailored experiences for different healthcare stakeholders
           </p>
           
           {/* Decorative line */}
-          <div className="relative flex items-center justify-center mt-8 mb-4">
-            <div className="h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent w-32"></div>
-            <div className="h-px bg-gradient-to-r from-transparent via-green-300 to-transparent w-32"></div>
+          <div className="relative flex items-center justify-center mt-6 sm:mt-8 mb-4">
+            <div className="h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent w-16 sm:w-32"></div>
+            <div className="h-px bg-gradient-to-r from-transparent via-green-300 to-transparent w-16 sm:w-32"></div>
             <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-blue-400 rounded-full"></div>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 px-4 sm:px-0">
           <AccountCard 
             title="Patients"
             description="Find healthcare providers, book appointments, access medical records, and receive personalized health recommendations."

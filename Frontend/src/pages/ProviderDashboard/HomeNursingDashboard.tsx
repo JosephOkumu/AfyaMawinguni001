@@ -992,21 +992,21 @@ const HomeNursingDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white p-3 sm:p-4 lg:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="w-full sm:w-auto">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">
               <span className="text-primary-blue">ACESO</span>
               <span className="text-secondary-green"> HEALTH SOLUTIONS</span>
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 mt-2 text-sm sm:text-base">
               Home Nursing Service Provider Dashboard
             </p>
           </div>
-          <div className="mt-4 md:mt-0 flex items-center space-x-3">
-            <div className="flex items-center bg-white rounded-full px-3 py-1.5 border border-gray-200 shadow-sm">
-              <span className="text-sm font-medium mr-2">
+          <div className="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto justify-end">
+            <div className="hidden sm:flex items-center bg-white rounded-full px-3 py-1.5 border border-gray-200 shadow-sm">
+              <span className="text-sm font-medium mr-2 max-w-32 truncate">
                 {nursingProfile?.provider_name ||
                   nursingProfile?.user?.name ||
                   getCurrentUser().name ||
@@ -1029,20 +1029,20 @@ const HomeNursingDashboard = () => {
                 </AvatarFallback>
               </Avatar>
             </div>
-            <Button variant="outline" size="icon">
-              <Bell className="h-4 w-4" />
+            <Button variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
+              <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
             <Dialog
               open={showProfileDialog}
               onOpenChange={setShowProfileDialog}
             >
               <DialogTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Settings className="h-4 w-4" />
+                <Button variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
+                  <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent
-                className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto"
+                className="max-w-4xl p-0 max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full"
                 aria-describedby="profile-settings-description"
               >
                 <DialogHeader className="sticky top-0 z-10 bg-white px-6 py-4 border-b flex flex-row justify-between items-center">
@@ -1063,7 +1063,7 @@ const HomeNursingDashboard = () => {
                       onSubmit={profileForm.handleSubmit(handleProfileSubmit)}
                       className="space-y-6"
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <FormField
                           control={profileForm.control}
                           name="name"

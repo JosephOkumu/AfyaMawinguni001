@@ -1,0 +1,212 @@
+/* Responsive Design Utilities for AfyaMawinguni001 */
+
+/* Mobile-first approach with enhanced breakpoints */
+@media (max-width: 640px) {
+  /* Mobile styles */
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+  
+  .mobile-text-center {
+    text-align: center !important;
+  }
+  
+  .mobile-hidden {
+    display: none !important;
+  }
+  
+  .mobile-padding {
+    padding: 1rem !important;
+  }
+  
+  /* Dashboard specific mobile styles */
+  .dashboard-mobile-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  .dashboard-mobile-card {
+    padding: 1rem !important;
+    margin-bottom: 1rem;
+  }
+  
+  /* Form elements mobile optimization */
+  .form-mobile-stack {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .button-mobile-full {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  /* Tablet portrait styles */
+  .tablet-grid-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .tablet-padding {
+    padding: 1.5rem !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet landscape styles */
+  .tablet-lg-grid-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* Touch-friendly interactive elements */
+@media (hover: none) and (pointer: coarse) {
+  .touch-friendly {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .touch-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-image {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Landscape orientation specific styles */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .landscape-compact {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  .landscape-hero {
+    min-height: 80vh;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-friendly {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Accessibility enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .respect-motion-preference {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-text {
+    color: #f1f5f9;
+  }
+  
+  .dark-mode-bg {
+    background-color: #1e293b;
+  }
+}
+
+/* Container queries for modern browsers */
+@container (max-width: 400px) {
+  .container-responsive {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+}
+
+/* Focus management for keyboard navigation */
+.focus-visible:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent horizontal scroll on mobile */
+body {
+  overflow-x: hidden;
+}
+
+/* Mobile menu animations */
+.mobile-menu-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.mobile-menu-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+.mobile-menu-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mobile-menu-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+/* Responsive typography scale */
+.responsive-text-xs { font-size: clamp(0.75rem, 2vw, 0.875rem); }
+.responsive-text-sm { font-size: clamp(0.875rem, 2.5vw, 1rem); }
+.responsive-text-base { font-size: clamp(1rem, 3vw, 1.125rem); }
+.responsive-text-lg { font-size: clamp(1.125rem, 3.5vw, 1.25rem); }
+.responsive-text-xl { font-size: clamp(1.25rem, 4vw, 1.5rem); }
+.responsive-text-2xl { font-size: clamp(1.5rem, 5vw, 2rem); }
+.responsive-text-3xl { font-size: clamp(2rem, 6vw, 2.5rem); }
+
+/* Responsive spacing utilities */
+.responsive-p-sm { padding: clamp(0.5rem, 2vw, 1rem); }
+.responsive-p-md { padding: clamp(1rem, 3vw, 1.5rem); }
+.responsive-p-lg { padding: clamp(1.5rem, 4vw, 2rem); }
+
+.responsive-m-sm { margin: clamp(0.5rem, 2vw, 1rem); }
+.responsive-m-md { margin: clamp(1rem, 3vw, 1.5rem); }
+.responsive-m-lg { margin: clamp(1.5rem, 4vw, 2rem); }
+
+/* Safe area insets for mobile devices with notches */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}

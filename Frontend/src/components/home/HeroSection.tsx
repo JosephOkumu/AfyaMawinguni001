@@ -36,7 +36,7 @@ const HeroSection = () => {
   };
 
   return (
-    <div className="relative overflow-hidden" style={{ height: 'calc(100vh - 90px)' }}>
+    <div className="relative overflow-hidden min-h-[60vh] sm:min-h-[70vh] lg:min-h-[calc(100vh-90px)]">
       {/* Image Carousel Background */}
       <div className="absolute inset-0">
         {heroImages.map((image, index) => (
@@ -75,17 +75,17 @@ const HeroSection = () => {
       </div>
 
       {/* Hero Content */}
-      <div className="relative z-10 flex items-center justify-center text-white text-center" style={{ height: 'calc(100vh - 90px)' }}>
-        <div className="container mx-auto px-4">
+      <div className="relative z-10 flex items-center justify-center text-white text-center min-h-[60vh] sm:min-h-[70vh] lg:min-h-[calc(100vh-90px)] py-8 sm:py-12">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-4xl mx-auto">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-white/20">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 sm:px-4 py-2 mb-4 sm:mb-6 border border-white/20">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium">Trusted Healthcare Platform</span>
+              <span className="text-xs sm:text-sm font-medium">Trusted Healthcare Platform</span>
             </div>
             
             {/* Main Heading */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
               <span className="block">End-to-end</span>
               <span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
                 Healthcare Management
@@ -93,23 +93,23 @@ const HeroSection = () => {
             </h1>
             
             {/* Description */}
-            <p className="max-w-3xl mx-auto mb-8 text-lg md:text-xl leading-relaxed text-gray-100">
+            <p className="max-w-3xl mx-auto mb-6 sm:mb-8 text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed text-gray-100 px-4 sm:px-0">
               Connect with doctors, nursing services, and laboratories all in one
               place. Our AI assistant Alex helps you find the perfect healthcare
               professional for your needs.
             </p>
             
             {/* CTA Button */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
               <AuthButton 
                 defaultTab="signup" 
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               >
                 Get Started
               </AuthButton>
               <Button 
                 variant="outline" 
-                className="bg-transparent border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-full text-lg font-semibold backdrop-blur-sm"
+                className="w-full sm:w-auto bg-transparent border-white/30 text-white hover:bg-white/10 px-6 sm:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg font-semibold backdrop-blur-sm"
                 onClick={() => {
                   const servicesSection = document.getElementById('services');
                   if (servicesSection) {
