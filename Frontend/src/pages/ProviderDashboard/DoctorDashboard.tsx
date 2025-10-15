@@ -297,23 +297,8 @@ const DoctorDashboard = () => {
     repeatWeekly?: boolean;
   }>({});
 
-  // Sample services
-  const [services, setServices] = useState<ServiceItem[]>([
-    {
-      id: "1",
-      name: "General Consultation",
-      description: "Standard medical consultation for general health concerns.",
-      price: 2500,
-      duration: "30 minutes",
-    },
-    {
-      id: "2",
-      name: "Specialized Consultation",
-      description: "In-depth consultation for specific medical conditions.",
-      price: 4500,
-      duration: "45 minutes",
-    },
-  ]);
+  // Services - start empty for new doctors
+  const [services, setServices] = useState<ServiceItem[]>([]);
 
   // Load appointments
   useEffect(() => {
@@ -327,235 +312,8 @@ const DoctorDashboard = () => {
         setAppointments(doctorAppointments);
       } catch (error) {
         console.error("Failed to load appointments:", error);
-        toast({
-          title: "Loading Demo Data",
-          description:
-            "Using demo appointments for development. Real appointments will load once backend is connected.",
-          variant: "default",
-        });
-        // Demo appointments data - for UI development
-        setAppointments([
-          {
-            id: 1,
-            patient_id: 1,
-            doctor_id: 1,
-            appointment_datetime: new Date().toISOString(),
-            status: "confirmed",
-            type: "in_person",
-            reason_for_visit: "Regular checkup",
-            symptoms: "General wellness check",
-            fee: 2500,
-            is_paid: true,
-            patient: {
-              id: 1,
-              name: "John Doe",
-              email: "john@example.com",
-              phone_number: "+254712345678",
-            },
-          },
-          {
-            id: 2,
-            patient_id: 2,
-            doctor_id: 1,
-            appointment_datetime: new Date(Date.now() + 86400000).toISOString(),
-            status: "confirmed",
-            type: "virtual",
-            reason_for_visit: "Follow-up consultation",
-            symptoms: "Medication review",
-            meeting_link: "https://meet.example.com/abc123",
-            fee: 2000,
-            is_paid: true,
-            patient: {
-              id: 2,
-              name: "Jane Smith",
-              email: "jane@example.com",
-              phone_number: "+254787654321",
-            },
-          },
-          {
-            id: 3,
-            patient_id: 3,
-            doctor_id: 1,
-            appointment_datetime: new Date(
-              Date.now() + 172800000,
-            ).toISOString(),
-            status: "scheduled",
-            type: "in_person",
-            reason_for_visit: "Consultation for chronic condition",
-            symptoms: "Persistent headaches and fatigue",
-            fee: 3000,
-            is_paid: false,
-            patient: {
-              id: 3,
-              name: "Mike Johnson",
-              email: "mike@example.com",
-              phone_number: "+254798765432",
-            },
-          },
-          {
-            id: 4,
-            patient_id: 4,
-            doctor_id: 1,
-            appointment_datetime: new Date(
-              Date.now() + 259200000,
-            ).toISOString(),
-            status: "confirmed",
-            type: "virtual",
-            reason_for_visit: "Specialist consultation",
-            symptoms: "Cardiac assessment",
-            meeting_link: "https://meet.example.com/def456",
-            fee: 4500,
-            is_paid: true,
-            patient: {
-              id: 4,
-              name: "Sarah Wilson",
-              email: "sarah@example.com",
-              phone_number: "+254709876543",
-            },
-          },
-          {
-            id: 5,
-            patient_id: 5,
-            doctor_id: 1,
-            appointment_datetime: new Date(
-              Date.now() + 604800000,
-            ).toISOString(),
-            status: "scheduled",
-            type: "in_person",
-            reason_for_visit: "Routine examination",
-            symptoms: "Annual physical",
-            fee: 2500,
-            is_paid: false,
-            patient: {
-              id: 8,
-              name: "Lisa Thompson",
-              email: "lisa@example.com",
-              phone_number: "+254756789012",
-            },
-          },
-          // Past appointments for history
-          {
-            id: 6,
-            patient_id: 6,
-            doctor_id: 1,
-            appointment_datetime: new Date(Date.now() - 86400000).toISOString(), // Yesterday
-            status: "completed",
-            type: "in_person",
-            reason_for_visit: "General consultation",
-            symptoms: "Stomach pain and nausea",
-            fee: 2500,
-            is_paid: true,
-            patient: {
-              id: 6,
-              name: "Emily Davis",
-              email: "emily@example.com",
-              phone_number: "+254734567890",
-            },
-          },
-          {
-            id: 7,
-            patient_id: 7,
-            doctor_id: 1,
-            appointment_datetime: new Date(
-              Date.now() - 172800000,
-            ).toISOString(), // 2 days ago
-            status: "completed",
-            type: "virtual",
-            reason_for_visit: "Follow-up consultation",
-            symptoms: "Blood pressure monitoring",
-            meeting_link: "https://meet.example.com/ghi789",
-            fee: 2000,
-            is_paid: true,
-            patient: {
-              id: 5,
-              name: "Robert Brown",
-              email: "robert@example.com",
-              phone_number: "+254723456789",
-            },
-          },
-          {
-            id: 8,
-            patient_id: 8,
-            doctor_id: 1,
-            appointment_datetime: new Date(
-              Date.now() - 259200000,
-            ).toISOString(), // 3 days ago
-            status: "cancelled",
-            type: "in_person",
-            reason_for_visit: "Dental examination",
-            symptoms: "Tooth pain",
-            fee: 3000,
-            is_paid: false,
-            patient: {
-              id: 9,
-              name: "Kevin Anderson",
-              email: "kevin@example.com",
-              phone_number: "+254767890123",
-            },
-          },
-          {
-            id: 9,
-            patient_id: 9,
-            doctor_id: 1,
-            appointment_datetime: new Date(
-              Date.now() - 604800000,
-            ).toISOString(), // 1 week ago
-            status: "completed",
-            type: "virtual",
-            reason_for_visit: "Specialist consultation",
-            symptoms: "Skin condition assessment",
-            meeting_link: "https://meet.example.com/jkl012",
-            fee: 4000,
-            is_paid: true,
-            patient: {
-              id: 9,
-              name: "Michael Chen",
-              email: "michael@example.com",
-              phone_number: "+254798765433",
-            },
-          },
-          {
-            id: 10,
-            patient_id: 10,
-            doctor_id: 1,
-            appointment_datetime: new Date(
-              Date.now() - 1209600000,
-            ).toISOString(), // 2 weeks ago
-            status: "completed",
-            type: "in_person",
-            reason_for_visit: "Routine check-up",
-            symptoms: "General health assessment",
-            fee: 2500,
-            is_paid: true,
-            patient: {
-              id: 11,
-              name: "Brian Lee",
-              email: "brian@example.com",
-              phone_number: "+254789012345",
-            },
-          },
-          {
-            id: 11,
-            patient_id: 11,
-            doctor_id: 1,
-            appointment_datetime: new Date(
-              Date.now() - 1814400000,
-            ).toISOString(), // 3 weeks ago
-            status: "cancelled",
-            type: "virtual",
-            reason_for_visit: "Mental health consultation",
-            symptoms: "Anxiety and stress management",
-            meeting_link: "https://meet.example.com/mno345",
-            fee: 3500,
-            is_paid: false,
-            patient: {
-              id: 7,
-              name: "David Martinez",
-              email: "david@example.com",
-              phone_number: "+254745678901",
-            },
-          },
-        ]);
+        // Set empty appointments array for new doctors - no dummy data
+        setAppointments([]);
       } finally {
         setIsLoadingAppointments(false);
       }
@@ -572,56 +330,27 @@ const DoctorDashboard = () => {
     });
   };
 
-  // Sample subscription plans
+  // Subscription plans - start empty for new doctors
   const [subscriptionPlans, setSubscriptionPlans] = useState<
     SubscriptionPlan[]
-  >([
-    {
-      id: "1",
-      name: "Basic Care",
-      price: 1500,
-      description: "Monthly subscription for basic healthcare needs",
-      features: [
-        "10% discount on all consultations",
-        "Priority scheduling",
-        "24/7 chat support",
-      ],
-      isActive: true,
-    },
-    {
-      id: "2",
-      name: "Premium Care",
-      price: 4500,
-      description:
-        "Comprehensive healthcare subscription with maximum benefits",
-      features: [
-        "25% discount on all consultations",
-        "Same-day appointments",
-        "Free medication delivery",
-        "Unlimited video consultations",
-      ],
-      isActive: true,
-    },
-  ]);
+  >([]);
 
-  // Form for doctor profile
+  // Form for doctor profile - empty defaults for new doctors
   const profileForm = useForm<DoctorProfileForm>({
     defaultValues: {
-      name: "Dr. John Doe",
-      specialty: "Cardiologist",
-      description:
-        "Experienced cardiologist specializing in preventive cardiac care and heart disease management.",
-      hospital: "Nairobi Medical Center",
-      location: "Nairobi Medical Center, 3rd Floor",
-      availability: "Mon-Fri, 9AM-5PM",
-      experience: "15 years",
-      physicalPrice: "2500",
-      onlinePrice: "2000",
+      name: "",
+      specialty: "",
+      description: "",
+      hospital: "",
+      location: "",
+      availability: "",
+      experience: "",
+      physicalPrice: "0",
+      onlinePrice: "0",
       image: null,
-
-      languages: "English, Swahili",
-      acceptsInsurance: true,
-      consultationModes: ["In-person", "Video", "Chat"],
+      languages: "",
+      acceptsInsurance: false,
+      consultationModes: [],
     },
   });
 
@@ -1088,9 +817,9 @@ const DoctorDashboard = () => {
     return Number(total).toFixed(2);
   };
 
-  // Helper function to get active services count (doctors have 1 service)
+  // Helper function to get active services count - dynamic based on actual services
   const getActiveServicesCount = () => {
-    return 1; // Doctors only have one service to offer
+    return services.length;
   };
 
   // Helper function to format appointment date and time
