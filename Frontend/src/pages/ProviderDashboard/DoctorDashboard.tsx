@@ -43,6 +43,7 @@ import { useToast } from "@/hooks/use-toast";
 import { compressImage } from "@/utils/imageCompression";
 import { LocationAutocomplete } from "@/components/LocationInput";
 import AppointmentCalendar from "@/components/calendar/AppointmentCalendar";
+import Footer from "@/components/Footer";
 import appointmentService, { Appointment } from "@/services/appointmentService";
 import doctorService, {
   Doctor,
@@ -1207,8 +1208,9 @@ const DoctorDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-custom-white p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-custom-white flex flex-col">
+      <div className="flex-1 p-6">
+        <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <img src="/aceso.png" alt="Aceso Health Solutions" className="h-[100px] w-auto" />
@@ -2101,7 +2103,9 @@ const DoctorDashboard = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 };
