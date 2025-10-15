@@ -1,8 +1,9 @@
 import axios from "axios";
+import SecureStorage from "../utils/secureStorage";
 import { apiUrl } from "@/utils/environmentConfig";
 
 // Environment-based API URL configuration
-const API_BASE_URL = apiUrl;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
 // Print a helpful message about connectivity
 console.log("-------------------------------------");
@@ -28,7 +29,7 @@ const api = axios.create({
 // Request interceptor to attach auth token to every request
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = SecureStorage.getToken();
     console.log("🔐 API Request Interceptor:", {
       url: config.url,
       method: config.method?.toUpperCase(),
@@ -84,8 +85,7 @@ api.interceptors.response.use(
 
       // Handle authentication errors
       if (error.response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        SecureStorage.clearAll();
         // Optional: Redirect to login
         // window.location.href = '/login';
       }
