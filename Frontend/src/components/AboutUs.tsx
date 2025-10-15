@@ -20,7 +20,7 @@ function AboutUs() {
         </nav>
       )}
       
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-6">
         {/* Hero Section */}
         <section className="mb-12 text-center bg-gradient-to-r from-primary-blue to-secondary-green text-custom-white p-8 rounded-lg shadow-md">
           <h1 className="text-4xl font-bold mb-4">About Us</h1>
