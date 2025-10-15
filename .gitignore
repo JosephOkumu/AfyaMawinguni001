@@ -137,3 +137,13 @@ yarn-error.log
 coverage/
 .coverage
 .nyc_output/
+
+# ===========================================
+# Deployment Packages
+# ===========================================
+*.zip
+*-deployment.tar.gz
+aceso-backend/
+aceso-backend.zip
+dist-updated/
+deployment-packages/
