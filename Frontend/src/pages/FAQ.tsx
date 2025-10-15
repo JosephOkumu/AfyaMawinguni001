@@ -1,7 +1,12 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { ArrowLeft } from "lucide-react";
 import Footer from "@/components/Footer";
 
 const FAQ = () => {
+  const { user } = useAuth();
+  
   const faqs = [
     {
       question: "How do I book an online doctor consultation?",
@@ -55,8 +60,23 @@ const FAQ = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
+      {/* Navigation Bar - Only show when user is NOT signed in */}
+      {!user && (
+        <nav className="bg-white shadow-sm px-4 py-3">
+          <div className="container mx-auto flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Home</span>
+            </Link>
+            <Link to="/">
+              <img src="/aceso.png" alt="Aceso Health Solutions" className="h-12 w-auto" />
+            </Link>
+          </div>
+        </nav>
+      )}
+      
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-blue-500 to-green-500 text-white py-20">
+      <div className="relative bg-gradient-to-r from-primary-blue to-secondary-green text-custom-white py-20">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl font-bold mb-4">Frequently Asked Questions</h1>
           <p className="text-lg">
@@ -94,6 +114,13 @@ const FAQ = () => {
               <strong>Email:</strong> info@acesohealth.co.ke
             </p>
           </div>
+        </div>
+        
+        {/* Back to Home */}
+        <div className="text-center mt-12">
+          <Link to="/" className="inline-block px-6 py-3 bg-primary-blue text-custom-white font-medium rounded-md hover:bg-blue-700 transition duration-300">
+            Back to Home
+          </Link>
         </div>
       </div>
       

@@ -1,9 +1,28 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { ArrowLeft } from "lucide-react";
 import Footer from "@/components/Footer";
 
 function AboutUs() {
+  const { user } = useAuth();
+
   return (
     <div className="bg-custom-white min-h-screen flex flex-col">
+      {/* Navigation Bar - Only show when user is NOT signed in */}
+      {!user && (
+        <nav className="bg-white shadow-sm px-4 py-3">
+          <div className="container mx-auto flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Home</span>
+            </Link>
+            <Link to="/">
+              <img src="/aceso.png" alt="Aceso Health Solutions" className="h-12 w-auto" />
+            </Link>
+          </div>
+        </nav>
+      )}
+      
       <div className="container mx-auto px-4 py-12">
         {/* Hero Section */}
         <section className="mb-12 text-center bg-gradient-to-r from-primary-blue to-secondary-green text-custom-white p-8 rounded-lg shadow-md">
