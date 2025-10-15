@@ -1207,14 +1207,11 @@ const DoctorDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white p-6">
+    <div className="min-h-screen bg-custom-white p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">
-              <span className="text-primary-blue">ACESO</span>
-              <span className="text-secondary-green"> HEALTH SOLUTIONS</span>
-            </h1>
+            <img src="/aceso.png" alt="Aceso Health Solutions" className="h-[100px] w-auto" />
             <p className="text-gray-600 mt-2">Doctor's Dashboard</p>
           </div>
 
