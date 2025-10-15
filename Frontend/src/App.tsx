@@ -27,7 +27,6 @@ import AboutUs from "./components/AboutUs"; // Correcting the import path for Ab
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import FAQ from "./pages/FAQ";
-import AppointmentDetails from "./pages/AppointmentDetails";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import LoadingBar from "./components/LoadingBar";
@@ -65,10 +64,6 @@ const App = () => (
               <Route
                 path="/patient-dashboard/appointments"
                 element={<PatientAppointments />}
-              />
-              <Route
-                path="/patient-dashboard/appointments/:id"
-                element={<AppointmentDetails />}
               />
 
               {/* Medicine Routes */}

@@ -287,7 +287,9 @@ const AppointmentsSection: React.FC<AppointmentsSectionProps> = ({ searchQuery =
     const hasValidStatus = appointment.status === "confirmed" || appointment.status === "pending" || appointment.status === "scheduled";
     
     if (isVirtualAppointment && hasValidStatus) {
-      navigate(`/patient-dashboard/appointments/${appointment.id}`);
+      // Open VideoCall modal directly instead of navigating to AppointmentDetails page
+      setVideoCallAppointment(appointment as Appointment);
+      setShowVideoCall(true);
     }
   };
 
