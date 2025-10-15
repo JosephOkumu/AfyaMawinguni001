@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import FilterPopover from "@/components/ui/FilterPopover";
 import doctorService, { Doctor } from "@/services/doctorService";
 import reviewService from "@/services/reviewService";
+import Footer from "@/components/Footer";
 
 const defaultDoctorImage =
   "/lovable-uploads/a05b3053-380f-4711-b032-bc48d1c082f0.png";
@@ -210,71 +211,59 @@ const DoctorConsultation = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
+    <div className="min-h-screen bg-custom-white flex flex-col">
       {/* Top Navigation Bar */}
-      <header className="bg-white shadow-sm p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <Link to="/patient-dashboard">
+      <header className="bg-custom-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <nav className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link to="/patient-dashboard" className="flex items-center gap-2.5">
               <img 
                 src="/aceso.png" 
                 alt="Aceso Health Solutions" 
-                className="h-20 w-auto"
+                className="h-[100px] w-auto"
               />
             </Link>
-          </div>
 
-          {/* Search Bar */}
-          <div className="relative hidden md:block max-w-md w-full mx-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="search"
-              placeholder="Search for doctors, specialties..."
-              className="pl-10 w-full border-gray-200 focus-visible:ring-secondary-green"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          {/* User Actions */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              className="relative rounded-full border-none hover:bg-green-50"
-            >
-              <Bell className="h-5 w-5 text-gray-600" />
-              <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="relative rounded-full border-none hover:bg-green-50"
-            >
-              <MessageSquare className="h-5 w-5 text-gray-600" />
-              <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
-            </Button>
-
-            {/* User Profile */}
+            {/* User Actions */}
             <div className="flex items-center gap-3">
-              <div className="hidden md:flex flex-col items-end">
-                <span className="font-medium text-sm">
-                  {user?.name || "User"}
-                </span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="relative rounded-full border-none hover:bg-green-50"
+              >
+                <Bell className="h-5 w-5 text-gray-600" />
+                <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="relative rounded-full border-none hover:bg-green-50"
+              >
+                <MessageSquare className="h-5 w-5 text-gray-600" />
+                <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
+              </Button>
+
+              {/* User Profile */}
+              <div className="flex items-center gap-3">
+                <div className="hidden md:flex flex-col items-end">
+                  <span className="font-medium text-sm">
+                    {user?.name || "User"}
+                  </span>
+                </div>
+                <Avatar className="h-9 w-9 border-2 border-secondary-green/20">
+                  <AvatarFallback className="bg-secondary-green/10 text-secondary-green font-semibold">
+                    {getUserInitials(user?.name || "")}
+                  </AvatarFallback>
+                </Avatar>
               </div>
-              <Avatar className="h-9 w-9 border-2 border-secondary-green/20">
-                <AvatarFallback className="bg-secondary-green/10 text-secondary-green font-semibold">
-                  {getUserInitials(user?.name || "")}
-                </AvatarFallback>
-              </Avatar>
             </div>
-          </div>
+          </nav>
         </div>
       </header>
 
       {/* Dashboard Content */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 flex-1">
         {/* Header Card */}
         <Card className="mb-6 bg-gradient-to-r from-green-500/90 to-teal-600/90 text-white border-none shadow-md">
           <CardContent className="p-6">
@@ -358,6 +347,9 @@ const DoctorConsultation = () => {
           </div>
         )}
       </main>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
