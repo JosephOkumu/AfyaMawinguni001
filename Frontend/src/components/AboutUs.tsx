@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
+import Footer from "@/components/Footer";
 
 function AboutUs() {
   return (
-    <div className="bg-custom-white min-h-screen">
+    <div className="bg-custom-white min-h-screen flex flex-col">
       <div className="container mx-auto px-4 py-12">
         {/* Hero Section */}
         <section className="mb-12 text-center bg-gradient-to-r from-primary-blue to-secondary-green text-custom-white p-8 rounded-lg shadow-md">
@@ -116,6 +117,9 @@ function AboutUs() {
           </Link>
         </div>
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

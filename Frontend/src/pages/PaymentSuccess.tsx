@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import pesapalService from "@/services/pesapalService";
 import appointmentService from "@/services/appointmentService";
 import { useAuth } from "@/contexts/AuthContext";
+import Footer from "@/components/Footer";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -218,39 +219,49 @@ const PaymentSuccess = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <Loader2 className="h-12 w-12 text-blue-500 animate-spin mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Processing Payment</h2>
-            <p className="text-gray-600">
-              Please wait while we confirm your payment and create your
-              appointment...
-            </p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-6 text-center">
+              <div className="mb-4">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500" />
+              </div>
+              <h2 className="text-xl font-semibold mb-2">Processing Payment...</h2>
+              <p className="text-gray-600">
+                Please wait while we verify your payment.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Footer */}
+        <Footer />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-red-700 mb-2">
-              Payment Verification Failed
-            </h2>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <div className="flex flex-col space-y-3">
-              <Button onClick={handleRetry} variant="outline">
-                Try Again
-              </Button>
-              <Button onClick={handleContinue}>Continue to Dashboard</Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-6 text-center">
+              <div className="mb-4">
+                <AlertCircle className="h-8 w-8 mx-auto text-red-500" />
+              </div>
+              <h2 className="text-xl font-semibold mb-2 text-red-600">
+                Payment Error
+              </h2>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <div className="space-y-2">
+                <Button onClick={handleContinue}>Continue to Dashboard</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Footer */}
+        <Footer />
       </div>
     );
   }

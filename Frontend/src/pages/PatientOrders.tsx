@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AIChat from "@/components/AIChat";
+import Footer from "@/components/Footer";
 
 const PatientOrders = () => {
   const { user } = useAuth();
@@ -44,7 +45,7 @@ const PatientOrders = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex flex-col">
       {/* Top Navigation Bar */}
       <header className="bg-white shadow-sm p-4">
         <div className="container mx-auto flex justify-between items-center">
@@ -157,6 +158,9 @@ const PatientOrders = () => {
         </Card>
       </main>
       <AIChat />
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

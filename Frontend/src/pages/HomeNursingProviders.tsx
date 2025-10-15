@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import FilterPopover from "@/components/ui/FilterPopover";
 import nursingService, { NursingProvider } from "@/services/nursingService";
 import reviewService from "@/services/reviewService";
+import Footer from "@/components/Footer";
 
 interface NursingProviderWithServices extends NursingProvider {
   services: Array<{
@@ -309,7 +310,7 @@ const HomeNursingProviders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex flex-col">
       {/* Top Navigation Bar */}
       <header className="bg-white shadow-sm p-4">
         <div className="container mx-auto flex justify-between items-center">
@@ -454,6 +455,9 @@ const HomeNursingProviders = () => {
           )}
         </div>
       </main>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

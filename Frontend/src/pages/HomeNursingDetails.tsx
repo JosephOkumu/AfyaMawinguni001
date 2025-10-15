@@ -27,6 +27,7 @@ import { useCalendarBookings } from "@/hooks/useCalendarBookings";
 import usePesapalPayment from "@/hooks/usePesapalPayment";
 import appointmentService from "@/services/appointmentService";
 import reviewService, { NursingProviderReviewsResponse } from "@/services/reviewService";
+import Footer from "@/components/Footer";
 import {
   Search,
   Bell,
@@ -891,7 +892,7 @@ const HomeNursingDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex flex-col">
       {/* Top Navigation Bar */}
       <header className="bg-white shadow-sm p-4">
         <div className="container mx-auto flex justify-between items-center">
@@ -1545,6 +1546,9 @@ const HomeNursingDetails = () => {
           </Card>
         </div>
       )}
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

@@ -1,8 +1,9 @@
 import React from "react";
+import Footer from "@/components/Footer";
 
 const PrivacyPolicy = () => {
   return (
-    <div className="bg-gray-50">
+    <div className="bg-gray-50 min-h-screen flex flex-col">
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-blue-500 to-green-500 text-white py-20">
         <div className="container mx-auto px-4 text-center">
@@ -207,6 +208,9 @@ const PrivacyPolicy = () => {
           </p>
         </section>
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
