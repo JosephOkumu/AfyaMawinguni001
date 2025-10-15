@@ -2,9 +2,14 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft } from "lucide-react";
 import Footer from "@/components/Footer";
+import { useEffect } from "react";
 
 function AboutUs() {
   const { user } = useAuth();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="bg-custom-white min-h-screen flex flex-col">
