@@ -1,4 +1,5 @@
 import api from "./api";
+import SecureStorage from "../utils/secureStorage";
 
 // Types
 export interface RegisterData {
@@ -60,13 +61,19 @@ const authService = {
     console.log("Extracted token:", token);
     console.log("Extracted user:", user);
 
-    // Store token and user data in localStorage
-    if (token) {
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      console.log("Token stored successfully:", localStorage.getItem("token"));
+    // Store token and user data using secure storage with XSS protection
+    if (token && user) {
+      const tokenStored = SecureStorage.setToken(token, 480); // 8 hours expiration
+      const userStored = SecureStorage.setUser(user);
+      
+      if (!tokenStored || !userStored) {
+        throw new Error("Failed to store authentication data securely");
+      }
+      
+      console.log("Token and user data stored securely");
     } else {
-      console.error("No token found in response!");
+      console.error("No token or user found in response!");
+      throw new Error("Invalid authentication response");
     }
 
     // Return in the format expected by frontend
@@ -81,9 +88,8 @@ const authService = {
     try {
       await api.post("/logout");
     } finally {
-      // Always clear local storage, even if the API call fails
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      // Always clear secure storage, even if the API call fails
+      SecureStorage.clearAll();
     }
   },
 
@@ -93,18 +99,24 @@ const authService = {
     return response.data;
   },
 
-  // Get the current user from localStorage
+  // Get the current user from secure storage
   getStoredUser: () => {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      return JSON.parse(userStr);
-    }
-    return null;
+    return SecureStorage.getUser();
   },
 
-  // Check if user is authenticated
+  // Check if user is authenticated with token validation
   isAuthenticated: (): boolean => {
-    return !!localStorage.getItem("token");
+    return SecureStorage.isAuthenticated();
+  },
+
+  // Get current token
+  getToken: (): string | null => {
+    return SecureStorage.getToken();
+  },
+
+  // Check if token is expiring soon
+  isTokenExpiringSoon: (): boolean => {
+    return SecureStorage.isTokenExpiringSoon();
   },
 };
 
