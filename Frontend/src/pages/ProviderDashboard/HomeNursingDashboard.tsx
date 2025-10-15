@@ -222,156 +222,11 @@ const getDefaultSchedule = (): WeeklySchedule => ({
   Sat: { available: false, times: [] },
 });
 
-// Mock data for nursing appointments
-const mockAppointments: NursingAppointment[] = [
-  {
-    id: 1,
-    patient_id: 1,
-    provider_id: 1,
-    appointment_datetime: new Date().toISOString(),
-    status: "confirmed",
-    type: "in_person",
-    reason_for_visit: "Post-surgical home care",
-    symptoms: "Recovery from surgery, wound care needed",
-    fee: 2500,
-    is_paid: true,
-    location: "Karen, Nairobi",
-    patient: {
-      id: 1,
-      user_id: 1,
-      user: {
-        name: "John Doe",
-        email: "john@example.com",
-        phone_number: "+254712345678",
-      },
-    },
-  },
-  {
-    id: 2,
-    patient_id: 2,
-    provider_id: 1,
-    appointment_datetime: new Date(Date.now() + 86400000).toISOString(),
-    status: "confirmed",
-    type: "in_person",
-    reason_for_visit: "Medication administration",
-    symptoms: "Chronic diabetes management",
-    fee: 2000,
-    is_paid: true,
-    location: "Westlands, Nairobi",
-    patient: {
-      id: 2,
-      user_id: 2,
-      user: {
-        name: "Jane Smith",
-        email: "jane@example.com",
-        phone_number: "+254787654321",
-      },
-    },
-  },
-  {
-    id: 3,
-    patient_id: 3,
-    provider_id: 1,
-    appointment_datetime: new Date(Date.now() + 172800000).toISOString(),
-    status: "scheduled",
-    type: "in_person",
-    reason_for_visit: "Elderly care assistance",
-    symptoms: "General health monitoring and assistance",
-    fee: 3000,
-    is_paid: false,
-    location: "Kileleshwa, Nairobi",
-    patient: {
-      id: 3,
-      user_id: 3,
-      user: {
-        name: "Robert Johnson",
-        email: "robert@example.com",
-        phone_number: "+254798765432",
-      },
-    },
-  },
-  {
-    id: 4,
-    patient_id: 4,
-    provider_id: 1,
-    appointment_datetime: new Date(Date.now() + 259200000).toISOString(),
-    status: "scheduled",
-    type: "in_person",
-    reason_for_visit: "Physical therapy assistance",
-    symptoms: "Post-stroke rehabilitation",
-    fee: 2800,
-    is_paid: false,
-    location: "Lavington, Nairobi",
-    patient: {
-      id: 4,
-      user_id: 4,
-      user: {
-        name: "Mary Wilson",
-        email: "mary@example.com",
-        phone_number: "+254723456789",
-      },
-    },
-  },
-  {
-    id: 5,
-    patient_id: 5,
-    provider_id: 1,
-    appointment_datetime: new Date(Date.now() - 86400000).toISOString(),
-    status: "completed",
-    type: "in_person",
-    reason_for_visit: "Wound care and dressing",
-    symptoms: "Post-operative wound management",
-    fee: 2200,
-    is_paid: true,
-    location: "Kilimani, Nairobi",
-    patient: {
-      id: 5,
-      user_id: 5,
-      user: {
-        name: "David Brown",
-        email: "david@example.com",
-        phone_number: "+254734567890",
-      },
-    },
-  },
-];
+// Empty appointments array for new nursing providers
+const mockAppointments: NursingAppointment[] = [];
 
-// Mock data for existing services
-const mockServices = [
-  {
-    id: "1",
-    name: "General Nursing Care",
-    description:
-      "Basic nursing care including medication administration, wound care, and vital signs monitoring.",
-    location: "Nairobi Central",
-    availability: "24/7",
-    experience: "5+ years",
-    price: "1500",
-    image: "https://randomuser.me/api/portraits/women/44.jpg",
-  },
-  {
-    id: "2",
-    name: "Specialized Care for Chronic Conditions",
-    description:
-      "Customized care for patients with diabetes, hypertension, and other chronic conditions.",
-    location: "Westlands",
-    availability: "Weekdays, 8AM-6PM",
-    experience: "8+ years",
-    price: "2500",
-    image: "https://randomuser.me/api/portraits/men/22.jpg",
-  },
-  {
-    id: "3",
-    name: "Post-Surgical Care",
-    description:
-      "Specialized nursing care for patients recovering from surgery, including wound care and medication management.",
-    location: "Karen",
-    availability: "On demand",
-    experience: "10+ years",
-    price: "2800",
-    image: "https://randomuser.me/api/portraits/women/55.jpg",
-  },
-];
+// Empty services array for new nursing providers
+const mockServices: any[] = [];
 
 interface AxiosErrorType {
   message: string;
@@ -431,10 +286,10 @@ const HomeNursingDashboard = () => {
 
   const profileForm = useForm<ProviderProfileForm>({
     defaultValues: {
-      name: getCurrentUser().name || "",
-      phoneNumber: getCurrentUser().phone_number || "",
-      email: getCurrentUser().email || "",
-      location: "Nairobi, Kenya",
+      name: "",
+      phoneNumber: "",
+      email: "",
+      location: "",
       professionalSummary: "",
       licenseNumber: "",
       availability: "",
