@@ -50,6 +50,7 @@ import doctorService, { TimeSlot as DoctorTimeSlot, Doctor } from "@/services/do
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
 import usePesapalPayment from "@/hooks/usePesapalPayment";
 import appointmentService from "@/services/appointmentService";
+import Footer from "@/components/Footer";
 
 const defaultDoctorImage =
   "/lovable-uploads/a05b3053-380f-4711-b032-bc48d1c082f0.png";
@@ -1128,6 +1129,7 @@ const DoctorDetails = () => {
           </Card>
         </div>
       )}
+      <Footer />
     </div>
   );
 };
