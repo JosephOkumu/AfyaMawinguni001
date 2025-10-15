@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import authService from '../services/authService';
+import authService, { RegisterData, LoginData, AuthResponse } from '../services/authService';
+import SecureStorage from '../utils/secureStorage';
 
 // Type definitions for the auth context
 interface User {
@@ -39,8 +40,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const initAuth = async () => {
       try {
         console.log("🔐 Initializing authentication...");
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+        const token = SecureStorage.getToken();
+        const storedUser = SecureStorage.getUser();
         
         console.log("🔐 Auth check:", {
           hasToken: !!token,
@@ -49,7 +50,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           isAuthenticatedService: authService.isAuthenticated()
         });
         
-        // Check for token in localStorage
+        // Check for token in secure storage
         if (authService.isAuthenticated()) {
           const storedUserData = authService.getStoredUser();
           if (storedUserData) {
@@ -69,9 +70,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (err) {
         console.error("🚨 Authentication initialization error:", err);
-        // If there's an error fetching user data, clear token
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        // If there's an error fetching user data, clear secure storage
+        SecureStorage.clearAll();
         setIsAuthenticated(false);
         setUser(null);
       } finally {
@@ -92,8 +92,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(response.user);
       setIsAuthenticated(true);
       if (token) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(response.user));
+        SecureStorage.setToken(token, 480); // 8 hours
+        SecureStorage.setUser(response.user);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
@@ -113,9 +113,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(response.user);
       setIsAuthenticated(true);
       
-      // Save token and user data to localStorage (was missing)
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      // Token and user data already stored securely in authService.login()
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
       throw err;
