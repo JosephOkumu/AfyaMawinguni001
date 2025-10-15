@@ -28,7 +28,7 @@ const Header = () => {
         <nav className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 z-50">
-            <img src="/aceso.png" alt="Aceso Health Solutions" className="h-16 sm:h-20 md:h-[100px] w-auto" />
+            <img src="/aceso.png" alt="Aceso Health Solutions" className="h-16 sm:h-20 md:h-[100px] w-auto object-cover" style={{objectPosition: '50% 45%', clipPath: 'inset(25% 0 25% 0)'}} />
           </Link>
 
           {/* Desktop Navigation */}
