@@ -23,12 +23,9 @@ const Credentialing = () => {
               Professional credentialing for healthcare professionals and comprehensive compliance support 
               to ensure your facility meets all industry standards and regulatory requirements.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <div className="flex justify-center mt-8">
               <Button className="bg-gradient-to-r from-primary-blue to-secondary-green hover:brightness-110 text-white px-8 py-3 text-lg">
                 Request a Quote
-              </Button>
-              <Button variant="outline" className="border-2 border-primary-blue text-primary-blue hover:bg-primary-blue hover:text-white px-8 py-3 text-lg">
-                Schedule Demo
               </Button>
             </div>
           </div>

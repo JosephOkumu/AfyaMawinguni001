@@ -8,7 +8,6 @@ const CarePackagesSection = () => {
       title: "Post-Surgery Care",
       subtitle: "Recovery Support Package",
       price: "12,500",
-      duration: "7 Days Coverage",
       icon: Heart,
       iconBg: "bg-gradient-to-br from-red-400 to-pink-500",
       cardBg: "bg-gradient-to-br from-white to-red-50/50",
@@ -23,7 +22,6 @@ const CarePackagesSection = () => {
       title: "Post-Maternity Care",
       subtitle: "New Mom & Baby Package",
       price: "10,800",
-      duration: "14 Days Coverage",
       icon: Baby,
       iconBg: "bg-gradient-to-br from-pink-400 to-purple-500",
       cardBg: "bg-gradient-to-br from-white to-pink-50/50",
@@ -38,7 +36,6 @@ const CarePackagesSection = () => {
       title: "Wellness & Preventive",
       subtitle: "Annual Health Package",
       price: "7,500",
-      duration: "Full Year Access",
       icon: Shield,
       iconBg: "bg-gradient-to-br from-green-400 to-blue-500",
       cardBg: "bg-gradient-to-br from-white to-green-50/50",
@@ -102,12 +99,6 @@ const CarePackagesSection = () => {
                   </p>
                 </div>
 
-                {/* Duration Badge */}
-                <div className="text-center mb-6">
-                  <span className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-semibold px-4 py-2 rounded-full">
-                    {pkg.duration}
-                  </span>
-                </div>
               </div>
 
               {/* Features Section */}

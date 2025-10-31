@@ -23,12 +23,9 @@ const MedicalBilling = () => {
               Comprehensive billing lifecycle management from claim submission to payment reconciliation. 
               We handle SHA and private insurance claims with accuracy and compliance.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <div className="flex justify-center mt-8">
               <Button className="bg-gradient-to-r from-primary-blue to-secondary-green hover:brightness-110 text-white px-8 py-3 text-lg">
                 Request a Quote
-              </Button>
-              <Button variant="outline" className="border-2 border-primary-blue text-primary-blue hover:bg-primary-blue hover:text-white px-8 py-3 text-lg">
-                Schedule Demo
               </Button>
             </div>
           </div>
