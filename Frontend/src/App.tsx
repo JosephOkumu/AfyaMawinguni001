@@ -31,6 +31,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import LoadingBar from "./components/LoadingBar";
 import PaymentPage from "./pages/PaymentPage";
+import GlobalAuthModal from "./components/GlobalAuthModal";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <LoadingBar />
+          <GlobalAuthModal />
           <div className="flex flex-col min-h-screen">
             <Routes>
               <Route

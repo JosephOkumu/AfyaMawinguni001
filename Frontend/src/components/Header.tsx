@@ -105,14 +105,31 @@ const Header = () => {
               
               {/* Auth Buttons */}
               <div className="pt-4 border-t space-y-3">
-                <div onClick={() => setIsMobileMenuOpen(false)}>
-                  <AuthButton className="w-full justify-center" />
-                </div>
-                <div onClick={() => setIsMobileMenuOpen(false)}>
-                  <AuthButton defaultTab="signup" className="w-full justify-center">
-                    Register
-                  </AuthButton>
-                </div>
+                <button 
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    const event = new CustomEvent('openAuthModal', { detail: { tab: 'signin' } });
+                    window.dispatchEvent(event);
+                  }}
+                  className="w-full justify-center bg-gradient-to-r from-primary-blue to-secondary-green hover:brightness-110 hover:scale-[1.02] text-white shadow-sm hover:shadow-md transition-all duration-300 h-10 px-4 py-2 rounded-md font-medium text-sm inline-flex items-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    <polyline points="10,17 15,12 10,7"/>
+                    <line x1="15" x2="3" y1="12" y2="12"/>
+                  </svg>
+                  Sign In
+                </button>
+                <button 
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    const event = new CustomEvent('openAuthModal', { detail: { tab: 'signup' } });
+                    window.dispatchEvent(event);
+                  }}
+                  className="w-full justify-center bg-gradient-to-r from-primary-blue to-secondary-green hover:brightness-110 hover:scale-[1.02] text-white shadow-sm hover:shadow-md transition-all duration-300 h-11 px-8 py-2 rounded-md font-medium text-sm inline-flex items-center gap-2"
+                >
+                  Register
+                </button>
               </div>
             </div>
           </div>

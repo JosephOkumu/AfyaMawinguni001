@@ -206,9 +206,11 @@ const AuthModal = ({ isOpen, onClose, defaultTab = "signin" }: AuthModalProps) =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] p-0 max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="bg-gradient-to-r from-primary-blue to-secondary-green p-6 text-white">
-          <DialogTitle className="text-2xl font-bold text-center">Welcome to Aceso Health Solutions</DialogTitle>
+      <DialogContent className="sm:max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto z-[9999] fixed">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-primary-blue to-secondary-green bg-clip-text text-transparent">
+            Welcome to Aceso Health Solutions
+          </DialogTitle>
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "signin" | "signup")} className="w-full">

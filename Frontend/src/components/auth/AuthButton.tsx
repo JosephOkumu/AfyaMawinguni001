@@ -7,15 +7,21 @@ interface AuthButtonProps {
   defaultTab?: "signin" | "signup";
   className?: string;
   children?: React.ReactNode;
+  onModalOpen?: () => void;
 }
 
-const AuthButton = ({ defaultTab = "signin", className, children }: AuthButtonProps) => {
+const AuthButton = ({ defaultTab = "signin", className, children, onModalOpen }: AuthButtonProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleClick = () => {
+    setIsModalOpen(true);
+    onModalOpen?.();
+  };
 
   return (
     <>
       <Button 
-        onClick={() => setIsModalOpen(true)}
+        onClick={handleClick}
         className={className || "bg-gradient-to-r from-primary-blue to-secondary-green hover:brightness-110 hover:scale-[1.02] text-white shadow-sm hover:shadow-md transition-all duration-300"}
         size={defaultTab === "signup" ? "lg" : "default"}
       >
