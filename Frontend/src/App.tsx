@@ -8,6 +8,9 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Header from "./components/Header";
 import PatientDashboard from "./pages/PatientDashboard";
+import MedicalBilling from "./pages/services/MedicalBilling";
+import RemoteAdmin from "./pages/services/RemoteAdmin";
+import Credentialing from "./pages/services/Credentialing";
 import PatientOrders from "./pages/PatientOrders";
 import PatientAppointments from "./pages/PatientAppointments";
 import PatientMedicines from "./pages/PatientMedicines";
@@ -172,6 +175,11 @@ const App = () => (
                   </>
                 }
               />
+
+              {/* Services Routes */}
+              <Route path="/services/medical-billing" element={<MedicalBilling />} />
+              <Route path="/services/remote-admin" element={<RemoteAdmin />} />
+              <Route path="/services/credentialing" element={<Credentialing />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminLogin />} />

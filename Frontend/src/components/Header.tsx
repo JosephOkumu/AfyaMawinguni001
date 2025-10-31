@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import AuthButton from "./auth/AuthButton";
 import { Menu, X, ChevronDown } from "lucide-react";
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -32,29 +33,36 @@ const Header = () => {
     // Add navigation logic based on service type
     switch (service) {
       case 'doctor-consultations':
-        // Navigate to doctor consultations page or section
-        console.log('Navigate to doctor consultations');
+        // Navigate to doctor consultations page (patient dashboard)
+        navigate('/patient-dashboard/consultation');
         break;
       case 'medicine-delivery':
-        console.log('Navigate to medicine delivery');
+        // Navigate to medicine delivery page
+        navigate('/patient-dashboard/medicines');
         break;
       case 'laboratory-services':
-        console.log('Navigate to laboratory services');
+        // Navigate to laboratory services page
+        navigate('/patient-dashboard/lab-tests');
         break;
       case 'home-nursing':
-        console.log('Navigate to home nursing');
+        // Navigate to home nursing page
+        navigate('/patient-dashboard/nursing');
         break;
       case 'medical-billing':
-        console.log('Navigate to medical billing');
+        // Navigate to medical billing service page
+        navigate('/services/medical-billing');
         break;
       case 'admin-support':
-        console.log('Navigate to admin support');
+        // Navigate to remote admin service page
+        navigate('/services/remote-admin');
         break;
       case 'credentialing':
-        console.log('Navigate to credentialing');
+        // Navigate to credentialing service page
+        navigate('/services/credentialing');
         break;
       case 'partner':
-        console.log('Navigate to partner page');
+        // Navigate to about us page for partnership info
+        navigate('/about-us');
         break;
       default:
         break;
