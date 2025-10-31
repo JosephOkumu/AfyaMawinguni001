@@ -1,7 +1,7 @@
 
 import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
-import AccountsSection from "@/components/home/AccountsSection";
+import CarePackagesSection from "@/components/home/CarePackagesSection";
 import Footer from "@/components/Footer";
 import AuthButton from "@/components/auth/AuthButton";
 import AIChat from "@/components/AIChat";
@@ -19,9 +19,9 @@ const Index = () => {
         <FeaturesSection />
       </div>
 
-      {/* Account Types Section */}
-      <div id="accounts">
-        <AccountsSection />
+      {/* Care Packages Section */}
+      <div id="care-packages">
+        <CarePackagesSection />
       </div>
       
       {/* Call to Action Section */}

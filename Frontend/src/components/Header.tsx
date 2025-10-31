@@ -185,10 +185,10 @@ const Header = () => {
               )}
             </div>
             <button 
-              onClick={() => scrollToSection('accounts')} 
+              onClick={() => scrollToSection('care-packages')} 
               className="text-custom-dark hover:text-primary-blue font-medium transition-colors"
             >
-              Accounts
+              Care Packages
             </button>
             <Link 
               to="/about-us"
@@ -315,12 +315,12 @@ const Header = () => {
                 </div>
               <button 
                 onClick={() => {
-                  scrollToSection('accounts');
+                  scrollToSection('care-packages');
                   setIsMobileMenuOpen(false);
                 }} 
                 className="block w-full text-left py-3 px-4 text-custom-dark hover:text-primary-blue hover:bg-gray-50 font-medium transition-colors rounded-lg"
               >
-                Accounts
+                Care Packages
               </button>
               <Link 
                 to="/about-us"
