@@ -1,12 +1,65 @@
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import AuthButton from "./auth/AuthButton";
-import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 
 const Header = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Click outside handler for dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsServicesDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Navigation handlers
+  const handleServiceNavigation = (service: string) => {
+    setIsServicesDropdownOpen(false);
+    setIsMobileMenuOpen(false);
+    
+    // Add navigation logic based on service type
+    switch (service) {
+      case 'doctor-consultations':
+        // Navigate to doctor consultations page or section
+        console.log('Navigate to doctor consultations');
+        break;
+      case 'medicine-delivery':
+        console.log('Navigate to medicine delivery');
+        break;
+      case 'laboratory-services':
+        console.log('Navigate to laboratory services');
+        break;
+      case 'home-nursing':
+        console.log('Navigate to home nursing');
+        break;
+      case 'medical-billing':
+        console.log('Navigate to medical billing');
+        break;
+      case 'admin-support':
+        console.log('Navigate to admin support');
+        break;
+      case 'credentialing':
+        console.log('Navigate to credentialing');
+        break;
+      case 'partner':
+        console.log('Navigate to partner page');
+        break;
+      default:
+        break;
+    }
+  };
 
   const scrollToSection = (id: string) => {
     // First, check if we're on the home page
@@ -34,12 +87,103 @@ const Header = () => {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-6">
             {/* Navigation Links */}
-            <button 
-              onClick={() => scrollToSection('services')} 
-              className="text-custom-dark hover:text-primary-blue font-medium transition-colors"
-            >
-              Services
-            </button>
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setIsServicesDropdownOpen(!isServicesDropdownOpen)}
+                onMouseEnter={() => setIsServicesDropdownOpen(true)}
+                className="flex items-center gap-1 text-custom-dark hover:text-primary-blue font-medium transition-colors"
+              >
+                Services
+                <ChevronDown className={`h-4 w-4 transition-transform ${isServicesDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {/* Services Dropdown */}
+              {isServicesDropdownOpen && (
+                <div 
+                  className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-50"
+                  onMouseLeave={() => setIsServicesDropdownOpen(false)}
+                >
+                  <div className="p-4">
+                    {/* View All Services Option */}
+                    <button
+                      onClick={() => {
+                        scrollToSection('services');
+                        setIsServicesDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm font-medium text-primary-blue hover:bg-blue-50 rounded-md mb-3 border-b border-gray-100"
+                    >
+                      View All Our Services
+                    </button>
+                    
+                    {/* For Patients */}
+                    <div className="mb-4">
+                      <h3 className="font-semibold text-gray-900 mb-2 text-sm">For Patients</h3>
+                      <div className="space-y-1">
+                        <button 
+                          onClick={() => handleServiceNavigation('doctor-consultations')}
+                          className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue rounded-md"
+                        >
+                          Doctor Consultations
+                        </button>
+                        <button 
+                          onClick={() => handleServiceNavigation('medicine-delivery')}
+                          className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue rounded-md"
+                        >
+                          Medicine Delivery
+                        </button>
+                        <button 
+                          onClick={() => handleServiceNavigation('laboratory-services')}
+                          className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue rounded-md"
+                        >
+                          Laboratory Services
+                        </button>
+                        <button 
+                          onClick={() => handleServiceNavigation('home-nursing')}
+                          className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue rounded-md"
+                        >
+                          Home Nursing Care
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* For Providers */}
+                    <div className="mb-4">
+                      <h3 className="font-semibold text-gray-900 mb-2 text-sm">For Providers</h3>
+                      <div className="space-y-1">
+                        <button 
+                          onClick={() => handleServiceNavigation('medical-billing')}
+                          className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue rounded-md"
+                        >
+                          Medical Billing
+                        </button>
+                        <button 
+                          onClick={() => handleServiceNavigation('admin-support')}
+                          className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue rounded-md"
+                        >
+                          Remote Admin Support
+                        </button>
+                        <button 
+                          onClick={() => handleServiceNavigation('credentialing')}
+                          className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue rounded-md"
+                        >
+                          Credentialing Services
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Partner With Us */}
+                    <div>
+                      <button 
+                        onClick={() => handleServiceNavigation('partner')}
+                        className="w-full text-left px-3 py-2 text-sm font-medium text-secondary-green hover:bg-green-50 rounded-md"
+                      >
+                        Partner With Us
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             <button 
               onClick={() => scrollToSection('accounts')} 
               className="text-custom-dark hover:text-primary-blue font-medium transition-colors"
@@ -72,20 +216,103 @@ const Header = () => {
           </button>
         </nav>
 
-        {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden absolute top-16 left-0 right-0 bg-custom-white shadow-lg border-t z-40">
-            <div className="px-4 py-6 space-y-4">
-              {/* Navigation Links */}
-              <button 
-                onClick={() => {
-                  scrollToSection('services');
-                  setIsMobileMenuOpen(false);
-                }} 
-                className="block w-full text-left py-3 px-4 text-custom-dark hover:text-primary-blue hover:bg-gray-50 font-medium transition-colors rounded-lg"
-              >
-                Services
-              </button>
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden absolute top-16 left-0 right-0 bg-white shadow-lg border-t z-40">
+              <div className="px-4 py-6 space-y-4">
+                {/* Mobile Services Dropdown */}
+                <div>
+                  <button 
+                    onClick={() => setIsServicesDropdownOpen(!isServicesDropdownOpen)}
+                    className="flex items-center justify-between w-full text-left text-custom-dark hover:text-primary-blue font-medium py-2"
+                  >
+                    Services
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isServicesDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {/* Mobile Services Dropdown Content */}
+                  {isServicesDropdownOpen && (
+                    <div className="mt-2 ml-4 space-y-3 border-l-2 border-gray-100 pl-4">
+                      {/* View All Services Option */}
+                      <button
+                        onClick={() => {
+                          scrollToSection('services');
+                          setIsMobileMenuOpen(false);
+                          setIsServicesDropdownOpen(false);
+                        }}
+                        className="block w-full text-left text-sm font-medium text-primary-blue py-1"
+                      >
+                        View All Our Services
+                      </button>
+                      
+                      {/* For Patients */}
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1 text-sm">For Patients</h4>
+                        <div className="space-y-1 ml-2">
+                          <button 
+                            onClick={() => handleServiceNavigation('doctor-consultations')}
+                            className="block w-full text-left text-sm text-gray-700 py-1"
+                          >
+                            Doctor Consultations
+                          </button>
+                          <button 
+                            onClick={() => handleServiceNavigation('medicine-delivery')}
+                            className="block w-full text-left text-sm text-gray-700 py-1"
+                          >
+                            Medicine Delivery
+                          </button>
+                          <button 
+                            onClick={() => handleServiceNavigation('laboratory-services')}
+                            className="block w-full text-left text-sm text-gray-700 py-1"
+                          >
+                            Laboratory Services
+                          </button>
+                          <button 
+                            onClick={() => handleServiceNavigation('home-nursing')}
+                            className="block w-full text-left text-sm text-gray-700 py-1"
+                          >
+                            Home Nursing Care
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* For Providers */}
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1 text-sm">For Providers</h4>
+                        <div className="space-y-1 ml-2">
+                          <button 
+                            onClick={() => handleServiceNavigation('medical-billing')}
+                            className="block w-full text-left text-sm text-gray-700 py-1"
+                          >
+                            Medical Billing
+                          </button>
+                          <button 
+                            onClick={() => handleServiceNavigation('admin-support')}
+                            className="block w-full text-left text-sm text-gray-700 py-1"
+                          >
+                            Remote Admin Support
+                          </button>
+                          <button 
+                            onClick={() => handleServiceNavigation('credentialing')}
+                            className="block w-full text-left text-sm text-gray-700 py-1"
+                          >
+                            Credentialing Services
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Partner With Us */}
+                      <div>
+                        <button 
+                          onClick={() => handleServiceNavigation('partner')}
+                          className="block w-full text-left text-sm font-medium text-secondary-green py-1"
+                        >
+                          Partner With Us
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               <button 
                 onClick={() => {
                   scrollToSection('accounts');
